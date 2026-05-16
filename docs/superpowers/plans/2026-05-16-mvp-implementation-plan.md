@@ -84,6 +84,136 @@ liveknowledge/
 
 ---
 
+## Task 0: Logging Infrastructure
+
+**Files:**
+- Create: `backend/src/plugins/request-trace.ts`
+- Create: `backend/src/services/extraction/logger.ts`
+- Create: `backend/.env`
+- Modify: `backend/src/app.ts`
+
+### Step 0.1: Configure Fastify logger with Pino
+
+Fastify has Pino built-in. Configure it in `backend/src/app.ts` before other plugins:
+
+```typescript
+const app = Fastify({
+  logger: {
+    level: process.env.LOG_LEVEL || 'debug',
+    transport: process.env.NODE_ENV !== 'production' ? {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'SYS:standard',
+        ignore: 'pid,hostname',
+      },
+    } : undefined,
+    redact: {
+      paths: ['req.headers.authorization', 'req.headers.cookie', 'password', 'apiKey', 'apiKeyEncrypted'],
+      remove: true,
+    },
+  },
+});
+```
+
+### Step 0.2: Create request trace plugin
+
+Create `backend/src/plugins/request-trace.ts`:
+
+```typescript
+import fp from 'fastify-plugin';
+
+export default fp(async (fastify) => {
+  fastify.addHook('onRequest', async (request) => {
+    request.log = request.log.child({
+      requestId: request.id,
+      userId: request.session?.userId || 'anonymous',
+    });
+  });
+
+  fastify.addHook('onResponse', async (request, reply) => {
+    request.log.info(
+      { statusCode: reply.statusCode, duration: Math.round(reply.elapsedTime) },
+      `← ${reply.statusCode} (${Math.round(reply.elapsedTime)}ms)`
+    );
+  });
+});
+```
+
+Register it in `backend/src/app.ts`:
+
+```typescript
+import requestTrace from './plugins/request-trace.js';
+await app.register(requestTrace);
+```
+
+### Step 0.3: Create Job logger utility
+
+Create `backend/src/services/extraction/logger.ts`:
+
+```typescript
+import { FastifyBaseLogger } from 'fastify';
+
+export class JobLogger {
+  constructor(private log: FastifyBaseLogger, private jobId: string) {}
+
+  step(step: string, status: 'started' | 'completed' | 'failed', detail?: object) {
+    const duration = detail?.['durationMs'] as number | undefined;
+    this.log.info(
+      { jobId: this.jobId, step, status, ...detail },
+      `Job[${this.jobId}] ${step} ${status}${duration ? ` (${duration}ms)` : ''}`
+    );
+  }
+
+  debug(step: string, detail: object) {
+    this.log.debug({ jobId: this.jobId, step, ...detail }, `Job[${this.jobId}] ${step}`);
+  }
+
+  error(step: string, err: Error) {
+    this.log.error({ jobId: this.jobId, step, err }, `Job[${this.jobId}] ${step} FAILED`);
+  }
+}
+```
+
+### Step 0.4: Create .env with LOG_LEVEL
+
+Create `backend/.env`:
+
+```
+DATABASE_URL=postgres://lk:lk_password@localhost:5432/liveknowledge
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=lk_password
+SESSION_SECRET=your-session-secret-change-me-in-production
+PORT=3001
+LOG_LEVEL=debug
+```
+
+### Step 0.5: Test logging
+
+Run: `cd backend && npm run dev`
+
+Expected: Console shows colored logs. Verify with:
+
+```bash
+curl http://localhost:3001/health
+```
+
+Expected output:
+```
+[10:30:15] INFO: [req-xxx] → GET /health
+[10:30:15] INFO: [req-xxx] ← 200 (2ms)
+```
+
+### Step 0.6: Commit
+
+```bash
+git add backend/src/plugins/request-trace.ts backend/src/services/extraction/logger.ts backend/.env backend/src/app.ts
+git commit -m "feat(logging): pino request tracing + job logger + env config"
+```
+
+---
+
 ## Task 1: Project Infrastructure
 
 **Files:**
