@@ -4,6 +4,7 @@ import { messages, chatSessions, personas } from '../db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 import { streamChat, chat } from '../services/ai-provider.js';
+import { rewriteQuery, retrieve, formatContext } from '../services/rag.js';
 
 const sendSchema = z.object({
   content: z.string().min(1),
@@ -43,6 +44,15 @@ export async function messageRoutes(app: FastifyInstance) {
       if (persona) {
         systemPrompt = persona.systemPromptTemplate;
       }
+    }
+
+    // RAG: retrieve relevant context
+    const rewrittenQuery = await rewriteQuery(userId, body.content, request.log);
+    const retrievedChunks = await retrieve({ userId, query: rewrittenQuery, topK: 5 }, request.log);
+    const contextStr = formatContext(retrievedChunks);
+
+    if (contextStr) {
+      systemPrompt += `\n\n以下是从知识库中检索到的相关内容，请在回答时参考：\n\n${contextStr}`;
     }
 
     const recentMessages = await db.select().from(messages)
@@ -101,6 +111,15 @@ export async function messageRoutes(app: FastifyInstance) {
       if (persona) {
         systemPrompt = persona.systemPromptTemplate;
       }
+    }
+
+    // RAG: retrieve relevant context
+    const rewrittenQuery = await rewriteQuery(userId, body.content, request.log);
+    const retrievedChunks = await retrieve({ userId, query: rewrittenQuery, topK: 5 }, request.log);
+    const contextStr = formatContext(retrievedChunks);
+
+    if (contextStr) {
+      systemPrompt += `\n\n以下是从知识库中检索到的相关内容，请在回答时参考：\n\n${contextStr}`;
     }
 
     const recentMessages = await db.select().from(messages)
