@@ -7,6 +7,7 @@ import requestTrace from './plugins/request-trace.js';
 import authPlugin from './plugins/auth.js';
 import { authRoutes } from './routes/auth.js';
 import { personaRoutes } from './routes/personas.js';
+import { providerRoutes } from './routes/providers.js';
 import { db } from './db/index.js';
 import { users, personas } from './db/schema.js';
 import { eq } from 'drizzle-orm';
@@ -63,6 +64,7 @@ export async function buildApp() {
 
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(personaRoutes, { prefix: '/api/personas' });
+  await app.register(providerRoutes, { prefix: '/api/providers' });
 
   // Seed default personas for existing users on startup
   app.addHook('onReady', async () => {
