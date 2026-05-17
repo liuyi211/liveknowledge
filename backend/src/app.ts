@@ -65,6 +65,7 @@ export async function buildApp() {
       secure: false,
       httpOnly: true,
       maxAge: 86400000,
+      sameSite: 'lax',
     },
   });
 

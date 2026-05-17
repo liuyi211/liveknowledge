@@ -1,7 +1,7 @@
 import { db } from '../db/index.js';
 import { embeddings, notes } from '../db/schema.js';
 import { eq, sql, desc } from 'drizzle-orm';
-import { chat } from './ai-provider.js';
+import { chat, getDefaultChatModel } from './ai-provider.js';
 import type { FastifyBaseLogger } from 'fastify';
 
 interface RetrieveOptions {
@@ -36,8 +36,10 @@ ${sessionTopic ? `当前会话主题：${sessionTopic}` : ''}
 只输出改写后的查询，不要解释。`;
 
   try {
+    const defaultConfig = await getDefaultChatModel(userId);
     const rewritten = await chat(userId, {
-      model: 'gpt-4o-mini',
+      model: defaultConfig.model,
+      providerType: defaultConfig.providerType,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
       maxTokens: 200,

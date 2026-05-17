@@ -3,7 +3,7 @@ import { db } from '../db/index.js';
 import { messages, chatSessions, personas } from '../db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
-import { streamChat, chat } from '../services/ai-provider.js';
+import { streamChat, chat, getDefaultChatModel } from '../services/ai-provider.js';
 import { rewriteQuery, retrieve, formatContext } from '../services/rag.js';
 
 const sendSchema = z.object({
@@ -37,6 +37,18 @@ export async function messageRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Session not found' });
     }
 
+    let model = session.modelId;
+    let providerType: string | undefined;
+    if (!model) {
+      try {
+        const defaultConfig = await getDefaultChatModel(userId);
+        model = defaultConfig.model;
+        providerType = defaultConfig.providerType;
+      } catch (err) {
+        return reply.status(400).send({ error: (err as Error).message });
+      }
+    }
+
     let systemPrompt = 'You are a helpful assistant.';
     if (session.personaId) {
       const [persona] = await db.select().from(personas)
@@ -68,8 +80,7 @@ export async function messageRoutes(app: FastifyInstance) {
       })),
     ];
 
-    const model = session.modelId || 'gpt-4o-mini';
-    const response = await chat(userId, { model, messages: chatMessages }, request.log);
+    const response = await chat(userId, { model, messages: chatMessages, providerType }, request.log);
 
     const [assistantMessage] = await db.insert(messages).values({
       sessionId,
@@ -104,6 +115,18 @@ export async function messageRoutes(app: FastifyInstance) {
       return reply.status(404).send({ error: 'Session not found' });
     }
 
+    let model = session.modelId;
+    let providerType: string | undefined;
+    if (!model) {
+      try {
+        const defaultConfig = await getDefaultChatModel(userId);
+        model = defaultConfig.model;
+        providerType = defaultConfig.providerType;
+      } catch (err) {
+        return reply.status(400).send({ error: (err as Error).message });
+      }
+    }
+
     let systemPrompt = 'You are a helpful assistant.';
     if (session.personaId) {
       const [persona] = await db.select().from(personas)
@@ -135,8 +158,6 @@ export async function messageRoutes(app: FastifyInstance) {
       })),
     ];
 
-    const model = session.modelId || 'gpt-4o-mini';
-
     reply.raw.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
@@ -146,7 +167,7 @@ export async function messageRoutes(app: FastifyInstance) {
     let fullResponse = '';
 
     try {
-      for await (const chunk of streamChat(userId, { model, messages: chatMessages }, request.log)) {
+      for await (const chunk of streamChat(userId, { model, messages: chatMessages, providerType }, request.log)) {
         fullResponse += chunk;
         reply.raw.write(`data: ${JSON.stringify({ type: 'chunk', content: chunk })}\n\n`);
       }

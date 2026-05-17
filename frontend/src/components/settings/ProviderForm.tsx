@@ -54,21 +54,35 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveMessage, setSaveMessage] = useState('');
 
   // Load existing config on mount
-  useEffect(() => {
+  const loadConfig = () => {
     api.providers.list().then((configs: Array<ProviderConfig & { purpose: string; isActive: boolean }>) => {
       const existing = configs.find((c) => c.purpose === purpose && c.isActive);
       if (existing) {
         setConfig({
           providerType: existing.providerType,
-          apiKey: '', // Don't show encrypted key
+          apiKey: '',
           baseUrl: existing.baseUrl || '',
           model: existing.model || '',
         });
         setHasExisting(true);
+      } else {
+        // Reset to defaults if no existing config
+        setConfig({
+          providerType: 'zhipu',
+          apiKey: '',
+          baseUrl: DEFAULT_BASE_URLS['zhipu'],
+          model: DEFAULT_MODELS['zhipu'],
+        });
+        setHasExisting(false);
       }
     }).catch(() => {});
+  };
+
+  useEffect(() => {
+    loadConfig();
   }, [purpose]);
 
   const handleProviderChange = (providerType: string) => {
@@ -109,10 +123,12 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
   const handleSave = async () => {
     if (!config.apiKey && !hasExisting) {
       setSaveStatus('error');
+      setSaveMessage('首次保存需要输入 API Key');
       return;
     }
 
     setSaveStatus('saving');
+    setSaveMessage('');
     try {
       await api.providers.create({
         providerType: config.providerType,
@@ -123,12 +139,10 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
       });
       setSaveStatus('saved');
       setHasExisting(true);
-      // 保存成功后清空输入框（原值已在后端保留）
-      setConfig((prev) => ({ ...prev, apiKey: '' }));
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (err) {
       setSaveStatus('error');
-      setTestMessage((err as Error).message);
+      setSaveMessage((err as Error).message);
     }
   };
 
@@ -235,7 +249,13 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
           <button
             onClick={handleSave}
             disabled={saveStatus === 'saving'}
-            className="flex items-center space-x-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className={`flex items-center space-x-1 px-4 py-2 rounded-md transition-colors ${
+              saveStatus === 'saved'
+                ? 'bg-green-600 hover:bg-green-700'
+                : saveStatus === 'error'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-blue-600 hover:bg-blue-700'
+            } text-white disabled:opacity-50`}
           >
             {saveStatus === 'saving' ? (
               <Loader2 size={16} className="animate-spin" />
@@ -243,13 +263,17 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
               <Check size={16} />
             ) : null}
             <span>
-              {saveStatus === 'saving' ? '保存中...' : saveStatus === 'saved' ? '已保存' : '保存'}
+              {saveStatus === 'saving' ? '保存中...' : saveStatus === 'saved' ? '已保存' : saveStatus === 'error' ? '保存失败' : '保存'}
             </span>
           </button>
         </div>
 
+        {/* Error messages */}
         {testMessage && testStatus === 'error' && (
           <p className="text-sm text-red-600">{testMessage}</p>
+        )}
+        {saveMessage && saveStatus === 'error' && (
+          <p className="text-sm text-red-600">{saveMessage}</p>
         )}
       </div>
     </div>

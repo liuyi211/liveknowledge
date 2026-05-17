@@ -15,9 +15,10 @@ export interface ChatOptions {
   messages: ChatMessage[];
   temperature?: number;
   maxTokens?: number;
+  providerType?: string;
 }
 
-const PROVIDER_MODELS: Record<string, { baseURL: string; models: string[] }> = {
+export const PROVIDER_MODELS: Record<string, { baseURL: string; models: string[] }> = {
   openai: {
     baseURL: 'https://api.openai.com/v1',
     models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'],
@@ -79,12 +80,32 @@ export async function createProviderClient(userId: string, providerType: string,
   });
 }
 
+export async function getDefaultChatModel(userId: string): Promise<{ model: string; providerType: string }> {
+  const [config] = await db.select().from(aiProviderConfigs)
+    .where(and(
+      eq(aiProviderConfigs.userId, userId),
+      eq(aiProviderConfigs.purpose, 'chat'),
+      eq(aiProviderConfigs.isActive, true)
+    )).limit(1);
+
+  if (!config) {
+    throw new Error('未配置对话模型，请先在设置中配置 AI Provider');
+  }
+
+  const model = config.model || PROVIDER_MODELS[config.providerType]?.models[0];
+  if (!model) {
+    throw new Error(`Provider ${config.providerType} 没有可用的模型，请在设置中明确指定`);
+  }
+
+  return { model, providerType: config.providerType };
+}
+
 export async function* streamChat(
   userId: string,
   options: ChatOptions,
   log: FastifyBaseLogger
 ): AsyncGenerator<string, void, unknown> {
-  const providerType = detectProvider(options.model);
+  const providerType = options.providerType || detectProvider(options.model);
   if (!providerType) {
     throw new Error(`Unknown model: ${options.model}`);
   }
@@ -123,7 +144,7 @@ export async function* streamChat(
 }
 
 export async function chat(userId: string, options: ChatOptions, log: FastifyBaseLogger): Promise<string> {
-  const providerType = detectProvider(options.model);
+  const providerType = options.providerType || detectProvider(options.model);
   if (!providerType) {
     throw new Error(`Unknown model: ${options.model}`);
   }
