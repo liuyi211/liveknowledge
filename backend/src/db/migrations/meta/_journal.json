@@ -15,6 +15,13 @@
       "when": 1778993044452,
       "tag": "0001_right_sentinels",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779003671160,
+      "tag": "0002_noisy_klaw",
+      "breakpoints": true
     }
   ]
 }

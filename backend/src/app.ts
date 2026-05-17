@@ -12,6 +12,7 @@ import { providerRoutes } from './routes/providers.js';
 import { sessionRoutes } from './routes/sessions.js';
 import { messageRoutes } from './routes/messages.js';
 import { noteRoutes } from './routes/notes.js';
+import { folderRoutes } from './routes/folders.js';
 import { db } from './db/index.js';
 import { users, personas } from './db/schema.js';
 import { eq } from 'drizzle-orm';
@@ -81,6 +82,7 @@ export async function buildApp() {
   await app.register(sessionRoutes, { prefix: '/api/sessions' });
   await app.register(messageRoutes, { prefix: '/api/messages' });
   await app.register(noteRoutes, { prefix: '/api/notes' });
+  await app.register(folderRoutes, { prefix: '/api/folders' });
 
   // Seed default personas for existing users on startup
   app.addHook('onReady', async () => {

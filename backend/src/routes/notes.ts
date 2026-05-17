@@ -1,19 +1,41 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
 import { notes } from '../db/schema.js';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, or, ilike, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 const noteSchema = z.object({
   title: z.string().min(1).max(200),
   content: z.string().default(''),
   tags: z.array(z.string()).optional(),
+  folderId: z.string().uuid().nullable().optional(),
+});
+
+const listQuerySchema = z.object({
+  folderId: z.string().optional(),
+  q: z.string().optional(),
 });
 
 export async function noteRoutes(app: FastifyInstance) {
   app.get('/', { onRequest: [app.authenticate] }, async (request) => {
+    const { folderId, q } = listQuerySchema.parse(request.query ?? {});
+    const userId = request.user!.id;
+
+    const conditions = [eq(notes.userId, userId)];
+
+    if (q && q.trim()) {
+      const pattern = `%${q.trim()}%`;
+      conditions.push(or(ilike(notes.title, pattern), ilike(notes.content, pattern))!);
+    } else if (folderId !== undefined) {
+      if (folderId === '' || folderId === 'null' || folderId === 'root') {
+        conditions.push(isNull(notes.folderId));
+      } else {
+        conditions.push(eq(notes.folderId, folderId));
+      }
+    }
+
     return db.select().from(notes)
-      .where(eq(notes.userId, request.user!.id))
+      .where(and(...conditions))
       .orderBy(desc(notes.updatedAt));
   });
 
@@ -24,6 +46,7 @@ export async function noteRoutes(app: FastifyInstance) {
       title: body.title,
       content: body.content,
       tags: body.tags || null,
+      folderId: body.folderId ?? null,
     }).returning();
     return note;
   });

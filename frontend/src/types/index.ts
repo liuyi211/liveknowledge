@@ -34,6 +34,15 @@ export interface Note {
   title: string;
   content: string;
   tags: string[] | null;
+  folderId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  parentId: string | null;
   createdAt: string;
   updatedAt: string;
 }

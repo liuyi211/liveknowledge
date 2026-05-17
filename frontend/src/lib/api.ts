@@ -1,13 +1,14 @@
 const API_BASE = '';
 
 async function fetchApi(path: string, options: RequestInit = {}) {
+  const headers: Record<string, string> = { ...(options.headers as Record<string, string> | undefined) };
+  if (options.body && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -56,12 +57,29 @@ export const api = {
   },
 
   notes: {
-    list: () => fetchApi('/api/notes'),
-    create: (data: { title: string; content: string; tags?: string[] }) =>
+    list: (params?: { folderId?: string | null; q?: string }) => {
+      const search = new URLSearchParams();
+      if (params?.q) search.set('q', params.q);
+      else if (params?.folderId !== undefined) {
+        search.set('folderId', params.folderId === null ? 'root' : params.folderId);
+      }
+      const qs = search.toString();
+      return fetchApi(`/api/notes${qs ? `?${qs}` : ''}`);
+    },
+    create: (data: { title: string; content: string; tags?: string[]; folderId?: string | null }) =>
       fetchApi('/api/notes', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: string, data: Partial<{ title: string; content: string; tags: string[] }>) =>
+    update: (id: string, data: Partial<{ title: string; content: string; tags: string[]; folderId: string | null }>) =>
       fetchApi(`/api/notes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => fetchApi(`/api/notes/${id}`, { method: 'DELETE' }),
+  },
+
+  folders: {
+    list: () => fetchApi('/api/folders'),
+    create: (data: { name: string; parentId?: string | null }) =>
+      fetchApi('/api/folders', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: Partial<{ name: string; parentId: string | null }>) =>
+      fetchApi(`/api/folders/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: (id: string) => fetchApi(`/api/folders/${id}`, { method: 'DELETE' }),
   },
 
   providers: {
