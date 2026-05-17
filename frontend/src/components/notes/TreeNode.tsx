@@ -65,7 +65,25 @@ export function FolderRow({ folder, depth, childFolders, childNotes, folderChild
 
   const commitRename = async () => {
     const trimmed = name.trim();
-    if (!trimmed || trimmed === folder.name) {
+    if (trimmed === folder.name) {
+      setRenamingItem(null);
+      return;
+    }
+    if (!trimmed) {
+      alert('文件夹名称不能为空');
+      setName(folder.name);
+      setRenamingItem(null);
+      return;
+    }
+    if (trimmed.length > 100) {
+      alert('文件夹名称不能超过 100 个字符');
+      setName(folder.name);
+      setRenamingItem(null);
+      return;
+    }
+    if (/[\/\\<>:"|?*]/.test(trimmed)) {
+      alert('名称不能包含以下非法字符：/ \\ < > : " | ? *');
+      setName(folder.name);
       setRenamingItem(null);
       return;
     }
@@ -233,7 +251,25 @@ export function NoteRow({ note, depth, highlight }: NoteRowProps) {
 
   const commitRename = async () => {
     const trimmed = name.trim();
-    if (!trimmed || trimmed === note.title) {
+    if (trimmed === note.title) {
+      setRenamingItem(null);
+      return;
+    }
+    if (!trimmed) {
+      alert('笔记标题不能为空');
+      setName(note.title);
+      setRenamingItem(null);
+      return;
+    }
+    if (trimmed.length > 100) {
+      alert('笔记标题不能超过 100 个字符');
+      setName(note.title);
+      setRenamingItem(null);
+      return;
+    }
+    if (/[\/\\<>:"|?*]/.test(trimmed)) {
+      alert('标题不能包含以下非法字符：/ \\ < > : " | ? *');
+      setName(note.title);
       setRenamingItem(null);
       return;
     }

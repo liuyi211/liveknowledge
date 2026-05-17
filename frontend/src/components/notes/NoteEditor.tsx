@@ -32,6 +32,17 @@ export default function NoteEditor() {
     }
   }, [selectedNote?.id]);
 
+  // 同步外部对当前笔记的修改（如树中重命名）
+  useEffect(() => {
+    if (!selectedNote || !lastSavedRef.current) return;
+    const last = lastSavedRef.current;
+    if (last.title !== selectedNote.title || last.content !== selectedNote.content) {
+      setTitle(selectedNote.title);
+      setContent(selectedNote.content);
+      lastSavedRef.current = { title: selectedNote.title, content: selectedNote.content };
+    }
+  }, [selectedNote?.title, selectedNote?.content]);
+
   useEffect(() => {
     if (!selectedNote) return;
     const last = lastSavedRef.current;
@@ -101,7 +112,12 @@ export default function NoteEditor() {
       <input
         type="text"
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v.length > 100) return;
+          if (/[\/\\<>:"|?*]/.test(v)) return;
+          setTitle(v);
+        }}
         className="px-12 pt-8 pb-2 text-3xl font-bold focus:outline-none bg-white placeholder-gray-300"
         placeholder="无标题"
       />
