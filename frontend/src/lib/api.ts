@@ -111,6 +111,13 @@ export const api = {
     update: (id: string, data: Partial<{ title: string; content: string; tags: string[]; folderId: string | null }>) =>
       fetchApi(`/api/notes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => fetchApi(`/api/notes/${id}`, { method: 'DELETE' }),
+    index: (id: string) => fetchApi(`/api/notes/${id}/index`, { method: 'POST' }),
+    indexStatus: (id: string) => fetchApi(`/api/notes/${id}/index-status`),
+  },
+
+  retrieval: {
+    getSettings: () => fetchApi('/api/retrieval/settings'),
+    updateSettings: (data: any) => fetchApi('/api/retrieval/settings', { method: 'PUT', body: JSON.stringify(data) }),
   },
 
   folders: {

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/stores/app-store';
 import { api } from '@/lib/api';
-import { Eye, Pencil, Check, Loader2 } from 'lucide-react';
+import { Eye, Pencil, Check, Loader2, Database } from 'lucide-react';
 import MarkdownPreview from './MarkdownPreview';
 
 type SaveState = 'idle' | 'saving' | 'saved';
@@ -19,6 +19,7 @@ export default function NoteEditor() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [indexStatus, setIndexStatus] = useState<any>(null);
   const lastSavedRef = useRef<{ title: string; content: string } | null>(null);
 
   useEffect(() => {
@@ -27,8 +28,33 @@ export default function NoteEditor() {
       setContent(selectedNote.content);
       lastSavedRef.current = { title: selectedNote.title, content: selectedNote.content };
       setSaveState('idle');
+      // Load index status
+      api.notes.indexStatus(selectedNote.id).then(setIndexStatus).catch(() => setIndexStatus(null));
     } else {
       lastSavedRef.current = null;
+      setIndexStatus(null);
+    }
+  }, [selectedNote?.id]);
+
+  const handleIndex = useCallback(async () => {
+    if (!selectedNote) return;
+    setIndexStatus({ indexStatus: 'chunking' });
+    try {
+      await api.notes.index(selectedNote.id);
+      // Poll for status
+      const interval = setInterval(async () => {
+        try {
+          const status = await api.notes.indexStatus(selectedNote.id);
+          setIndexStatus(status);
+          if (['done', 'failed'].includes(status.indexStatus)) {
+            clearInterval(interval);
+          }
+        } catch {
+          clearInterval(interval);
+        }
+      }, 1500);
+    } catch {
+      setIndexStatus({ indexStatus: 'failed' });
     }
   }, [selectedNote?.id]);
 
@@ -106,6 +132,23 @@ export default function NoteEditor() {
             预览
           </button>
         </div>
+        <button
+          onClick={handleIndex}
+          disabled={['chunking', 'embedding', 'storing'].includes(indexStatus?.indexStatus)}
+          className={`flex items-center gap-1 px-3 py-1 text-xs rounded-md transition ml-2 ${
+            indexStatus?.indexStatus === 'done'
+              ? 'bg-green-50 text-green-700 hover:bg-green-100'
+              : ['chunking', 'embedding', 'storing'].includes(indexStatus?.indexStatus)
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+          }`}
+          title="建立知识库索引，使笔记内容可被检索"
+        >
+          <Database size={12} />
+          {indexStatus?.indexStatus === 'done' ? '已索引' :
+           ['chunking', 'embedding', 'storing'].includes(indexStatus?.indexStatus) ? '索引中...' :
+           '建立索引'}
+        </button>
       </div>
 
       {/* Title */}

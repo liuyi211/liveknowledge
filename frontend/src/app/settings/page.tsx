@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProviderForm from '@/components/settings/ProviderForm';
+import RetrievalSettings from '@/components/settings/RetrievalSettings';
 import { api } from '@/lib/api';
 import Sidebar from '@/components/layout/Sidebar';
 import { Bot, Database } from 'lucide-react';
@@ -46,6 +47,10 @@ export default function SettingsPage() {
             purpose="embedding"
             icon={<Database size={20} className="text-green-600" />}
           />
+
+          <div className="mt-8">
+            <RetrievalSettings />
+          </div>
         </div>
       </div>
     </div>
