@@ -135,7 +135,7 @@ export async function* streamChat(
   const client = await createProviderClient(userId, providerType);
   const startTime = Date.now();
 
-  log.info({ provider: providerType, model: options.model }, 'AI: provider call start');
+  log.debug({ provider: providerType, model: options.model }, 'AI: provider call start');
 
   try {
     const stream = await client.chat.completions.create({
@@ -166,7 +166,7 @@ export async function* streamChat(
     }
 
     const duration = Date.now() - startTime;
-    log.info({ duration, chunkCount }, 'AI: provider call done');
+    log.debug({ duration, chunkCount }, 'AI: provider call done');
   } catch (err) {
     if ((err as any).name === 'AbortError') {
       log.info('AI: stream aborted by user');
@@ -186,7 +186,7 @@ export async function chat(userId: string, options: ChatOptions, log: FastifyBas
   const client = await createProviderClient(userId, providerType);
   const startTime = Date.now();
 
-  log.info({ provider: providerType, model: options.model }, 'AI: provider call start');
+  log.debug({ provider: providerType, model: options.model }, 'AI: provider call start');
 
   try {
     const response = await client.chat.completions.create({
@@ -202,7 +202,7 @@ export async function chat(userId: string, options: ChatOptions, log: FastifyBas
     const thinkingContent = (message as any)?.reasoning_content;
 
     const duration = Date.now() - startTime;
-    log.info({ duration, tokens: response.usage?.total_tokens }, 'AI: provider call done');
+    log.debug({ duration, tokens: response.usage?.total_tokens }, 'AI: provider call done');
 
     return { content, thinkingContent };
   } catch (err) {

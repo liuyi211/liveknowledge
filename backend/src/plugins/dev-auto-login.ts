@@ -15,7 +15,7 @@ const DEV_PASSWORD = 'dev123';
 export default fp(async (fastify) => {
   const enabled = process.env.DEV_AUTO_LOGIN !== 'false';
   if (process.env.NODE_ENV === 'production' || !enabled) {
-    fastify.log.info('Dev auto-login: disabled');
+    fastify.log.debug('Dev auto-login: disabled');
     return;
   }
 
@@ -39,7 +39,7 @@ export default fp(async (fastify) => {
         username: DEV_USERNAME,
         passwordHash,
       }).returning();
-      fastify.log.info({ userId: user.id }, 'Dev auto-login: created test user');
+      fastify.log.debug({ userId: user.id }, 'Dev auto-login: created test user');
     }
 
     // Auto-login

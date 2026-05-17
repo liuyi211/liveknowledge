@@ -159,7 +159,7 @@ export async function noteRoutes(app: FastifyInstance) {
     // Trigger async indexing
     const { indexNote } = await import('../services/indexing.js');
     indexNote(id, userId).catch(err => {
-      console.error('Indexing failed:', err);
+      app.log.error({ err }, 'Indexing failed');
       db.update(notes)
         .set({ indexStatus: 'failed', indexError: err.message })
         .where(eq(notes.id, id));

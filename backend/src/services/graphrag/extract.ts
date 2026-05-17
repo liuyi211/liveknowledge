@@ -66,7 +66,7 @@ ${text.slice(0, 3000)}
       relations: parsed.relations || [],
     };
   } catch (err) {
-    console.error('Entity extraction failed:', err);
+    extractLogger.error({ err }, 'Entity extraction failed');
     return { entities: [], relations: [] };
   }
 }
