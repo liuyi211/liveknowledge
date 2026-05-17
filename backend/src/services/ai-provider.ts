@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { db } from '../db/index.js';
 import { aiProviderConfigs } from '../db/schema.js';
 import { eq, and } from 'drizzle-orm';
+import { decrypt } from '../utils/crypto.js';
 import type { FastifyBaseLogger } from 'fastify';
 
 export interface ChatMessage {
@@ -65,8 +66,10 @@ export async function createProviderClient(userId: string, providerType: string)
   const providerConfig = PROVIDER_MODELS[providerType];
   const baseURL = config.baseUrl || providerConfig?.baseURL;
 
+  const apiKey = decrypt(config.apiKeyEncrypted);
+
   return new OpenAI({
-    apiKey: config.apiKeyEncrypted,
+    apiKey,
     baseURL,
   });
 }

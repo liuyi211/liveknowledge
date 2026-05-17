@@ -51,8 +51,14 @@ export async function buildApp() {
   });
 
   await app.register(cookie);
+
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret || sessionSecret.length < 32) {
+    throw new Error('SESSION_SECRET environment variable is required and must be at least 32 characters long');
+  }
+
   await app.register(session, {
-    secret: process.env.SESSION_SECRET || 'default-secret-change-me',
+    secret: sessionSecret,
     cookie: {
       secure: false,
       httpOnly: true,

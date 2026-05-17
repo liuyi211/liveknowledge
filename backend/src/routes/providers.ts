@@ -4,6 +4,7 @@ import { aiProviderConfigs } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { getProviderModels } from '../services/ai-provider.js';
+import { encrypt } from '../utils/crypto.js';
 
 const configSchema = z.object({
   providerType: z.enum(['openai', 'deepseek', 'zhipu', 'moonshot']),
@@ -37,7 +38,7 @@ export async function providerRoutes(app: FastifyInstance) {
     const [config] = await db.insert(aiProviderConfigs).values({
       userId,
       providerType: body.providerType,
-      apiKeyEncrypted: body.apiKey,
+      apiKeyEncrypted: encrypt(body.apiKey),
       baseUrl: body.baseUrl || null,
       isActive: true,
     }).returning();
