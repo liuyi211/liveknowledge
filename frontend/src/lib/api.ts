@@ -120,6 +120,14 @@ export const api = {
     updateSettings: (data: any) => fetchApi('/api/retrieval/settings', { method: 'PUT', body: JSON.stringify(data) }),
   },
 
+  extraction: {
+    createJob: (sourceType: string, sourceId: string) =>
+      fetchApi('/api/extraction/jobs', { method: 'POST', body: JSON.stringify({ sourceType, sourceId }) }),
+    getJob: (jobId: string) => fetchApi(`/api/extraction/jobs/${jobId}`),
+    adopt: (jobId: string, data: any) =>
+      fetchApi(`/api/extraction/jobs/${jobId}/adopt`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
   folders: {
     list: () => fetchApi('/api/folders'),
     create: (data: { name: string; parentId?: string | null }) =>

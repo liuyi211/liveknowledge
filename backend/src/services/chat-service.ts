@@ -2,7 +2,7 @@ import { db } from '../db/index.js';
 import { messages } from '../db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { streamChat, chat, supportsVision, type ChatMessage } from './ai-provider.js';
-import { rewriteQuery, retrieve, formatContext } from './rag.js';
+import { retrieveContext } from './retrieval/index.js';
 import * as sessionService from './session-service.js';
 import * as messageService from './message-service.js';
 import { isImageFile } from './file-handler.js';
@@ -27,12 +27,10 @@ export async function buildSystemPrompt(
   }
 
   // RAG retrieval
-  const rewrittenQuery = await rewriteQuery(userId, query, log);
-  const retrievedChunks = await retrieve({ userId, query: rewrittenQuery, topK: 5 }, log);
-  const contextStr = formatContext(retrievedChunks);
+  const contextStr = await retrieveContext(query, userId);
 
   if (contextStr) {
-    systemPrompt += `\n\n以下是从知识库中检索到的相关内容，请在回答时参考：\n\n${contextStr}`;
+    systemPrompt += `\n\n${contextStr}`;
   }
 
   // Attachment context

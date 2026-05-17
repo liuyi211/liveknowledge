@@ -5,6 +5,8 @@ import { useAppStore } from '@/stores/app-store';
 import { api } from '@/lib/api';
 import { Eye, Pencil, Check, Loader2, Database } from 'lucide-react';
 import MarkdownPreview from './MarkdownPreview';
+import ExtractionButton from '../extraction/ExtractionButton';
+import ExtractionPanel from '../extraction/ExtractionPanel';
 
 type SaveState = 'idle' | 'saving' | 'saved';
 
@@ -20,6 +22,8 @@ export default function NoteEditor() {
   const [content, setContent] = useState('');
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [indexStatus, setIndexStatus] = useState<any>(null);
+  const [extractionJob, setExtractionJob] = useState<any>(null);
+  const [showExtractionPanel, setShowExtractionPanel] = useState(false);
   const lastSavedRef = useRef<{ title: string; content: string } | null>(null);
 
   useEffect(() => {
@@ -149,6 +153,14 @@ export default function NoteEditor() {
            ['chunking', 'embedding', 'storing'].includes(indexStatus?.indexStatus) ? '索引中...' :
            '建立索引'}
         </button>
+        <ExtractionButton
+          sourceType="note"
+          sourceId={selectedNote.id}
+          onComplete={(job) => {
+            setExtractionJob(job);
+            setShowExtractionPanel(true);
+          }}
+        />
       </div>
 
       {/* Title */}
@@ -180,6 +192,13 @@ export default function NoteEditor() {
           </div>
         )}
       </div>
+
+      {showExtractionPanel && extractionJob && (
+        <ExtractionPanel
+          job={extractionJob}
+          onClose={() => setShowExtractionPanel(false)}
+        />
+      )}
     </div>
   );
 }
