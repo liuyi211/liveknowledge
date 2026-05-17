@@ -7,11 +7,11 @@ export default fp(async (fastify: FastifyInstance) => {
       requestId: request.id,
       userId: (request as any).session?.userId || 'anonymous',
     });
-    request.log.info({ method: request.method, url: request.url }, `-> ${request.method} ${request.url}`);
+    request.log.debug({ method: request.method, url: request.url }, `-> ${request.method} ${request.url}`);
   });
 
   fastify.addHook('onResponse', async (request, reply) => {
-    request.log.info(
+    request.log.debug(
       { statusCode: reply.statusCode, duration: Math.round(reply.elapsedTime) },
       `<- ${reply.statusCode} (${Math.round(reply.elapsedTime)}ms)`
     );

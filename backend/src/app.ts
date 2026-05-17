@@ -34,6 +34,7 @@ declare module 'fastify' {
 
 export async function buildApp() {
   const app = Fastify({
+    disableRequestLogging: true,
     logger: {
       level: process.env.LOG_LEVEL || 'debug',
       transport: process.env.NODE_ENV !== 'production' ? {
