@@ -16,8 +16,20 @@ export interface ChatSession {
   title: string;
   personaId: string | null;
   modelId: string | null;
+  messageCount: number;
+  lastMessagePreview: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Attachment {
+  id: string;
+  messageId: string;
+  fileName: string;
+  fileType: string;
+  fileSize: number;
+  filePath: string;
+  extractedText: string | null;
 }
 
 export interface Message {
@@ -26,7 +38,14 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   modelId: string | null;
+  tokensUsed: number | null;
+  parentId: string | null;
+  version: number;
+  isDeleted: boolean;
+  feedback: 'like' | 'dislike' | null;
+  thinkingContent: string | null;
   createdAt: string;
+  attachments?: Attachment[];
 }
 
 export interface Note {

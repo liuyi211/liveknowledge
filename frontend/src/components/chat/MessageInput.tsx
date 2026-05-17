@@ -1,82 +1,57 @@
 'use client';
 
-import { useState } from 'react';
-import { Send, Square } from 'lucide-react';
-import { useAppStore } from '@/stores/app-store';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Send, Square, Paperclip, X, FileText, Image, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { useChatStore } from '@/stores/chat-store';
 import { api } from '@/lib/api';
+
+interface PendingAttachment {
+  file: File;
+  fileName: string;
+  fileType: string;
+  filePath: string;
+  extractedText?: string;
+}
+
+function getFileIcon(fileType: string) {
+  if (fileType.startsWith('image/')) return <Image size={14} />;
+  if (fileType.includes('word') || fileType.includes('document')) return <FileSpreadsheet size={14} />;
+  return <FileText size={14} />;
+}
 
 export default function MessageInput() {
   const [input, setInput] = useState('');
-  const currentSession = useAppStore((s) => s.currentSession);
-  const addMessage = useAppStore((s) => s.addMessage);
-  const updateLastMessage = useAppStore((s) => s.updateLastMessage);
-  const setIsStreaming = useAppStore((s) => s.setIsStreaming);
-  const isStreaming = useAppStore((s) => s.isStreaming);
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const currentSession = useChatStore((s) => s.currentSession);
+  const sendMessage = useChatStore((s) => s.sendMessage);
+  const isStreaming = useChatStore((s) => s.isStreaming);
+  const abortStream = useChatStore((s) => s.abortStream);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const isUploading = uploadingCount > 0;
 
-  const handleSend = async () => {
-    if (!input.trim() || !currentSession || isStreaming) return;
+  const handleSend = useCallback(async () => {
+    if ((!input.trim() && pendingAttachments.length === 0) || !currentSession || isStreaming) return;
 
-    const content = input.trim();
+    const content = input.trim() || (pendingAttachments.length > 0 ? '请分析上传的文件' : '');
     setInput('');
 
-    // Add user message immediately
-    addMessage({
-      id: `temp-${Date.now()}`,
-      sessionId: currentSession.id,
-      role: 'user',
-      content,
-      modelId: null,
-      createdAt: new Date().toISOString(),
-    });
+    const attachments = pendingAttachments.map((a) => ({
+      fileName: a.fileName,
+      fileType: a.fileType,
+      filePath: a.filePath,
+      extractedText: a.extractedText,
+    }));
 
-    setIsStreaming(true);
+    setPendingAttachments([]);
 
-    // Add placeholder assistant message
-    addMessage({
-      id: `temp-${Date.now()}-assistant`,
-      sessionId: currentSession.id,
-      role: 'assistant',
-      content: '',
-      modelId: null,
-      createdAt: new Date().toISOString(),
-    });
+    await sendMessage(content, attachments);
+  }, [input, pendingAttachments, currentSession, isStreaming, sendMessage]);
 
-    try {
-      const response = await api.messages.sendStream(currentSession.id, content);
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const { value, done: streamDone } = await reader.read();
-        done = streamDone;
-        if (!value) continue;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n\n');
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          const data = JSON.parse(line.slice(6));
-
-          if (data.type === 'chunk') {
-            updateLastMessage(data.content);
-          } else if (data.type === 'done') {
-            done = true;
-          } else if (data.type === 'error') {
-            updateLastMessage(`\n\nError: ${data.error}`);
-            done = true;
-          }
-        }
-      }
-    } catch (err) {
-      updateLastMessage(`\n\nError: ${(err as Error).message}`);
-    } finally {
-      setIsStreaming(false);
-    }
-  };
+  const handleStop = useCallback(() => {
+    abortStream?.();
+  }, [abortStream]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -85,24 +60,148 @@ export default function MessageInput() {
     }
   };
 
+  const uploadSingleFile = async (file: File) => {
+    setUploadingCount((c) => c + 1);
+    try {
+      const result = await api.upload.uploadFile(file);
+      setPendingAttachments((prev) => [
+        ...prev,
+        {
+          file,
+          fileName: result.fileName,
+          fileType: result.fileType,
+          filePath: result.filePath,
+          extractedText: result.extractedText,
+        },
+      ]);
+    } catch (err) {
+      alert(`上传失败 "${file.name}": ${(err as Error).message}`);
+    } finally {
+      setUploadingCount((c) => Math.max(0, c - 1));
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    await Promise.all(Array.from(files).map(uploadSingleFile));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageItems: File[] = [];
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) imageItems.push(file);
+      }
+    }
+
+    if (imageItems.length > 0) {
+      e.preventDefault();
+      await Promise.all(imageItems.map(uploadSingleFile));
+    }
+  }, []);
+
+  const removeAttachment = (index: number) => {
+    setPendingAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [input]);
+
   return (
-    <div className="border-t p-4 bg-white">
-      <div className="flex items-center space-x-2">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
-          rows={1}
-          className="flex-1 px-4 py-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+    <div className="border-t border-gray-200 bg-white px-4 py-3">
+      {/* Pending attachments + uploading indicator */}
+      {(pendingAttachments.length > 0 || isUploading) && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {pendingAttachments.map((att, i) => (
+            <div
+              key={i}
+              className="flex items-center space-x-1.5 bg-gray-100 px-2 py-1 rounded-lg text-xs text-gray-600"
+            >
+              {getFileIcon(att.fileType)}
+              <span className="max-w-[120px] truncate">{att.fileName}</span>
+              <button
+                onClick={() => removeAttachment(i)}
+                className="text-gray-400 hover:text-red-500"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+          {isUploading && (
+            <div className="flex items-center space-x-1.5 bg-blue-50 px-2 py-1 rounded-lg text-xs text-blue-600">
+              <Loader2 size={14} className="animate-spin" />
+              <span>上传中 ({uploadingCount})...</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex items-end space-x-2">
+        {/* Attachment button */}
         <button
-          onClick={handleSend}
-          disabled={isStreaming || !input.trim()}
-          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading || isStreaming}
+          className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
         >
-          {isStreaming ? <Square size={20} /> : <Send size={20} />}
+          <Paperclip size={18} />
         </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept="image/*,.pdf,.txt,.md,.json,.js,.ts,.py,.html,.css,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+
+        {/* Textarea */}
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={(e) => {
+            setInput(e.target.value);
+            adjustTextareaHeight();
+          }}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          placeholder="输入消息... (Shift+Enter 换行，粘贴图片直接上传)"
+          rows={1}
+          disabled={isStreaming}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm leading-relaxed min-h-[40px] max-h-[200px] disabled:bg-gray-50"
+        />
+
+        {/* Send/Stop button */}
+        {isStreaming ? (
+          <button
+            onClick={handleStop}
+            className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+          >
+            <Square size={18} fill="currentColor" />
+          </button>
+        ) : (
+          <button
+            onClick={handleSend}
+            disabled={(!input.trim() && pendingAttachments.length === 0) || isUploading}
+            className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <Send size={18} />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import cookie from '@fastify/cookie';
 import session from '@fastify/session';
+import multipart from '@fastify/multipart';
 import dotenv from 'dotenv';
 import requestTrace from './plugins/request-trace.js';
 import authPlugin from './plugins/auth.js';
@@ -11,6 +12,7 @@ import { personaRoutes } from './routes/personas.js';
 import { providerRoutes } from './routes/providers.js';
 import { sessionRoutes } from './routes/sessions.js';
 import { messageRoutes } from './routes/messages.js';
+import { uploadRoutes } from './routes/uploads.js';
 import { noteRoutes } from './routes/notes.js';
 import { folderRoutes } from './routes/folders.js';
 import { db } from './db/index.js';
@@ -70,6 +72,8 @@ export async function buildApp() {
     },
   });
 
+  await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
+
   await app.register(requestTrace);
   await app.register(authPlugin);
   await app.register(devAutoLogin);
@@ -81,6 +85,7 @@ export async function buildApp() {
   await app.register(providerRoutes, { prefix: '/api/providers' });
   await app.register(sessionRoutes, { prefix: '/api/sessions' });
   await app.register(messageRoutes, { prefix: '/api/messages' });
+  await app.register(uploadRoutes, { prefix: '/api/upload' });
   await app.register(noteRoutes, { prefix: '/api/notes' });
   await app.register(folderRoutes, { prefix: '/api/folders' });
 

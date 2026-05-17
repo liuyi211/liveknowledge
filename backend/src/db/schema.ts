@@ -41,6 +41,8 @@ export const chatSessions = pgTable('chat_sessions', {
   personaId: uuid('persona_id').references(() => personas.id),
   modelId: varchar('model_id', { length: 100 }),
   title: varchar('title', { length: 200 }).default('New Chat'),
+  messageCount: integer('message_count').default(0).notNull(),
+  lastMessagePreview: varchar('last_message_preview', { length: 200 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -52,6 +54,22 @@ export const messages = pgTable('messages', {
   content: text('content').notNull(),
   modelId: varchar('model_id', { length: 100 }),
   tokensUsed: integer('tokens_used'),
+  parentId: uuid('parent_id'),
+  version: integer('version').default(1).notNull(),
+  isDeleted: boolean('is_deleted').default(false).notNull(),
+  feedback: varchar('feedback', { length: 10 }),
+  thinkingContent: text('thinking_content'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const attachments = pgTable('attachments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  messageId: uuid('message_id').references(() => messages.id, { onDelete: 'cascade' }).notNull(),
+  fileName: varchar('file_name', { length: 255 }).notNull(),
+  fileType: varchar('file_type', { length: 100 }).notNull(),
+  fileSize: integer('file_size').notNull(),
+  filePath: text('file_path').notNull(),
+  extractedText: text('extracted_text'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

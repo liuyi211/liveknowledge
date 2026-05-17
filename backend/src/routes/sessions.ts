@@ -1,8 +1,6 @@
 import { FastifyInstance } from 'fastify';
-import { db } from '../db/index.js';
-import { chatSessions, messages } from '../db/schema.js';
-import { eq, and, desc } from 'drizzle-orm';
 import { z } from 'zod';
+import * as sessionService from '../services/session-service.js';
 
 const createSchema = z.object({
   personaId: z.string().optional(),
@@ -10,59 +8,67 @@ const createSchema = z.object({
   title: z.string().optional(),
 });
 
+const listQuerySchema = z.object({
+  q: z.string().optional(),
+  sort: z.enum(['updated', 'created']).optional().default('updated'),
+  limit: z.coerce.number().optional().default(100),
+  offset: z.coerce.number().optional().default(0),
+});
+
 export async function sessionRoutes(app: FastifyInstance) {
   app.get('/', { onRequest: [app.authenticate] }, async (request) => {
-    return db.select().from(chatSessions)
-      .where(eq(chatSessions.userId, request.user!.id))
-      .orderBy(desc(chatSessions.updatedAt));
+    const query = listQuerySchema.parse(request.query);
+    return sessionService.listSessions({
+      userId: request.user!.id,
+      q: query.q,
+      sort: query.sort,
+      limit: query.limit,
+      offset: query.offset,
+    });
   });
 
   app.post('/', { onRequest: [app.authenticate] }, async (request) => {
     const body = createSchema.parse(request.body);
-    const [session] = await db.insert(chatSessions).values({
+    return sessionService.createSession({
       userId: request.user!.id,
-      personaId: body.personaId || null,
-      modelId: body.modelId || null,
-      title: body.title || 'New Chat',
-    }).returning();
-    return session;
+      title: body.title,
+      personaId: body.personaId,
+      modelId: body.modelId,
+    });
   });
 
   app.get('/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const userId = request.user!.id;
 
-    const [session] = await db.select().from(chatSessions)
-      .where(and(eq(chatSessions.id, id), eq(chatSessions.userId, userId)))
-      .limit(1);
+    const result = await sessionService.getSessionWithMessages(id, userId);
+    if (!result) {
+      return reply.status(404).send({ error: 'Session not found' });
+    }
+    return result;
+  });
 
+  app.patch('/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const body = createSchema.partial().parse(request.body);
+    const userId = request.user!.id;
+
+    const session = await sessionService.updateSession(id, userId, body);
     if (!session) {
       return reply.status(404).send({ error: 'Session not found' });
     }
-
-    const sessionMessages = await db.select().from(messages)
-      .where(eq(messages.sessionId, id))
-      .orderBy(messages.createdAt);
-
-    return { ...session, messages: sessionMessages };
-  });
-
-  app.patch('/:id', { onRequest: [app.authenticate] }, async (request) => {
-    const { id } = request.params as { id: string };
-    const body = createSchema.partial().parse(request.body);
-
-    const [session] = await db.update(chatSessions)
-      .set({ ...body, updatedAt: new Date() })
-      .where(and(eq(chatSessions.id, id), eq(chatSessions.userId, request.user!.id)))
-      .returning();
-
     return session;
   });
 
   app.delete('/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    await db.delete(chatSessions)
-      .where(and(eq(chatSessions.id, id), eq(chatSessions.userId, request.user!.id)));
+    await sessionService.deleteSession(id, request.user!.id);
     return reply.send({ message: 'Deleted' });
+  });
+
+  app.post('/:id/clear', { onRequest: [app.authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    await sessionService.clearSessionMessages(id, request.user!.id);
+    return reply.send({ message: 'Cleared' });
   });
 }

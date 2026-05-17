@@ -5,9 +5,15 @@ import { eq, and } from 'drizzle-orm';
 import { decrypt } from '../utils/crypto.js';
 import type { FastifyBaseLogger } from 'fastify';
 
+export interface ChatMessageContent {
+  type: 'text' | 'image_url';
+  text?: string;
+  image_url?: { url: string };
+}
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | ChatMessageContent[];
 }
 
 export interface ChatOptions {
@@ -18,10 +24,16 @@ export interface ChatOptions {
   providerType?: string;
 }
 
-export const PROVIDER_MODELS: Record<string, { baseURL: string; models: string[] }> = {
+export interface StreamChunk {
+  type: 'content' | 'thinking';
+  content: string;
+}
+
+export const PROVIDER_MODELS: Record<string, { baseURL: string; models: string[]; supportsVision?: boolean }> = {
   openai: {
     baseURL: 'https://api.openai.com/v1',
     models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'],
+    supportsVision: true,
   },
   deepseek: {
     baseURL: 'https://api.deepseek.com/v1',
@@ -30,14 +42,17 @@ export const PROVIDER_MODELS: Record<string, { baseURL: string; models: string[]
   zhipu: {
     baseURL: 'https://open.bigmodel.cn/api/paas/v4',
     models: ['glm-4-flash', 'glm-4-air', 'glm-4-plus'],
+    supportsVision: true,
   },
   moonshot: {
     baseURL: 'https://api.moonshot.cn/v1',
     models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
+    supportsVision: true,
   },
   bailian: {
     baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     models: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-coder-plus'],
+    supportsVision: true,
   },
 };
 
@@ -54,6 +69,12 @@ export function getProviderModels(): Record<string, string[]> {
     result[provider] = config.models;
   }
   return result;
+}
+
+export function supportsVision(model: string): boolean {
+  const provider = detectProvider(model);
+  if (!provider) return false;
+  return PROVIDER_MODELS[provider]?.supportsVision ?? false;
 }
 
 export async function createProviderClient(userId: string, providerType: string, purpose: string = 'chat') {
@@ -103,8 +124,9 @@ export async function getDefaultChatModel(userId: string): Promise<{ model: stri
 export async function* streamChat(
   userId: string,
   options: ChatOptions,
-  log: FastifyBaseLogger
-): AsyncGenerator<string, void, unknown> {
+  log: FastifyBaseLogger,
+  abortSignal?: AbortSignal
+): AsyncGenerator<StreamChunk, void, unknown> {
   const providerType = options.providerType || detectProvider(options.model);
   if (!providerType) {
     throw new Error(`Unknown model: ${options.model}`);
@@ -118,32 +140,44 @@ export async function* streamChat(
   try {
     const stream = await client.chat.completions.create({
       model: options.model,
-      messages: options.messages,
+      messages: options.messages as any,
       temperature: options.temperature ?? 0.7,
       max_tokens: options.maxTokens,
       stream: true,
-    });
+    }, { signal: abortSignal });
 
     let chunkCount = 0;
 
     for await (const chunk of stream) {
+      if (abortSignal?.aborted) break;
+
+      // DeepSeek reasoning content
+      const reasoning = (chunk.choices[0]?.delta as any)?.reasoning_content;
+      if (reasoning) {
+        yield { type: 'thinking', content: reasoning };
+      }
+
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
         chunkCount++;
         log.debug({ chunk: chunkCount, length: content.length }, 'AI: stream chunk');
-        yield content;
+        yield { type: 'content', content };
       }
     }
 
     const duration = Date.now() - startTime;
     log.info({ duration, chunkCount }, 'AI: provider call done');
   } catch (err) {
+    if ((err as any).name === 'AbortError') {
+      log.info('AI: stream aborted by user');
+      return;
+    }
     log.error({ err }, 'AI: provider call failed');
     throw err;
   }
 }
 
-export async function chat(userId: string, options: ChatOptions, log: FastifyBaseLogger): Promise<string> {
+export async function chat(userId: string, options: ChatOptions, log: FastifyBaseLogger): Promise<{ content: string; thinkingContent?: string }> {
   const providerType = options.providerType || detectProvider(options.model);
   if (!providerType) {
     throw new Error(`Unknown model: ${options.model}`);
@@ -157,17 +191,20 @@ export async function chat(userId: string, options: ChatOptions, log: FastifyBas
   try {
     const response = await client.chat.completions.create({
       model: options.model,
-      messages: options.messages,
+      messages: options.messages as any,
       temperature: options.temperature ?? 0.7,
       max_tokens: options.maxTokens,
       stream: false,
     });
 
-    const content = response.choices[0]?.message?.content || '';
+    const message = response.choices[0]?.message;
+    const content = message?.content || '';
+    const thinkingContent = (message as any)?.reasoning_content;
+
     const duration = Date.now() - startTime;
     log.info({ duration, tokens: response.usage?.total_tokens }, 'AI: provider call done');
 
-    return content;
+    return { content, thinkingContent };
   } catch (err) {
     log.error({ err }, 'AI: provider call failed');
     throw err;

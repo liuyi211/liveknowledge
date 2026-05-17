@@ -36,22 +36,62 @@ export const api = {
   },
 
   sessions: {
-    list: () => fetchApi('/api/sessions'),
-    create: (data: { title?: string; personaId?: string }) =>
+    list: (params?: { q?: string; sort?: string; limit?: number; offset?: number }) => {
+      const search = new URLSearchParams();
+      if (params?.q) search.set('q', params.q);
+      if (params?.sort) search.set('sort', params.sort);
+      if (params?.limit) search.set('limit', String(params.limit));
+      if (params?.offset !== undefined) search.set('offset', String(params.offset));
+      const qs = search.toString();
+      return fetchApi(`/api/sessions${qs ? `?${qs}` : ''}`);
+    },
+    create: (data: { title?: string; personaId?: string; modelId?: string }) =>
       fetchApi('/api/sessions', { method: 'POST', body: JSON.stringify(data) }),
     get: (id: string) => fetchApi(`/api/sessions/${id}`),
+    update: (id: string, data: Partial<{ title: string; personaId: string | null; modelId: string | null }>) =>
+      fetchApi(`/api/sessions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: (id: string) => fetchApi(`/api/sessions/${id}`, { method: 'DELETE' }),
+    clear: (id: string) => fetchApi(`/api/sessions/${id}/clear`, { method: 'POST' }),
   },
 
   messages: {
-    list: (sessionId: string) => fetchApi(`/api/messages/session/${sessionId}`),
-    send: (sessionId: string, content: string) =>
-      fetchApi(`/api/messages/session/${sessionId}`, { method: 'POST', body: JSON.stringify({ content }) }),
-    sendStream: (sessionId: string, content: string) => {
+    list: (sessionId: string, params?: { limit?: number; offset?: number }) => {
+      const search = new URLSearchParams();
+      if (params?.limit) search.set('limit', String(params.limit));
+      if (params?.offset !== undefined) search.set('offset', String(params.offset));
+      const qs = search.toString();
+      return fetchApi(`/api/messages/session/${sessionId}${qs ? `?${qs}` : ''}`);
+    },
+    sendStream: (sessionId: string, body: {
+      content: string;
+      action?: 'send' | 'editAndResend' | 'regenerate';
+      messageId?: string;
+      modelId?: string;
+      attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; filePath?: string }>;
+    }) => {
       return fetch(`${API_BASE}/api/messages/session/${sessionId}/stream`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify(body),
+      });
+    },
+    delete: (id: string) => fetchApi(`/api/messages/${id}`, { method: 'DELETE' }),
+    feedback: (id: string, feedback: 'like' | 'dislike') =>
+      fetchApi(`/api/messages/${id}/feedback`, { method: 'POST', body: JSON.stringify({ feedback }) }),
+  },
+
+  upload: {
+    uploadFile: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return fetch(`${API_BASE}/api/upload`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      }).then((r) => {
+        if (!r.ok) throw new Error('Upload failed');
+        return r.json();
       });
     },
   },

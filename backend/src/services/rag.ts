@@ -37,14 +37,14 @@ ${sessionTopic ? `当前会话主题：${sessionTopic}` : ''}
 
   try {
     const defaultConfig = await getDefaultChatModel(userId);
-    const rewritten = await chat(userId, {
+    const result = await chat(userId, {
       model: defaultConfig.model,
       providerType: defaultConfig.providerType,
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,
       maxTokens: 200,
     }, log);
-    return rewritten.trim() || query;
+    return result.content.trim() || query;
   } catch {
     return query;
   }
