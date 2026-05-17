@@ -138,4 +138,53 @@ export async function noteRoutes(app: FastifyInstance) {
       .where(and(eq(notes.id, id), eq(notes.userId, request.user!.id)));
     return reply.send({ message: 'Deleted' });
   });
+
+  // Index endpoints
+  app.post('/:id/index', { onRequest: [app.authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const userId = request.user!.id;
+
+    const [note] = await db.select().from(notes)
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .limit(1);
+
+    if (!note) {
+      return reply.status(404).send({ error: 'Note not found' });
+    }
+
+    await db.update(notes)
+      .set({ indexStatus: 'chunking', indexLogs: [], indexError: null })
+      .where(eq(notes.id, id));
+
+    // Trigger async indexing
+    const { indexNote } = await import('../services/indexing.js');
+    indexNote(id, userId).catch(err => {
+      console.error('Indexing failed:', err);
+      db.update(notes)
+        .set({ indexStatus: 'failed', indexError: err.message })
+        .where(eq(notes.id, id));
+    });
+
+    return { status: 'started' };
+  });
+
+  app.get('/:id/index-status', { onRequest: [app.authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const userId = request.user!.id;
+
+    const [note] = await db.select({
+      indexStatus: notes.indexStatus,
+      indexLogs: notes.indexLogs,
+      indexError: notes.indexError,
+      indexedAt: notes.indexedAt,
+    }).from(notes)
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .limit(1);
+
+    if (!note) {
+      return reply.status(404).send({ error: 'Note not found' });
+    }
+
+    return note;
+  });
 }

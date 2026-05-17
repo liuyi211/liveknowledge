@@ -210,3 +210,32 @@ export async function chat(userId: string, options: ChatOptions, log: FastifyBas
     throw err;
   }
 }
+
+export async function generateEmbedding(text: string, userId: string, model?: string): Promise<number[]> {
+  // Default to bailian text-embedding-v4
+  const embeddingModel = model || 'text-embedding-v3';
+  const providerType = 'bailian';
+
+  const client = await createProviderClient(userId, providerType, 'embedding');
+
+  const response = await client.embeddings.create({
+    model: embeddingModel,
+    input: text,
+  });
+
+  return response.data[0].embedding;
+}
+
+export async function generateEmbeddingsBatch(texts: string[], userId: string, model?: string): Promise<number[][]> {
+  const embeddingModel = model || 'text-embedding-v3';
+  const providerType = 'bailian';
+
+  const client = await createProviderClient(userId, providerType, 'embedding');
+
+  const response = await client.embeddings.create({
+    model: embeddingModel,
+    input: texts,
+  });
+
+  return response.data.map(d => d.embedding);
+}
