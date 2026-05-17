@@ -46,7 +46,7 @@ export async function personaRoutes(app: FastifyInstance) {
       .returning();
 
     if (!persona) {
-      request.server.httpErrors.notFound('Persona not found');
+      throw new Error('Persona not found');
     }
     return persona;
   });

@@ -63,4 +63,13 @@ export const api = {
       fetchApi(`/api/notes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => fetchApi(`/api/notes/${id}`, { method: 'DELETE' }),
   },
+
+  providers: {
+    list: () => fetchApi('/api/providers'),
+    create: (data: { providerType: string; apiKey: string; baseUrl?: string; model?: string; purpose?: 'chat' | 'embedding' }) =>
+      fetchApi('/api/providers', { method: 'POST', body: JSON.stringify(data) }),
+    models: () => fetchApi('/api/providers/models'),
+    test: (data: { providerType: string; apiKey: string; baseUrl?: string; model?: string; purpose?: 'chat' | 'embedding' }) =>
+      fetchApi('/api/providers/test', { method: 'POST', body: JSON.stringify(data) }),
+  },
 };

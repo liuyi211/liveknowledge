@@ -3,8 +3,8 @@ import type { FastifyBaseLogger } from 'fastify';
 export class JobLogger {
   constructor(private log: FastifyBaseLogger, private jobId: string) {}
 
-  step(step: string, status: 'started' | 'completed' | 'failed', detail?: object) {
-    const duration = detail?.['durationMs'] as number | undefined;
+  step(step: string, status: 'started' | 'completed' | 'failed', detail?: Record<string, unknown>) {
+    const duration = detail ? (detail.durationMs as number | undefined) : undefined;
     this.log.info(
       { jobId: this.jobId, step, status, ...detail },
       `Job[${this.jobId}] ${step} ${status}${duration ? ` (${duration}ms)` : ''}`

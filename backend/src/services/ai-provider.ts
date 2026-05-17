@@ -34,6 +34,10 @@ const PROVIDER_MODELS: Record<string, { baseURL: string; models: string[] }> = {
     baseURL: 'https://api.moonshot.cn/v1',
     models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
   },
+  bailian: {
+    baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+    models: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-coder-plus'],
+  },
 };
 
 export function detectProvider(model: string): string | null {
@@ -51,16 +55,17 @@ export function getProviderModels(): Record<string, string[]> {
   return result;
 }
 
-export async function createProviderClient(userId: string, providerType: string) {
+export async function createProviderClient(userId: string, providerType: string, purpose: string = 'chat') {
   const [config] = await db.select().from(aiProviderConfigs)
     .where(and(
       eq(aiProviderConfigs.userId, userId),
       eq(aiProviderConfigs.providerType, providerType),
+      eq(aiProviderConfigs.purpose, purpose),
       eq(aiProviderConfigs.isActive, true)
     )).limit(1);
 
   if (!config) {
-    throw new Error(`No active provider config found for ${providerType}. Please configure your API key first.`);
+    throw new Error(`No active ${purpose} provider config found for ${providerType}. Please configure your API key first.`);
   }
 
   const providerConfig = PROVIDER_MODELS[providerType];

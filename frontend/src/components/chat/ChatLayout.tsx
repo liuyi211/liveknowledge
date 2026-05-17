@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Plus, MessageSquare, Settings, FileText } from 'lucide-react';
+import { Plus, MessageSquare, Settings, FileText, Cog } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/stores/app-store';
@@ -74,6 +74,13 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
             >
               <FileText size={16} />
               <span>Notes</span>
+            </Link>
+            <Link
+              href="/settings"
+              className="flex items-center space-x-2 text-gray-300 hover:text-white"
+            >
+              <Cog size={16} />
+              <span>设置</span>
             </Link>
             <div className="flex items-center space-x-2">
               <Settings size={16} />

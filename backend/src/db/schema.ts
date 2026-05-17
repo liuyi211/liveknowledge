@@ -14,6 +14,8 @@ export const aiProviderConfigs = pgTable('ai_provider_configs', {
   providerType: varchar('provider_type', { length: 50 }).notNull(),
   apiKeyEncrypted: text('api_key_encrypted').notNull(),
   baseUrl: text('base_url'),
+  model: varchar('model', { length: 100 }),
+  purpose: varchar('purpose', { length: 20 }).notNull().default('chat'),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });

@@ -5,6 +5,7 @@ import session from '@fastify/session';
 import dotenv from 'dotenv';
 import requestTrace from './plugins/request-trace.js';
 import authPlugin from './plugins/auth.js';
+import devAutoLogin from './plugins/dev-auto-login.js';
 import { authRoutes } from './routes/auth.js';
 import { personaRoutes } from './routes/personas.js';
 import { providerRoutes } from './routes/providers.js';
@@ -36,6 +37,7 @@ export async function buildApp() {
           colorize: true,
           translateTime: 'SYS:standard',
           ignore: 'pid,hostname',
+          singleLine: true,
         },
       } : undefined,
       redact: {
@@ -68,6 +70,7 @@ export async function buildApp() {
 
   await app.register(requestTrace);
   await app.register(authPlugin);
+  await app.register(devAutoLogin);
 
   app.get('/health', async () => ({ status: 'ok' }));
 
