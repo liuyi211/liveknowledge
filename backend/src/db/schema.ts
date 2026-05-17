@@ -96,6 +96,14 @@ export const notes = pgTable('notes', {
   tags: text('tags').array(),
   sourceType: varchar('source_type', { length: 50 }),
   sourceId: uuid('source_id'),
+  indexStatus: text('index_status', { enum: ['idle', 'chunking', 'embedding', 'storing', 'done', 'failed'] }).default('idle'),
+  indexLogs: jsonb('index_logs').default('[]'),
+  indexError: text('index_error'),
+  indexedAt: timestamp('indexed_at'),
+  graphSyncStatus: text('graph_sync_status', { enum: ['idle', 'extracting', 'writing', 'community_discovering', 'summarizing', 'done', 'failed'] }).default('idle'),
+  graphSyncLogs: jsonb('graph_sync_logs').default('[]'),
+  graphSyncError: text('graph_sync_error'),
+  graphSyncedAt: timestamp('graph_synced_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -110,4 +118,45 @@ export const embeddings = pgTable('embeddings', {
   metadata: jsonb('metadata'),
   embedding: vector('embedding', { dimensions: 1536 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const userRetrievalSettings = pgTable('user_retrieval_settings', {
+  userId: uuid('user_id').primaryKey().references(() => users.id),
+  vectorTopK: integer('vector_top_k').default(10),
+  fullTextTopK: integer('full_text_top_k').default(10),
+  localSearchTopK: integer('local_search_top_k').default(10),
+  globalSearchTopK: integer('global_search_top_k').default(5),
+  rrfK: integer('rrf_k').default(60),
+  rrfTopN: integer('rrf_top_n').default(10),
+  rerankEnabled: boolean('rerank_enabled').default(true),
+  rerankProviderConfigId: uuid('rerank_provider_config_id').references(() => aiProviderConfigs.id),
+  rerankModel: text('rerank_model'),
+  rerankTopN: integer('rerank_top_n').default(5),
+  contextBudgetTokens: integer('context_budget_tokens').default(1500),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const extractionJobs = pgTable('extraction_jobs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  sourceType: text('source_type', { enum: ['note', 'conversation', 'document'] }).notNull(),
+  sourceId: uuid('source_id').notNull(),
+  status: text('status', { enum: ['pending', 'preprocessing', 'extracting', 'generating', 'completed', 'failed'] }).default('pending'),
+  currentStep: text('current_step'),
+  logs: jsonb('logs').default('[]'),
+  output: jsonb('output'),
+  userFeedback: jsonb('user_feedback'),
+  error: text('error'),
+  createdAt: timestamp('created_at').defaultNow(),
+  completedAt: timestamp('completed_at'),
+});
+
+export const cards = pgTable('cards', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  noteId: uuid('note_id').references(() => notes.id),
+  front: text('front').notNull(),
+  back: text('back').notNull(),
+  tags: text('tags').array(),
+  createdAt: timestamp('created_at').defaultNow(),
 });
