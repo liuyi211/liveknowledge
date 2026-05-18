@@ -29,52 +29,278 @@ export interface StreamChunk {
   content: string;
 }
 
-export const PROVIDER_MODELS: Record<string, { baseURL: string; models: string[]; supportsVision?: boolean }> = {
+export type ModelPurpose = 'chat' | 'embedding';
+
+export interface ModelCapability {
+  id: string;
+  name: string;
+  purpose: ModelPurpose[];
+  contextWindow: number;
+  supportsVision: boolean;
+  supportsStreaming: boolean;
+  supportsReasoning: boolean;
+  maxOutputTokens: number;
+  embeddingDimensions?: number;
+}
+
+export interface ProviderMetadata {
+  label: string;
+  baseURL: string;
+  models: ModelCapability[];
+}
+
+export const PROVIDER_MODELS: Record<string, ProviderMetadata> = {
   openai: {
+    label: 'OpenAI',
     baseURL: 'https://api.openai.com/v1',
-    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'],
-    supportsVision: true,
+    models: [
+      {
+        id: 'gpt-4o',
+        name: 'GPT-4o',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: true,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 16384,
+      },
+      {
+        id: 'gpt-4o-mini',
+        name: 'GPT-4o mini',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: true,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 16384,
+      },
+      {
+        id: 'gpt-4-turbo',
+        name: 'GPT-4 Turbo',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: true,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 4096,
+      },
+      {
+        id: 'text-embedding-3-small',
+        name: 'Text embedding 3 small',
+        purpose: ['embedding'],
+        contextWindow: 8191,
+        supportsVision: false,
+        supportsStreaming: false,
+        supportsReasoning: false,
+        maxOutputTokens: 0,
+        embeddingDimensions: 1536,
+      },
+    ],
   },
   deepseek: {
+    label: 'DeepSeek',
     baseURL: 'https://api.deepseek.com/v1',
-    models: ['deepseek-chat', 'deepseek-reasoner'],
+    models: [
+      {
+        id: 'deepseek-chat',
+        name: 'DeepSeek Chat',
+        purpose: ['chat'],
+        contextWindow: 64000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 8192,
+      },
+      {
+        id: 'deepseek-reasoner',
+        name: 'DeepSeek Reasoner',
+        purpose: ['chat'],
+        contextWindow: 64000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: true,
+        maxOutputTokens: 8192,
+      },
+    ],
   },
   zhipu: {
+    label: '智谱 AI',
     baseURL: 'https://open.bigmodel.cn/api/paas/v4',
-    models: ['glm-4-flash', 'glm-4-air', 'glm-4-plus'],
-    supportsVision: true,
+    models: [
+      {
+        id: 'glm-4-flash',
+        name: 'GLM-4 Flash',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 4096,
+      },
+      {
+        id: 'glm-4-air',
+        name: 'GLM-4 Air',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 4096,
+      },
+      {
+        id: 'glm-4-plus',
+        name: 'GLM-4 Plus',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 4096,
+      },
+      {
+        id: 'embedding-2',
+        name: 'Embedding-2',
+        purpose: ['embedding'],
+        contextWindow: 8192,
+        supportsVision: false,
+        supportsStreaming: false,
+        supportsReasoning: false,
+        maxOutputTokens: 0,
+        embeddingDimensions: 1024,
+      },
+    ],
   },
   moonshot: {
+    label: 'Moonshot',
     baseURL: 'https://api.moonshot.cn/v1',
-    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
-    supportsVision: true,
+    models: [
+      {
+        id: 'moonshot-v1-8k',
+        name: 'Moonshot v1 8K',
+        purpose: ['chat'],
+        contextWindow: 8192,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 4096,
+      },
+      {
+        id: 'moonshot-v1-32k',
+        name: 'Moonshot v1 32K',
+        purpose: ['chat'],
+        contextWindow: 32768,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 4096,
+      },
+      {
+        id: 'moonshot-v1-128k',
+        name: 'Moonshot v1 128K',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 4096,
+      },
+    ],
   },
   bailian: {
+    label: '阿里百炼',
     baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-    models: ['qwen-turbo', 'qwen-plus', 'qwen-max', 'qwen-coder-plus'],
-    supportsVision: true,
+    models: [
+      {
+        id: 'qwen-turbo',
+        name: 'Qwen Turbo',
+        purpose: ['chat'],
+        contextWindow: 1000000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 8192,
+      },
+      {
+        id: 'qwen-plus',
+        name: 'Qwen Plus',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 8192,
+      },
+      {
+        id: 'qwen-max',
+        name: 'Qwen Max',
+        purpose: ['chat'],
+        contextWindow: 32768,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 8192,
+      },
+      {
+        id: 'qwen-coder-plus',
+        name: 'Qwen Coder Plus',
+        purpose: ['chat'],
+        contextWindow: 128000,
+        supportsVision: false,
+        supportsStreaming: true,
+        supportsReasoning: false,
+        maxOutputTokens: 8192,
+      },
+      {
+        id: 'text-embedding-v4',
+        name: 'Text Embedding v4',
+        purpose: ['embedding'],
+        contextWindow: 8192,
+        supportsVision: false,
+        supportsStreaming: false,
+        supportsReasoning: false,
+        maxOutputTokens: 0,
+        embeddingDimensions: 1024,
+      },
+      {
+        id: 'text-embedding-v3',
+        name: 'Text Embedding v3',
+        purpose: ['embedding'],
+        contextWindow: 8192,
+        supportsVision: false,
+        supportsStreaming: false,
+        supportsReasoning: false,
+        maxOutputTokens: 0,
+        embeddingDimensions: 1024,
+      },
+    ],
   },
 };
 
 export function detectProvider(model: string): string | null {
   for (const [provider, config] of Object.entries(PROVIDER_MODELS)) {
-    if (config.models.includes(model)) return provider;
+    if (config.models.some(m => m.id === model)) return provider;
   }
   return null;
 }
 
-export function getProviderModels(): Record<string, string[]> {
-  const result: Record<string, string[]> = {};
-  for (const [provider, config] of Object.entries(PROVIDER_MODELS)) {
-    result[provider] = config.models;
+export function getProviderModels(): Record<string, ProviderMetadata> {
+  return PROVIDER_MODELS;
+}
+
+export function getDefaultModelForPurpose(providerType: string, purpose: ModelPurpose): string | undefined {
+  return PROVIDER_MODELS[providerType]?.models.find(model => model.purpose.includes(purpose))?.id;
+}
+
+export function getModelCapability(model: string): ModelCapability | null {
+  for (const config of Object.values(PROVIDER_MODELS)) {
+    const match = config.models.find(m => m.id === model);
+    if (match) return match;
   }
-  return result;
+  return null;
 }
 
 export function supportsVision(model: string): boolean {
-  const provider = detectProvider(model);
-  if (!provider) return false;
-  return PROVIDER_MODELS[provider]?.supportsVision ?? false;
+  return getModelCapability(model)?.supportsVision ?? false;
 }
 
 export async function createProviderClient(userId: string, providerType: string, purpose: string = 'chat') {
@@ -113,7 +339,7 @@ export async function getDefaultChatModel(userId: string): Promise<{ model: stri
     throw new Error('未配置对话模型，请先在设置中配置 AI Provider');
   }
 
-  const model = config.model || PROVIDER_MODELS[config.providerType]?.models[0];
+  const model = config.model || getDefaultModelForPurpose(config.providerType, 'chat');
   if (!model) {
     throw new Error(`Provider ${config.providerType} 没有可用的模型，请在设置中明确指定`);
   }
@@ -223,7 +449,7 @@ export async function getDefaultEmbeddingConfig(userId: string): Promise<{ model
     throw new Error('未配置 Embedding 模型，请先在设置中配置 AI Provider（用途选择 Embedding）');
   }
 
-  const model = config.model || 'text-embedding-v4';
+  const model = config.model || getDefaultModelForPurpose(config.providerType, 'embedding') || 'text-embedding-v4';
   return { model, providerType: config.providerType };
 }
 

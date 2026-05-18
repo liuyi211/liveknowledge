@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/stores/app-store';
 import { api } from '@/lib/api';
+import type { ChatSession } from '@/types';
 
 export default function ChatLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function ChatLayout({ children }: { children: React.ReactNode }) 
     setMessages([]);
   };
 
-  const selectSession = async (session: { id: string; title: string; personaId: string | null; modelId: string | null; createdAt: string; updatedAt: string }) => {
+  const selectSession = async (session: ChatSession) => {
     setCurrentSession(session);
     const data = await api.sessions.get(session.id);
     setMessages(data.messages || []);

@@ -68,12 +68,13 @@ export const api = {
       messageId?: string;
       modelId?: string;
       attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }>;
-    }) => {
+    }, signal?: AbortSignal) => {
       return fetch(`${API_BASE}/api/messages/session/${sessionId}/stream`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal,
       });
     },
     delete: (id: string) => fetchApi(`/api/messages/${id}`, { method: 'DELETE' }),
@@ -94,6 +95,10 @@ export const api = {
         return r.json();
       });
     },
+    uploadUrl: (url: string) => fetchApi('/api/upload/url', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    }),
   },
 
   notes: {

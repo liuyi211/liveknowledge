@@ -3,6 +3,9 @@ export interface UploadResult {
   fileType: string;
   extractedText?: string;
   base64?: string;
+  mode: 'vision' | 'text';
+  extractedTextLength?: number;
+  warning?: string;
 }
 
 export async function extractTextFromFile(fileType: string, buffer: Buffer): Promise<string | null> {

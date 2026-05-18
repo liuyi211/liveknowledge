@@ -3,7 +3,32 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useChatStore } from '@/stores/chat-store';
 import { api } from '@/lib/api';
-import { Send, Square, Paperclip, X, FileText, Image, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Send, Square, Paperclip, X, FileText, Image, FileSpreadsheet, Loader2, Link } from 'lucide-react';
+
+interface ModelCapability {
+  id: string;
+  name: string;
+  purpose: Array<'chat' | 'embedding'>;
+  contextWindow: number;
+  supportsVision: boolean;
+  supportsStreaming: boolean;
+  supportsReasoning: boolean;
+  maxOutputTokens: number;
+}
+
+interface ProviderMetadata {
+  label: string;
+  baseURL: string;
+  models: ModelCapability[];
+}
+
+interface ProviderConfig {
+  id: string;
+  providerType: string;
+  model: string | null;
+  purpose: 'chat' | 'embedding';
+  isActive: boolean;
+}
 
 function getFileIcon(fileType: string) {
   if (fileType.startsWith('image/')) return <Image size={14} />;
@@ -11,9 +36,29 @@ function getFileIcon(fileType: string) {
   return <FileText size={14} />;
 }
 
+function getAttachmentStatus(att: {
+  fileType: string;
+  mode?: 'vision' | 'text';
+  extractedTextLength?: number;
+  warning?: string;
+}) {
+  if (att.mode === 'vision' || att.fileType.startsWith('image/')) {
+    return '将作为图片输入';
+  }
+  if (att.warning) return att.warning;
+  if (att.mode === 'text' || att.extractedTextLength) {
+    return `已解析 ${att.extractedTextLength || 0} 字符`;
+  }
+  return '已附加';
+}
+
 export default function MessageInput() {
   const [input, setInput] = useState('');
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [urlInput, setUrlInput] = useState('');
+  const [addingUrl, setAddingUrl] = useState(false);
+  const [selectedModelId, setSelectedModelId] = useState('');
+  const [chatModels, setChatModels] = useState<Array<ModelCapability & { providerType: string; providerLabel: string }>>([]);
   const currentSession = useChatStore((s) => s.currentSession);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const isStreaming = useChatStore((s) => s.isStreaming);
@@ -25,9 +70,42 @@ export default function MessageInput() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isUploading = uploadingCount > 0;
+  const isBusyWithAttachments = isUploading || addingUrl;
+  const selectedModel = chatModels.find((model) => model.id === selectedModelId);
+
+  useEffect(() => {
+    Promise.all([
+      api.providers.models(),
+      api.providers.list(),
+    ]).then(([metadata, configs]: [Record<string, ProviderMetadata>, ProviderConfig[]]) => {
+      const activeChatProviders = configs.filter((config) => config.purpose === 'chat' && config.isActive);
+      const models = activeChatProviders.flatMap((config) => {
+        const provider = metadata[config.providerType];
+        if (!provider) return [];
+        return provider.models
+          .filter((model) => model.purpose.includes('chat'))
+          .map((model) => ({
+            ...model,
+            providerType: config.providerType,
+            providerLabel: provider.label,
+          }));
+      });
+      setChatModels(models);
+      const preferredModel = currentSession?.modelId || activeChatProviders[0]?.model || models[0]?.id || '';
+      setSelectedModelId((current) => current || preferredModel);
+    }).catch(() => {
+      setChatModels([]);
+    });
+  }, [currentSession?.id, currentSession?.modelId]);
 
   const handleSend = useCallback(async () => {
     if ((!input.trim() && sessionAttachments.length === 0) || !currentSession || isStreaming) return;
+
+    const hasImageAttachment = sessionAttachments.some((attachment) => attachment.fileType.startsWith('image/'));
+    if (hasImageAttachment && selectedModel && !selectedModel.supportsVision) {
+      alert(`当前模型 ${selectedModel.name} 不支持图片输入，请切换到支持 vision 的模型。`);
+      return;
+    }
 
     const content = input.trim() || (sessionAttachments.length > 0 ? '请分析上传的文件' : '');
     setInput('');
@@ -39,8 +117,8 @@ export default function MessageInput() {
       base64: a.base64,
     }));
 
-    await sendMessage(content, attachments);
-  }, [input, sessionAttachments, currentSession, isStreaming, sendMessage]);
+    await sendMessage(content, attachments, selectedModelId || undefined);
+  }, [input, sessionAttachments, currentSession, isStreaming, sendMessage, selectedModel, selectedModelId]);
 
   const handleStop = useCallback(() => {
     abortStream?.();
@@ -62,6 +140,9 @@ export default function MessageInput() {
         fileType: result.fileType,
         extractedText: result.extractedText,
         base64: result.base64,
+        mode: result.mode,
+        extractedTextLength: result.extractedTextLength,
+        warning: result.warning,
       });
     } catch (err) {
       alert(`上传失败 "${file.name}": ${(err as Error).message}`);
@@ -75,6 +156,29 @@ export default function MessageInput() {
     if (!files || files.length === 0) return;
     await Promise.all(Array.from(files).map(uploadSingleFile));
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleAddUrl = async () => {
+    const url = urlInput.trim();
+    if (!url) return;
+
+    setAddingUrl(true);
+    try {
+      const result = await api.upload.uploadUrl(url);
+      addSessionAttachment({
+        fileName: result.fileName,
+        fileType: result.fileType,
+        extractedText: result.extractedText,
+        mode: result.mode,
+        extractedTextLength: result.extractedTextLength,
+        warning: result.warning,
+      });
+      setUrlInput('');
+    } catch (err) {
+      alert(`链接读取失败: ${(err as Error).message}`);
+    } finally {
+      setAddingUrl(false);
+    }
   };
 
   const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
@@ -109,6 +213,31 @@ export default function MessageInput() {
 
   return (
     <div className="border-t border-gray-200 bg-white px-4 py-3">
+      {chatModels.length > 0 && (
+        <div className="mb-2 flex items-center gap-2 text-xs text-gray-500">
+          <span>本轮模型</span>
+          <select
+            value={selectedModelId}
+            onChange={(e) => setSelectedModelId(e.target.value)}
+            disabled={isStreaming}
+            className="max-w-[260px] rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-60"
+          >
+            {chatModels.map((model) => (
+              <option key={`${model.providerType}:${model.id}`} value={model.id}>
+                {model.providerLabel} / {model.name}
+              </option>
+            ))}
+          </select>
+          {selectedModel && (
+            <div className="flex gap-1">
+              <span className="rounded border border-gray-200 px-1.5 py-0.5">{selectedModel.contextWindow.toLocaleString()} ctx</span>
+              {selectedModel.supportsVision && <span className="rounded border border-gray-200 px-1.5 py-0.5">vision</span>}
+              {selectedModel.supportsReasoning && <span className="rounded border border-gray-200 px-1.5 py-0.5">reasoning</span>}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Session attachments + uploading indicator */}
       {(sessionAttachments.length > 0 || isUploading) && (
         <div className="flex flex-wrap gap-2 mb-2">
@@ -116,9 +245,19 @@ export default function MessageInput() {
             <div
               key={i}
               className="flex items-center space-x-1.5 bg-gray-100 px-2 py-1 rounded-lg text-xs text-gray-600"
+              title={getAttachmentStatus(att)}
             >
               {getFileIcon(att.fileType)}
               <span className="max-w-[120px] truncate">{att.fileName}</span>
+              <span className={`rounded px-1.5 py-0.5 text-[10px] ${
+                att.mode === 'vision' || att.fileType.startsWith('image/')
+                  ? 'bg-blue-50 text-blue-600'
+                  : att.warning
+                  ? 'bg-amber-50 text-amber-700'
+                  : 'bg-green-50 text-green-700'
+              }`}>
+                {att.mode === 'vision' || att.fileType.startsWith('image/') ? 'vision' : 'text'}
+              </span>
               <button
                 onClick={() => removeSessionAttachment(i)}
                 className="text-gray-400 hover:text-red-500"
@@ -144,11 +283,37 @@ export default function MessageInput() {
         </div>
       )}
 
+      <div className="mb-2 flex items-center gap-2">
+        <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1">
+          <Link size={14} className="text-gray-400" />
+          <input
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddUrl();
+              }
+            }}
+            disabled={isStreaming || addingUrl}
+            placeholder="粘贴 URL 并加入上下文"
+            className="min-w-0 flex-1 bg-transparent text-xs text-gray-700 placeholder:text-gray-400 focus:outline-none disabled:opacity-60"
+          />
+          <button
+            onClick={handleAddUrl}
+            disabled={!urlInput.trim() || isStreaming || addingUrl}
+            className="rounded bg-gray-900 px-2 py-1 text-xs text-white disabled:opacity-40"
+          >
+            {addingUrl ? '读取中...' : '添加'}
+          </button>
+        </div>
+      </div>
+
       <div className="flex items-end space-x-2">
         {/* Attachment button */}
         <button
           onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading || isStreaming}
+          disabled={isBusyWithAttachments || isStreaming}
           className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
         >
           <Paperclip size={18} />
@@ -189,7 +354,7 @@ export default function MessageInput() {
         ) : (
           <button
             onClick={handleSend}
-            disabled={(!input.trim() && sessionAttachments.length === 0) || isUploading}
+            disabled={(!input.trim() && sessionAttachments.length === 0) || isBusyWithAttachments}
             className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <Send size={18} />

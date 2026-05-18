@@ -1,6 +1,8 @@
 import { db } from '../db/index.js';
 import { chatSessions, messages, personas, attachments } from '../db/schema.js';
 import { eq, and, desc, sql, like, or } from 'drizzle-orm';
+import { chat, getDefaultChatModel } from './ai-provider.js';
+import type { FastifyBaseLogger } from 'fastify';
 
 export interface CreateSessionInput {
   userId: string;
@@ -100,6 +102,78 @@ export async function updateSession(id: string, userId: string, input: UpdateSes
   return session || null;
 }
 
+function buildFallbackSummary(sessionMessages: Array<{ role: string; content: string }>): string {
+  if (sessionMessages.length === 0) return '';
+  return sessionMessages
+    .slice(-8)
+    .map(message => `${message.role === 'user' ? '用户' : '助手'}：${message.content.slice(0, 240)}`)
+    .join('\n');
+}
+
+export async function summarizeSessionForPersonaSwitch(id: string, userId: string, log?: FastifyBaseLogger): Promise<string> {
+  const sessionMessages = await db.select({
+    role: messages.role,
+    content: messages.content,
+  }).from(messages)
+    .where(and(
+      eq(messages.sessionId, id),
+      eq(messages.isDeleted, false)
+    ))
+    .orderBy(desc(messages.createdAt))
+    .limit(20);
+
+  const orderedMessages = sessionMessages.reverse();
+  if (orderedMessages.length === 0) return '';
+
+  const transcript = orderedMessages
+    .map(message => `${message.role === 'user' ? '用户' : '助手'}：${message.content}`)
+    .join('\n\n')
+    .slice(0, 12000);
+
+  try {
+    const defaultConfig = await getDefaultChatModel(userId);
+    const response = await chat(userId, {
+      model: defaultConfig.model,
+      providerType: defaultConfig.providerType,
+      messages: [{
+        role: 'user',
+        content: `请为一次导师人格切换生成简洁上下文摘要，让新的导师能延续对话。\n\n要求：\n1. 保留用户当前目标、已讨论结论、未解决问题。\n2. 不超过 300 字。\n3. 不要添加原对话没有的信息。\n\n对话：\n${transcript}`,
+      }],
+      temperature: 0.2,
+      maxTokens: 500,
+    }, log || consoleLogger);
+    return response.content.trim().slice(0, 1200) || buildFallbackSummary(orderedMessages);
+  } catch (err) {
+    log?.warn({ err }, 'Failed to summarize session for persona switch');
+    return buildFallbackSummary(orderedMessages);
+  }
+}
+
+export async function updateSessionWithPersonaSummary(
+  id: string,
+  userId: string,
+  input: UpdateSessionInput,
+  log?: FastifyBaseLogger
+) {
+  const existing = await getSessionById(id, userId);
+  if (!existing) return null;
+
+  let contextSummary = existing.contextSummary;
+  if ('personaId' in input && input.personaId !== existing.personaId) {
+    contextSummary = await summarizeSessionForPersonaSwitch(id, userId, log);
+  }
+
+  const [session] = await db.update(chatSessions)
+    .set({
+      ...input,
+      contextSummary,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(chatSessions.id, id), eq(chatSessions.userId, userId)))
+    .returning();
+  return session || null;
+}
+
 export async function deleteSession(id: string, userId: string) {
   // Delete messages first to avoid FK constraint violation
   await db.delete(messages)
@@ -145,3 +219,14 @@ export async function getPersonaForSession(personaId: string | null, userId: str
     .limit(1);
   return persona || null;
 }
+
+const consoleLogger: FastifyBaseLogger = {
+  info: () => {},
+  error: console.error,
+  warn: console.warn,
+  debug: () => {},
+  trace: () => {},
+  fatal: console.error,
+  child: () => consoleLogger,
+  silent: () => {},
+} as any;

@@ -12,37 +12,32 @@ interface ProviderConfig {
   model: string;
 }
 
+interface ModelCapability {
+  id: string;
+  name: string;
+  purpose: Array<'chat' | 'embedding'>;
+  contextWindow: number;
+  supportsVision: boolean;
+  supportsStreaming: boolean;
+  supportsReasoning: boolean;
+  maxOutputTokens: number;
+  embeddingDimensions?: number;
+}
+
+interface ProviderMetadata {
+  label: string;
+  baseURL: string;
+  models: ModelCapability[];
+}
+
 interface ProviderFormProps {
   title: string;
   purpose: 'chat' | 'embedding';
   icon: React.ReactNode;
 }
 
-const PROVIDER_OPTIONS = [
-  { value: 'openai', label: 'OpenAI' },
-  { value: 'deepseek', label: 'DeepSeek' },
-  { value: 'zhipu', label: '智谱 AI' },
-  { value: 'moonshot', label: 'Moonshot' },
-  { value: 'bailian', label: '阿里百炼' },
-];
-
-const DEFAULT_MODELS: Record<string, string> = {
-  openai: 'gpt-4o-mini',
-  deepseek: 'deepseek-chat',
-  zhipu: 'glm-4-flash',
-  moonshot: 'moonshot-v1-8k',
-  bailian: 'qwen-turbo',
-};
-
-const DEFAULT_BASE_URLS: Record<string, string> = {
-  openai: 'https://api.openai.com/v1',
-  deepseek: 'https://api.deepseek.com/v1',
-  zhipu: 'https://open.bigmodel.cn/api/paas/v4',
-  moonshot: 'https://api.moonshot.cn/v1',
-  bailian: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
-};
-
 export default function ProviderForm({ title, purpose, icon }: ProviderFormProps) {
+  const [providerModels, setProviderModels] = useState<Record<string, ProviderMetadata>>({});
   const [config, setConfig] = useState<ProviderConfig>({
     providerType: 'zhipu',
     apiKey: '',
@@ -56,25 +51,44 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [saveMessage, setSaveMessage] = useState('');
 
+  const providers = Object.entries(providerModels);
+  const currentProvider = providerModels[config.providerType];
+  const purposeModels = currentProvider?.models.filter((model) => model.purpose.includes(purpose)) || [];
+  const selectedModel = purposeModels.find((model) => model.id === config.model);
+
+  const getDefaultProvider = (models: Record<string, ProviderMetadata>) => {
+    if (models.zhipu?.models.some((model) => model.purpose.includes(purpose))) return 'zhipu';
+    return Object.entries(models).find(([, provider]) =>
+      provider.models.some((model) => model.purpose.includes(purpose))
+    )?.[0] || 'zhipu';
+  };
+
+  const getDefaultModel = (providerType: string, models = providerModels) =>
+    models[providerType]?.models.find((model) => model.purpose.includes(purpose))?.id || '';
+
   // Load existing config on mount
   const loadConfig = () => {
-    api.providers.list().then((configs: Array<ProviderConfig & { purpose: string; isActive: boolean }>) => {
+    Promise.all([
+      api.providers.models(),
+      api.providers.list(),
+    ]).then(([models, configs]: [Record<string, ProviderMetadata>, Array<ProviderConfig & { purpose: string; isActive: boolean }>]) => {
+      setProviderModels(models);
       const existing = configs.find((c) => c.purpose === purpose && c.isActive);
       if (existing) {
         setConfig({
           providerType: existing.providerType,
           apiKey: '',
-          baseUrl: existing.baseUrl || '',
-          model: existing.model || '',
+          baseUrl: existing.baseUrl || models[existing.providerType]?.baseURL || '',
+          model: existing.model || getDefaultModel(existing.providerType, models),
         });
         setHasExisting(true);
       } else {
-        // Reset to defaults if no existing config
+        const providerType = getDefaultProvider(models);
         setConfig({
-          providerType: 'zhipu',
+          providerType,
           apiKey: '',
-          baseUrl: DEFAULT_BASE_URLS['zhipu'],
-          model: DEFAULT_MODELS['zhipu'],
+          baseUrl: models[providerType]?.baseURL || '',
+          model: getDefaultModel(providerType, models),
         });
         setHasExisting(false);
       }
@@ -89,8 +103,8 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
     setConfig({
       ...config,
       providerType,
-      baseUrl: DEFAULT_BASE_URLS[providerType] || '',
-      model: DEFAULT_MODELS[providerType] || '',
+      baseUrl: providerModels[providerType]?.baseURL || '',
+      model: getDefaultModel(providerType),
     });
   };
 
@@ -162,8 +176,8 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
             onChange={(e) => handleProviderChange(e.target.value)}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {PROVIDER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            {providers.map(([value, provider]) => (
+              <option key={value} value={value}>{provider.label}</option>
             ))}
           </select>
         </div>
@@ -204,13 +218,25 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
         {/* Model */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
-          <input
-            type="text"
+          <select
             value={config.model}
             onChange={(e) => setConfig({ ...config, model: e.target.value })}
-            placeholder={DEFAULT_MODELS[config.providerType]}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          >
+            {purposeModels.map((model) => (
+              <option key={model.id} value={model.id}>{model.name} ({model.id})</option>
+            ))}
+          </select>
+          {selectedModel && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <CapabilityBadge label={`${selectedModel.contextWindow.toLocaleString()} ctx`} />
+              {selectedModel.maxOutputTokens > 0 && <CapabilityBadge label={`${selectedModel.maxOutputTokens.toLocaleString()} out`} />}
+              {selectedModel.supportsStreaming && <CapabilityBadge label="stream" />}
+              {selectedModel.supportsVision && <CapabilityBadge label="vision" />}
+              {selectedModel.supportsReasoning && <CapabilityBadge label="reasoning" />}
+              {selectedModel.embeddingDimensions && <CapabilityBadge label={`${selectedModel.embeddingDimensions} dim`} />}
+            </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -277,5 +303,13 @@ export default function ProviderForm({ title, purpose, icon }: ProviderFormProps
         )}
       </div>
     </div>
+  );
+}
+
+function CapabilityBadge({ label }: { label: string }) {
+  return (
+    <span className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
+      {label}
+    </span>
   );
 }

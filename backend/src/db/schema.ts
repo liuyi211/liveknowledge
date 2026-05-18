@@ -1,4 +1,11 @@
-import { pgTable, uuid, varchar, text, timestamp, integer, boolean, jsonb, real, vector, foreignKey } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, timestamp, integer, boolean, jsonb, real, vector, foreignKey, customType, index } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  },
+});
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -43,6 +50,7 @@ export const chatSessions = pgTable('chat_sessions', {
   title: varchar('title', { length: 200 }).default('New Chat'),
   messageCount: integer('message_count').default(0).notNull(),
   lastMessagePreview: varchar('last_message_preview', { length: 200 }),
+  contextSummary: text('context_summary'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -103,9 +111,14 @@ export const notes = pgTable('notes', {
   graphSyncLogs: jsonb('graph_sync_logs').default('[]'),
   graphSyncError: text('graph_sync_error'),
   graphSyncedAt: timestamp('graph_synced_at'),
+  searchVector: tsvector('search_vector').generatedAlwaysAs(
+    sql`to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(content, ''))`
+  ),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  searchVectorIdx: index('idx_notes_search_vector').using('gin', table.searchVector),
+}));
 
 export const embeddings = pgTable('embeddings', {
   id: uuid('id').primaryKey().defaultRandom(),

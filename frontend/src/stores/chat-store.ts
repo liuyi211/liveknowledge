@@ -11,6 +11,7 @@ interface ChatStore {
   createSession: (params?: { title?: string; personaId?: string; modelId?: string }) => Promise<ChatSession>;
   deleteSession: (id: string) => Promise<void>;
   renameSession: (id: string, title: string) => Promise<void>;
+  updateSessionPersona: (id: string, personaId: string | null) => Promise<void>;
   clearSession: (id: string) => Promise<void>;
 
   currentSession: ChatSession | null;
@@ -19,14 +20,14 @@ interface ChatStore {
 
   messages: Message[];
   messagesLoading: boolean;
-  sendMessage: (content: string, attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }>) => Promise<void>;
+  sendMessage: (content: string, attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }>, modelId?: string) => Promise<void>;
   editAndResend: (messageId: string, newContent: string) => Promise<void>;
   regenerateMessage: (messageId: string, modelId?: string) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
   feedbackMessage: (messageId: string, feedback: 'like' | 'dislike') => Promise<void>;
 
-  sessionAttachments: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }>;
-  addSessionAttachment: (att: { fileName: string; fileType: string; extractedText?: string; base64?: string }) => void;
+  sessionAttachments: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string; mode?: 'vision' | 'text'; extractedTextLength?: number; warning?: string }>;
+  addSessionAttachment: (att: { fileName: string; fileType: string; extractedText?: string; base64?: string; mode?: 'vision' | 'text'; extractedTextLength?: number; warning?: string }) => void;
   removeSessionAttachment: (index: number) => void;
   clearSessionAttachments: () => void;
 
@@ -35,6 +36,43 @@ interface ChatStore {
   thinkingContent: string;
   abortStream: (() => void) | null;
   setAbortStream: (fn: (() => void) | null) => void;
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === 'AbortError';
+}
+
+function createTempMessage(role: 'user' | 'assistant', sessionId: string, content = ''): Message {
+  return {
+    id: `temp-${role}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    sessionId,
+    role,
+    content,
+    modelId: null,
+    tokensUsed: null,
+    parentId: null,
+    version: 1,
+    isDeleted: false,
+    feedback: null,
+    thinkingContent: null,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+type StoreSet = (partial: Partial<ChatStore> | ((state: ChatStore) => Partial<ChatStore>)) => void;
+
+function updateLastAssistant(set: StoreSet, content: string, thinkingContent?: string) {
+  set((state) => {
+    const messages = [...state.messages];
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg && lastMsg.role === 'assistant') {
+      lastMsg.content = content;
+      if (thinkingContent !== undefined) {
+        lastMsg.thinkingContent = thinkingContent;
+      }
+    }
+    return { messages };
+  });
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -76,6 +114,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }));
   },
 
+  updateSessionPersona: async (id, personaId) => {
+    const session = await api.sessions.update(id, { personaId });
+    set((state) => ({
+      sessions: state.sessions.map((s) => (s.id === id ? { ...s, ...session } : s)),
+      currentSession: state.currentSession?.id === id ? { ...state.currentSession, ...session } : state.currentSession,
+    }));
+  },
+
   clearSession: async (id) => {
     await api.sessions.clear(id);
     set((state) => ({
@@ -110,39 +156,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   })),
   clearSessionAttachments: () => set({ sessionAttachments: [] }),
 
-  sendMessage: async (content, attachments = []) => {
+  sendMessage: async (content, attachments = [], modelId) => {
     const { currentSession } = get();
     if (!currentSession) return;
 
-    const tempUserMsg: Message = {
-      id: `temp-user-${Date.now()}`,
-      sessionId: currentSession.id,
-      role: 'user',
-      content,
-      modelId: null,
-      tokensUsed: null,
-      parentId: null,
-      version: 1,
-      isDeleted: false,
-      feedback: null,
-      thinkingContent: null,
-      createdAt: new Date().toISOString(),
-    };
-
-    const tempAssistantMsg: Message = {
-      id: `temp-assistant-${Date.now()}`,
-      sessionId: currentSession.id,
-      role: 'assistant',
-      content: '',
-      modelId: null,
-      tokensUsed: null,
-      parentId: null,
-      version: 1,
-      isDeleted: false,
-      feedback: null,
-      thinkingContent: null,
-      createdAt: new Date().toISOString(),
-    };
+    const tempUserMsg = createTempMessage('user', currentSession.id, content);
+    const tempAssistantMsg = createTempMessage('assistant', currentSession.id);
 
     set((state) => ({
       messages: [...state.messages, tempUserMsg, tempAssistantMsg],
@@ -157,7 +176,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set({ abortStream: () => abortController.abort() });
 
     try {
-      const response = await api.messages.sendStream(currentSession.id, { content, attachments });
+      const response = await api.messages.sendStream(currentSession.id, { content, attachments, modelId }, abortController.signal);
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No response body');
 
@@ -180,25 +199,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             if (data.type === 'chunk') {
               fullContent += data.content;
               set({ streamingContent: fullContent });
-              set((state) => {
-                const messages = [...state.messages];
-                const lastMsg = messages[messages.length - 1];
-                if (lastMsg && lastMsg.role === 'assistant') {
-                  lastMsg.content = fullContent;
-                }
-                return { messages };
-              });
+              updateLastAssistant(set, fullContent);
             } else if (data.type === 'thinking') {
               thinkingContent += data.content;
               set({ thinkingContent });
-              set((state) => {
-                const messages = [...state.messages];
-                const lastMsg = messages[messages.length - 1];
-                if (lastMsg && lastMsg.role === 'assistant') {
-                  lastMsg.thinkingContent = thinkingContent;
-                }
-                return { messages };
-              });
+              updateLastAssistant(set, fullContent, thinkingContent);
             } else if (data.type === 'done') {
               done = true;
               // Refresh to get real IDs
@@ -221,6 +226,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
       }
     } catch (err) {
+      if (isAbortError(err)) {
+        return;
+      }
+
       set((state) => {
         const messages = [...state.messages];
         const lastMsg = messages[messages.length - 1];
@@ -230,6 +239,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         return { messages };
       });
     } finally {
+      if (abortController.signal.aborted) {
+        try {
+          const sessionData = await api.sessions.get(currentSession.id);
+          set({ messages: sessionData.messages || [] });
+        } catch {
+          // Keep the local partial message if refresh fails.
+        }
+      }
       set({ isStreaming: false, abortStream: null });
       get().loadSessions();
     }
@@ -239,7 +256,21 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     const { currentSession } = get();
     if (!currentSession) return;
 
-    set({ isStreaming: true, streamingContent: '', thinkingContent: '' });
+    const tempUserMsg = createTempMessage('user', currentSession.id, newContent);
+    const tempAssistantMsg = createTempMessage('assistant', currentSession.id);
+
+    set((state) => {
+      const editIndex = state.messages.findIndex((message) => message.id === messageId);
+      const messages = editIndex >= 0
+        ? [...state.messages.slice(0, editIndex), tempUserMsg, tempAssistantMsg]
+        : [...state.messages, tempUserMsg, tempAssistantMsg];
+      return {
+        messages,
+        isStreaming: true,
+        streamingContent: '',
+        thinkingContent: '',
+      };
+    });
 
     let fullContent = '';
     let thinkingContent = '';
@@ -251,7 +282,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         content: newContent,
         action: 'editAndResend',
         messageId,
-      });
+      }, abortController.signal);
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No response body');
 
@@ -274,9 +305,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             if (data.type === 'chunk') {
               fullContent += data.content;
               set({ streamingContent: fullContent });
+              updateLastAssistant(set, fullContent);
             } else if (data.type === 'thinking') {
               thinkingContent += data.content;
               set({ thinkingContent });
+              updateLastAssistant(set, fullContent, thinkingContent);
             } else if (data.type === 'done') {
               done = true;
               const sessionData = await api.sessions.get(currentSession.id);
@@ -292,9 +325,19 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
       }
     } catch (err) {
-      const sessionData = await api.sessions.get(currentSession.id);
-      set({ messages: sessionData.messages || [] });
+      if (!isAbortError(err)) {
+        const sessionData = await api.sessions.get(currentSession.id);
+        set({ messages: sessionData.messages || [] });
+      }
     } finally {
+      if (abortController.signal.aborted) {
+        try {
+          const sessionData = await api.sessions.get(currentSession.id);
+          set({ messages: sessionData.messages || [] });
+        } catch {
+          // Keep local state if refresh fails.
+        }
+      }
       set({ isStreaming: false, abortStream: null });
       get().loadSessions();
     }
@@ -304,7 +347,25 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     const { currentSession } = get();
     if (!currentSession) return;
 
-    set({ isStreaming: true, streamingContent: '', thinkingContent: '' });
+    const tempAssistantMsg = createTempMessage('assistant', currentSession.id);
+
+    set((state) => {
+      const targetIndex = state.messages.findIndex((message) => message.id === messageId);
+      const messages = targetIndex >= 0
+        ? [
+          ...state.messages.slice(0, targetIndex),
+          tempAssistantMsg,
+          ...state.messages.slice(targetIndex + 1),
+        ]
+        : [...state.messages, tempAssistantMsg];
+
+      return {
+        messages,
+        isStreaming: true,
+        streamingContent: '',
+        thinkingContent: '',
+      };
+    });
 
     let fullContent = '';
     let thinkingContent = '';
@@ -317,7 +378,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         action: 'regenerate',
         messageId,
         modelId,
-      });
+      }, abortController.signal);
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No response body');
 
@@ -340,9 +401,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             if (data.type === 'chunk') {
               fullContent += data.content;
               set({ streamingContent: fullContent });
+              updateLastAssistant(set, fullContent);
             } else if (data.type === 'thinking') {
               thinkingContent += data.content;
               set({ thinkingContent });
+              updateLastAssistant(set, fullContent, thinkingContent);
             } else if (data.type === 'done') {
               done = true;
               const sessionData = await api.sessions.get(currentSession.id);
@@ -358,9 +421,19 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
       }
     } catch (err) {
-      const sessionData = await api.sessions.get(currentSession.id);
-      set({ messages: sessionData.messages || [] });
+      if (!isAbortError(err)) {
+        const sessionData = await api.sessions.get(currentSession.id);
+        set({ messages: sessionData.messages || [] });
+      }
     } finally {
+      if (abortController.signal.aborted) {
+        try {
+          const sessionData = await api.sessions.get(currentSession.id);
+          set({ messages: sessionData.messages || [] });
+        } catch {
+          // Keep local state if refresh fails.
+        }
+      }
       set({ isStreaming: false, abortStream: null });
       get().loadSessions();
     }

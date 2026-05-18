@@ -1,6 +1,6 @@
 import { db } from '../db/index.js';
 import { messages } from '../db/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 import { streamChat, chat, supportsVision, type ChatMessage } from './ai-provider.js';
 import { retrieveContext } from './retrieval/index.js';
 import * as sessionService from './session-service.js';
@@ -26,6 +26,10 @@ export async function buildSystemPrompt(
     }
   }
 
+  if (session?.contextSummary) {
+    systemPrompt += `\n\n当前会话在切换导师时保留的上下文摘要：\n${session.contextSummary}`;
+  }
+
   // RAG retrieval
   const contextStr = await retrieveContext(query, userId);
 
@@ -45,13 +49,19 @@ export async function buildChatMessages(
   sessionId: string,
   systemPrompt: string,
   userContent: string,
-  imageAttachments?: Array<{ fileType: string; base64: string }>
+  imageAttachments?: Array<{ fileType: string; base64: string }>,
+  currentUserMessageId?: string
 ): Promise<ChatMessage[]> {
+  const conditions = [
+    eq(messages.sessionId, sessionId),
+    eq(messages.isDeleted, false),
+  ];
+  if (currentUserMessageId) {
+    conditions.push(ne(messages.id, currentUserMessageId));
+  }
+
   const recentMessages = await db.select().from(messages)
-    .where(and(
-      eq(messages.sessionId, sessionId),
-      eq(messages.isDeleted, false)
-    ))
+    .where(and(...conditions))
     .orderBy(messages.createdAt)
     .limit(20);
 
@@ -105,6 +115,7 @@ export async function* handleStreamChat(
   unknown
 > {
   const { content, action = 'send', messageId, modelId: overrideModelId, attachments = [] } = body;
+  let userMessageId: string | undefined;
 
   try {
     const session = await sessionService.getSessionById(sessionId, userId);
@@ -123,7 +134,6 @@ export async function* handleStreamChat(
     }
 
     // Handle different actions
-    let userMessageId: string;
     let textAttachments: string[] = [];
     let imageAttachments: Array<{ fileType: string; base64: string }> = [];
 
@@ -204,7 +214,8 @@ export async function* handleStreamChat(
       sessionId,
       systemPrompt,
       action === 'regenerate' ? (await messageService.getLatestUserMessage(sessionId))?.content || content : content,
-      imageFiles
+      imageFiles,
+      userMessageId
     );
 
     // Check if model supports vision
@@ -228,8 +239,14 @@ export async function* handleStreamChat(
       }
     }
 
-    // Save assistant message
-    const assistantMsg = await messageService.createAssistantMessage(sessionId, fullContent, {
+    const finalContent = fullContent.trim()
+      ? fullContent
+      : abortSignal?.aborted
+      ? '（生成已停止，未返回内容）'
+      : '（模型未返回内容）';
+
+    // Save assistant message so this user turn is closed in future context.
+    const assistantMsg = await messageService.createAssistantMessage(sessionId, finalContent, {
       modelId: model,
       thinkingContent: thinkingContent || undefined,
     });
@@ -240,6 +257,14 @@ export async function* handleStreamChat(
     yield { type: 'done', messageId: assistantMsg.id };
   } catch (err) {
     log.error({ err }, 'Chat stream error');
+    if (userMessageId) {
+      try {
+        await messageService.createAssistantMessage(sessionId, `（生成失败：${(err as Error).message}）`);
+        await sessionService.updateSessionStats(sessionId);
+      } catch (saveErr) {
+        log.error({ err: saveErr }, 'Failed to save assistant error marker');
+      }
+    }
     yield { type: 'error', error: (err as Error).message };
   }
 }

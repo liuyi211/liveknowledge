@@ -9,23 +9,37 @@ import { userRetrievalSettings } from '../../db/schema.js';
 import { eq } from 'drizzle-orm';
 import type { RetrievalResult } from './vector.js';
 
+const DEFAULT_RETRIEVAL_CONFIG = {
+  vectorTopK: 10,
+  fullTextTopK: 10,
+  localSearchTopK: 10,
+  globalSearchTopK: 5,
+  rrfK: 60,
+  rrfTopN: 10,
+  rerankEnabled: true,
+  rerankModel: null as string | null,
+  rerankProviderConfigId: null as string | null,
+  rerankTopN: 5,
+  contextBudgetTokens: 1500,
+};
+
 export async function retrieveContext(query: string, userId: string): Promise<string> {
   const [settings] = await db.select().from(userRetrievalSettings)
     .where(eq(userRetrievalSettings.userId, userId))
     .limit(1);
 
-  const config = settings || {
-    vectorTopK: 10,
-    fullTextTopK: 10,
-    localSearchTopK: 10,
-    globalSearchTopK: 5,
-    rrfK: 60,
-    rrfTopN: 10,
-    rerankEnabled: true,
-    rerankModel: null,
-    rerankProviderConfigId: null,
-    rerankTopN: 5,
-    contextBudgetTokens: 1500,
+  const config = {
+    vectorTopK: settings?.vectorTopK ?? DEFAULT_RETRIEVAL_CONFIG.vectorTopK,
+    fullTextTopK: settings?.fullTextTopK ?? DEFAULT_RETRIEVAL_CONFIG.fullTextTopK,
+    localSearchTopK: settings?.localSearchTopK ?? DEFAULT_RETRIEVAL_CONFIG.localSearchTopK,
+    globalSearchTopK: settings?.globalSearchTopK ?? DEFAULT_RETRIEVAL_CONFIG.globalSearchTopK,
+    rrfK: settings?.rrfK ?? DEFAULT_RETRIEVAL_CONFIG.rrfK,
+    rrfTopN: settings?.rrfTopN ?? DEFAULT_RETRIEVAL_CONFIG.rrfTopN,
+    rerankEnabled: settings?.rerankEnabled ?? DEFAULT_RETRIEVAL_CONFIG.rerankEnabled,
+    rerankModel: settings?.rerankModel ?? DEFAULT_RETRIEVAL_CONFIG.rerankModel,
+    rerankProviderConfigId: settings?.rerankProviderConfigId ?? DEFAULT_RETRIEVAL_CONFIG.rerankProviderConfigId,
+    rerankTopN: settings?.rerankTopN ?? DEFAULT_RETRIEVAL_CONFIG.rerankTopN,
+    contextBudgetTokens: settings?.contextBudgetTokens ?? DEFAULT_RETRIEVAL_CONFIG.contextBudgetTokens,
   };
 
   // Get default model for entity extraction

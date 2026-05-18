@@ -3,7 +3,7 @@ import { db } from '../db/index.js';
 import { aiProviderConfigs } from '../db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
-import { getProviderModels } from '../services/ai-provider.js';
+import { getDefaultModelForPurpose, getProviderModels, PROVIDER_MODELS } from '../services/ai-provider.js';
 import { encrypt } from '../utils/crypto.js';
 import OpenAI from 'openai';
 
@@ -22,14 +22,6 @@ const testSchema = z.object({
   model: z.string().optional(),
   purpose: z.enum(['chat', 'embedding']).default('chat'),
 });
-
-const PROVIDER_MODELS: Record<string, { baseURL: string }> = {
-  openai: { baseURL: 'https://api.openai.com/v1' },
-  deepseek: { baseURL: 'https://api.deepseek.com/v1' },
-  zhipu: { baseURL: 'https://open.bigmodel.cn/api/paas/v4' },
-  moonshot: { baseURL: 'https://api.moonshot.cn/v1' },
-  bailian: { baseURL: 'https://dashscope.aliyuncs.com/compatible-mode/v1' },
-};
 
 export async function providerRoutes(app: FastifyInstance) {
   // Get available models for all providers
@@ -118,7 +110,7 @@ export async function providerRoutes(app: FastifyInstance) {
       if (body.purpose === 'embedding') {
         // Test with embeddings API
         const response = await client.embeddings.create({
-          model: body.model || 'text-embedding-v4',
+          model: body.model || getDefaultModelForPurpose(body.providerType, 'embedding') || 'text-embedding-v4',
           input: 'test',
         });
         return {
@@ -130,7 +122,7 @@ export async function providerRoutes(app: FastifyInstance) {
 
       // Test with chat completions API
       const response = await client.chat.completions.create({
-        model: body.model || 'gpt-4o-mini',
+        model: body.model || getDefaultModelForPurpose(body.providerType, 'chat') || 'gpt-4o-mini',
         messages: [{ role: 'user', content: 'Hi' }],
         max_tokens: 5,
       });

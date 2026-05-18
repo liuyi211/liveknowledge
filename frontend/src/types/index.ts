@@ -18,6 +18,7 @@ export interface ChatSession {
   modelId: string | null;
   messageCount: number;
   lastMessagePreview: string | null;
+  contextSummary: string | null;
   createdAt: string;
   updatedAt: string;
 }

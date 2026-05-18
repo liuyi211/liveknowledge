@@ -26,11 +26,17 @@ function getAttachmentLabel(fileType: string): string {
   return '文件';
 }
 
-function AttachmentCard({ attachment }: { attachment: { fileName: string; fileType: string } }) {
+function AttachmentCard({ attachment }: { attachment: { fileName: string; fileType: string; extractedText?: string | null; base64?: string | null } }) {
   const label = getAttachmentLabel(attachment.fileType);
+  const mode = attachment.base64 || attachment.fileType.startsWith('image/') ? 'vision' : 'text';
+  const status = mode === 'vision'
+    ? '图片已发送给支持视觉的模型'
+    : attachment.extractedText
+    ? `文本已注入上下文，约 ${attachment.extractedText.length} 字符`
+    : '附件已记录';
 
   return (
-    <div className="flex items-center space-x-2 mb-2 px-2 py-1.5 rounded-lg border border-gray-200 bg-gray-50 max-w-[200px]">
+    <div className="flex items-center space-x-2 mb-2 px-2 py-1.5 rounded-lg border border-gray-200 bg-gray-50 max-w-[260px]" title={status}>
       <div className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center shrink-0">
         {attachment.fileType.startsWith('image/') ? (
           <Image size={12} className="text-blue-500" />
@@ -44,7 +50,7 @@ function AttachmentCard({ attachment }: { attachment: { fileName: string; fileTy
       </div>
       <div className="min-w-0">
         <p className="text-xs text-gray-700 truncate" title={attachment.fileName}>{attachment.fileName}</p>
-        <p className="text-[10px] text-gray-400">{label}</p>
+        <p className="text-[10px] text-gray-400">{label} · {mode}</p>
       </div>
     </div>
   );

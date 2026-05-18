@@ -7,9 +7,6 @@ export async function retrieveFullText(query: string, userId: string, topK: numb
   const keywords = query.trim().split(/\s+/).filter(Boolean);
   if (keywords.length === 0) return [];
 
-  // Build tsquery: word1 & word2 & word3
-  const tsquery = keywords.join(' & ');
-
   const results = await db.execute(sql`
     SELECT id, title, content,
            ts_rank(search_vector, plainto_tsquery('simple', ${query})) AS rank

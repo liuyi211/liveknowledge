@@ -53,7 +53,7 @@ export async function sessionRoutes(app: FastifyInstance) {
     const body = createSchema.partial().parse(request.body);
     const userId = request.user!.id;
 
-    const session = await sessionService.updateSession(id, userId, body);
+    const session = await sessionService.updateSessionWithPersonaSummary(id, userId, body, request.log);
     if (!session) {
       return reply.status(404).send({ error: 'Session not found' });
     }

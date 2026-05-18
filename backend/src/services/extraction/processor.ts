@@ -21,6 +21,35 @@ const processorLogger: FastifyBaseLogger = {
   silent: () => {},
 } as any;
 
+function parseJsonObject(text: string): any {
+  const cleaned = text.trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/i, '');
+
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const start = cleaned.indexOf('{');
+    const end = cleaned.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      return JSON.parse(cleaned.slice(start, end + 1));
+    }
+    throw new Error('No JSON object found in model response');
+  }
+}
+
+function normalizeCards(cards: unknown): Array<{ front: string; back: string }> {
+  if (!Array.isArray(cards)) return [];
+
+  return cards
+    .map((card: any) => ({
+      front: String(card?.front ?? '').trim(),
+      back: String(card?.back ?? '').trim(),
+    }))
+    .filter(card => card.front.length > 0 && card.back.length > 0)
+    .slice(0, 20);
+}
+
 export async function processExtraction(
   jobId: string,
   _sourceType: string,
@@ -122,10 +151,10 @@ ${content.slice(0, 5000)}
       maxTokens: 2000,
     }, processorLogger);
 
-    const parsed = JSON.parse(response.content);
+    const parsed = parseJsonObject(response.content);
     return {
-      summary: parsed.summary,
-      cards: parsed.cards || [],
+      summary: typeof parsed.summary === 'string' ? parsed.summary.trim() : '',
+      cards: normalizeCards(parsed.cards),
       entities: extracted.entities,
       relations: extracted.relations,
     };
