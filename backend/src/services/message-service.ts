@@ -135,17 +135,15 @@ export async function createAttachment(
   messageId: string,
   fileName: string,
   fileType: string,
-  fileSize: number,
-  filePath: string,
-  extractedText?: string | null
+  extractedText?: string | null,
+  base64?: string | null
 ) {
   const [attachment] = await db.insert(attachments).values({
     messageId,
     fileName,
     fileType,
-    fileSize,
-    filePath,
     extractedText: extractedText || null,
+    base64: base64 || null,
   }).returning();
   return attachment;
 }

@@ -81,7 +81,12 @@ function splitPlainText(content: string, sourceId: string): Chunk[] {
       content: remaining.slice(0, splitPoint).trim(),
       metadata: { sourceId, chunkIndex: chunkIndex++, startIndex, endIndex: startIndex + splitPoint }
     });
-    remaining = remaining.slice(Math.max(0, splitPoint - OVERLAP));
+
+    if (splitPoint >= remaining.length) {
+      break;
+    }
+
+    remaining = remaining.slice(splitPoint - OVERLAP);
     startIndex += splitPoint - OVERLAP;
   }
 

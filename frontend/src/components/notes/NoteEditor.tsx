@@ -6,7 +6,9 @@ import { api } from '@/lib/api';
 import { Eye, Pencil, Check, Loader2, Database } from 'lucide-react';
 import MarkdownPreview from './MarkdownPreview';
 import ExtractionButton from '../extraction/ExtractionButton';
-import ExtractionPanel from '../extraction/ExtractionPanel';
+import TaskProgressDrawer from '../progress/TaskProgressDrawer';
+import { useTaskProgress } from '../progress/useTaskProgress';
+import { INDEX_STEPS } from '../progress/types';
 
 type SaveState = 'idle' | 'saving' | 'saved';
 
@@ -22,9 +24,33 @@ export default function NoteEditor() {
   const [content, setContent] = useState('');
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [indexStatus, setIndexStatus] = useState<any>(null);
-  const [extractionJob, setExtractionJob] = useState<any>(null);
-  const [showExtractionPanel, setShowExtractionPanel] = useState(false);
+  const [showIndexDrawer, setShowIndexDrawer] = useState(false);
   const lastSavedRef = useRef<{ title: string; content: string } | null>(null);
+  const selectedNoteRef = useRef(selectedNote);
+  selectedNoteRef.current = selectedNote;
+
+  // Index progress tracking
+  const indexProgress = useTaskProgress(
+    async () => {
+      const note = selectedNoteRef.current;
+      if (!note) throw new Error('No note selected');
+      const data = await api.notes.indexStatus(note.id);
+      return {
+        status: data.indexStatus,
+        logs: data.indexLogs,
+        error: data.indexError,
+      };
+    },
+    (status) => ['done', 'failed'].includes(status),
+    {
+      onComplete: () => {
+        const note = selectedNoteRef.current;
+        if (note) {
+          api.notes.indexStatus(note.id).then(setIndexStatus);
+        }
+      },
+    }
+  );
 
   useEffect(() => {
     if (selectedNote) {
@@ -38,29 +64,30 @@ export default function NoteEditor() {
       lastSavedRef.current = null;
       setIndexStatus(null);
     }
+    // Stop any running progress polling when switching notes
+    indexProgress.stopPolling();
+    setShowIndexDrawer(false);
   }, [selectedNote?.id]);
 
   const handleIndex = useCallback(async () => {
     if (!selectedNote) return;
+
+    // If actively polling, just show the progress drawer
+    if (indexProgress.isPolling) {
+      setShowIndexDrawer(true);
+      return;
+    }
+
+    // Start new indexing (even if DB state shows chunking/embedding/storing from a previous stuck run)
     setIndexStatus({ indexStatus: 'chunking' });
     try {
       await api.notes.index(selectedNote.id);
-      // Poll for status
-      const interval = setInterval(async () => {
-        try {
-          const status = await api.notes.indexStatus(selectedNote.id);
-          setIndexStatus(status);
-          if (['done', 'failed'].includes(status.indexStatus)) {
-            clearInterval(interval);
-          }
-        } catch {
-          clearInterval(interval);
-        }
-      }, 1500);
+      setShowIndexDrawer(true);
+      indexProgress.startPolling();
     } catch {
       setIndexStatus({ indexStatus: 'failed' });
     }
-  }, [selectedNote?.id]);
+  }, [selectedNote?.id, indexProgress]);
 
   // 同步外部对当前笔记的修改（如树中重命名）
   useEffect(() => {
@@ -108,6 +135,14 @@ export default function NoteEditor() {
 
   const mode = viewMode[selectedNote.id] ?? 'edit';
 
+  const indexButtonState = indexProgress.isPolling
+    ? 'running'
+    : indexStatus?.indexStatus === 'done'
+    ? 'done'
+    : indexStatus?.indexStatus === 'failed'
+    ? 'failed'
+    : 'idle';
+
   return (
     <div className="flex-1 flex flex-col bg-white">
       {/* Toolbar */}
@@ -138,28 +173,26 @@ export default function NoteEditor() {
         </div>
         <button
           onClick={handleIndex}
-          disabled={['chunking', 'embedding', 'storing'].includes(indexStatus?.indexStatus)}
           className={`flex items-center gap-1 px-3 py-1 text-xs rounded-md transition ml-2 ${
-            indexStatus?.indexStatus === 'done'
+            indexButtonState === 'done'
               ? 'bg-green-50 text-green-700 hover:bg-green-100'
-              : ['chunking', 'embedding', 'storing'].includes(indexStatus?.indexStatus)
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              : indexButtonState === 'failed'
+              ? 'bg-red-50 text-red-700 hover:bg-red-100'
+              : indexButtonState === 'running'
+              ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
               : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
           }`}
-          title="建立知识库索引，使笔记内容可被检索"
+          title={indexButtonState === 'running' ? '点击查看索引进度' : '建立知识库索引，使笔记内容可被检索'}
         >
           <Database size={12} />
-          {indexStatus?.indexStatus === 'done' ? '已索引' :
-           ['chunking', 'embedding', 'storing'].includes(indexStatus?.indexStatus) ? '索引中...' :
+          {indexButtonState === 'done' ? '已索引' :
+           indexButtonState === 'failed' ? '索引失败' :
+           indexButtonState === 'running' ? '索引中...' :
            '建立索引'}
         </button>
         <ExtractionButton
           sourceType="note"
           sourceId={selectedNote.id}
-          onComplete={(job) => {
-            setExtractionJob(job);
-            setShowExtractionPanel(true);
-          }}
         />
       </div>
 
@@ -193,12 +226,19 @@ export default function NoteEditor() {
         )}
       </div>
 
-      {showExtractionPanel && extractionJob && (
-        <ExtractionPanel
-          job={extractionJob}
-          onClose={() => setShowExtractionPanel(false)}
-        />
-      )}
+      {/* Index Progress Drawer */}
+      <TaskProgressDrawer
+        isOpen={showIndexDrawer}
+        onClose={() => setShowIndexDrawer(false)}
+        title="建立索引"
+        subtitle={selectedNote.title}
+        icon="index"
+        steps={INDEX_STEPS}
+        status={indexProgress.state.status}
+        logs={indexProgress.state.logs}
+        error={indexProgress.state.error}
+        overallStatus={indexProgress.state.overallStatus}
+      />
     </div>
   );
 }

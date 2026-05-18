@@ -1,11 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { saveUploadedFile, isSupportedFile, ensureUploadDir } from '../services/file-handler.js';
+import { extractTextFromFile, fileToBase64, isSupportedFile, isImageFile } from '../services/file-handler.js';
 
 export async function uploadRoutes(app: FastifyInstance) {
-  await ensureUploadDir();
-
   app.post('/', { onRequest: [app.authenticate] }, async (request, reply) => {
-    const userId = request.user!.id;
     const data = await request.file();
 
     if (!data) {
@@ -27,17 +24,23 @@ export async function uploadRoutes(app: FastifyInstance) {
     }
 
     try {
-      const result = await saveUploadedFile(userId, fileName, fileType, buffer);
+      if (isImageFile(fileType)) {
+        return {
+          fileName,
+          fileType,
+          base64: fileToBase64(buffer, fileType),
+        };
+      }
+
+      const extractedText = await extractTextFromFile(fileType, buffer);
       return {
-        fileName: result.fileName,
-        fileType: result.fileType,
-        fileSize: result.fileSize,
-        filePath: result.filePath,
-        extractedText: result.extractedText,
+        fileName,
+        fileType,
+        extractedText,
       };
     } catch (err) {
-      request.log.error({ err }, 'Upload failed');
-      return reply.status(500).send({ error: 'Upload failed' });
+      request.log.error({ err }, 'Upload processing failed');
+      return reply.status(500).send({ error: 'Upload processing failed' });
     }
   });
 }

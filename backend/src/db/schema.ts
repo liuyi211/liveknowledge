@@ -67,9 +67,8 @@ export const attachments = pgTable('attachments', {
   messageId: uuid('message_id').references(() => messages.id, { onDelete: 'cascade' }).notNull(),
   fileName: varchar('file_name', { length: 255 }).notNull(),
   fileType: varchar('file_type', { length: 100 }).notNull(),
-  fileSize: integer('file_size').notNull(),
-  filePath: text('file_path').notNull(),
   extractedText: text('extracted_text'),
+  base64: text('base64'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -116,7 +115,7 @@ export const embeddings = pgTable('embeddings', {
   chunkIndex: integer('chunk_index').default(0).notNull(),
   content: text('content').notNull(),
   metadata: jsonb('metadata'),
-  embedding: vector('embedding', { dimensions: 1536 }),
+  embedding: vector('embedding', { dimensions: 1024 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

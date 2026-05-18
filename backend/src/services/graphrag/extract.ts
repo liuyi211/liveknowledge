@@ -20,12 +20,12 @@ export interface ExtractionResult {
 }
 
 const extractLogger: FastifyBaseLogger = {
-  info: () => {},
-  error: console.error,
-  warn: console.warn,
-  debug: () => {},
-  trace: () => {},
-  fatal: console.error,
+  info: (...args: any[]) => console.log('[extract]', ...args),
+  error: (...args: any[]) => console.error('[extract]', ...args),
+  warn: (...args: any[]) => console.warn('[extract]', ...args),
+  debug: (...args: any[]) => console.log('[extract:debug]', ...args),
+  trace: (...args: any[]) => console.log('[extract:trace]', ...args),
+  fatal: (...args: any[]) => console.error('[extract:fatal]', ...args),
   child: () => extractLogger,
   silent: () => {},
 } as any;

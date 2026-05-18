@@ -23,7 +23,7 @@ export async function retrieveVector(query: string, userId: string, topK: number
     LIMIT ${topK}
   `);
 
-  return (results.rows as any[]).map((row) => ({
+  return ((results as any).rows || results).map((row: any) => ({
     id: row.id,
     content: row.content,
     metadata: row.metadata,

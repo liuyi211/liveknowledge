@@ -20,11 +20,11 @@ export async function retrieveFullText(query: string, userId: string, topK: numb
     LIMIT ${topK}
   `);
 
-  return (results.rows as any[]).map((row) => ({
+  return ((results as any).rows || results).map((row: any) => ({
     id: row.id,
     content: row.content,
     metadata: { title: row.title, sourceType: 'note' },
-    similarity: parseFloat(row.rank),
+    similarity: parseFloat(row.rank || row.similarity || 0),
     sourceId: row.id,
   }));
 }

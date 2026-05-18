@@ -28,6 +28,6 @@ export interface SendMessageBody {
     fileName: string;
     fileType: string;
     extractedText?: string;
-    filePath?: string;
+    base64?: string;
   }>;
 }

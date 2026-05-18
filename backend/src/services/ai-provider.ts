@@ -211,10 +211,38 @@ export async function chat(userId: string, options: ChatOptions, log: FastifyBas
   }
 }
 
+export async function getDefaultEmbeddingConfig(userId: string): Promise<{ model: string; providerType: string }> {
+  const [config] = await db.select().from(aiProviderConfigs)
+    .where(and(
+      eq(aiProviderConfigs.userId, userId),
+      eq(aiProviderConfigs.purpose, 'embedding'),
+      eq(aiProviderConfigs.isActive, true)
+    )).limit(1);
+
+  if (!config) {
+    throw new Error('未配置 Embedding 模型，请先在设置中配置 AI Provider（用途选择 Embedding）');
+  }
+
+  const model = config.model || 'text-embedding-v4';
+  return { model, providerType: config.providerType };
+}
+
+const EXPECTED_DIMENSIONS = 1024;
+
+function checkDimensions(vectors: number[][], model: string): void {
+  const firstDim = vectors[0]?.length;
+  if (firstDim && firstDim !== EXPECTED_DIMENSIONS) {
+    throw new Error(
+      `模型 "${model}" 输出 ${firstDim} 维向量，但数据库要求 ${EXPECTED_DIMENSIONS} 维。` +
+      `请在设置中更换为 ${EXPECTED_DIMENSIONS} 维的 Embedding 模型（如阿里百炼 text-embedding-v4、text-embedding-v3、智谱 embedding-2），或联系管理员重建向量索引。`
+    );
+  }
+}
+
 export async function generateEmbedding(text: string, userId: string, model?: string): Promise<number[]> {
-  // Default to bailian text-embedding-v4
-  const embeddingModel = model || 'text-embedding-v3';
-  const providerType = 'bailian';
+  const defaultConfig = await getDefaultEmbeddingConfig(userId);
+  const embeddingModel = model || defaultConfig.model;
+  const providerType = defaultConfig.providerType;
 
   const client = await createProviderClient(userId, providerType, 'embedding');
 
@@ -223,12 +251,16 @@ export async function generateEmbedding(text: string, userId: string, model?: st
     input: text,
   });
 
-  return response.data[0].embedding;
+  const vector = response.data[0].embedding;
+  checkDimensions([vector], embeddingModel);
+
+  return vector;
 }
 
 export async function generateEmbeddingsBatch(texts: string[], userId: string, model?: string): Promise<number[][]> {
-  const embeddingModel = model || 'text-embedding-v3';
-  const providerType = 'bailian';
+  const defaultConfig = await getDefaultEmbeddingConfig(userId);
+  const embeddingModel = model || defaultConfig.model;
+  const providerType = defaultConfig.providerType;
 
   const client = await createProviderClient(userId, providerType, 'embedding');
 
@@ -237,5 +269,8 @@ export async function generateEmbeddingsBatch(texts: string[], userId: string, m
     input: texts,
   });
 
-  return response.data.map(d => d.embedding);
+  const vectors = response.data.map(d => d.embedding);
+  checkDimensions(vectors, embeddingModel);
+
+  return vectors;
 }

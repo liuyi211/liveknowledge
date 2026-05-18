@@ -143,27 +143,40 @@ export async function noteRoutes(app: FastifyInstance) {
   app.post('/:id/index', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const userId = request.user!.id;
+    app.log.info({ noteId: id, userId }, 'Index requested');
 
     const [note] = await db.select().from(notes)
       .where(and(eq(notes.id, id), eq(notes.userId, userId)))
       .limit(1);
 
     if (!note) {
+      app.log.warn({ noteId: id }, 'Note not found for indexing');
       return reply.status(404).send({ error: 'Note not found' });
     }
+
+    app.log.info({ noteId: id, contentLength: note.content.length }, 'Starting index');
 
     await db.update(notes)
       .set({ indexStatus: 'chunking', indexLogs: [], indexError: null })
       .where(eq(notes.id, id));
 
     // Trigger async indexing
-    const { indexNote } = await import('../services/indexing.js');
-    indexNote(id, userId).catch(err => {
-      app.log.error({ err }, 'Indexing failed');
-      db.update(notes)
-        .set({ indexStatus: 'failed', indexError: err.message })
+    try {
+      const { indexNote } = await import('../services/indexing.js');
+      indexNote(id, userId, app.log).catch(err => {
+        app.log.error({ err }, 'Indexing failed');
+        db.update(notes)
+          .set({ indexStatus: 'failed', indexError: err.message })
+          .where(eq(notes.id, id));
+      });
+      app.log.info({ noteId: id }, 'Index job started');
+    } catch (err) {
+      app.log.error({ err, noteId: id }, 'Failed to load indexing service');
+      await db.update(notes)
+        .set({ indexStatus: 'failed', indexError: (err as Error).message })
         .where(eq(notes.id, id));
-    });
+      return reply.status(500).send({ error: 'Failed to start indexing' });
+    }
 
     return { status: 'started' };
   });

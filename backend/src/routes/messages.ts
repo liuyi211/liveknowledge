@@ -12,7 +12,7 @@ const sendSchema = z.object({
     fileName: z.string(),
     fileType: z.string(),
     extractedText: z.string().optional(),
-    filePath: z.string().optional(),
+    base64: z.string().optional(),
   })).optional().default([]),
 });
 

@@ -1,56 +1,8 @@
-import fs from 'fs/promises';
-import path from 'path';
-
-const UPLOAD_DIR = path.resolve(process.cwd(), 'uploads');
-
 export interface UploadResult {
   fileName: string;
   fileType: string;
-  fileSize: number;
-  filePath: string;
-  extractedText: string | null;
-}
-
-export async function ensureUploadDir(): Promise<void> {
-  try {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  } catch {
-    // already exists
-  }
-}
-
-export function getUserUploadDir(userId: string): string {
-  return path.join(UPLOAD_DIR, userId);
-}
-
-export async function ensureUserUploadDir(userId: string): Promise<string> {
-  const dir = getUserUploadDir(userId);
-  await fs.mkdir(dir, { recursive: true });
-  return dir;
-}
-
-export async function saveUploadedFile(
-  userId: string,
-  fileName: string,
-  fileType: string,
-  buffer: Buffer
-): Promise<UploadResult> {
-  const dir = await ensureUserUploadDir(userId);
-  const timestamp = Date.now();
-  const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const filePath = path.join(dir, `${timestamp}_${safeName}`);
-
-  await fs.writeFile(filePath, buffer);
-
-  const extractedText = await extractTextFromFile(fileType, buffer);
-
-  return {
-    fileName,
-    fileType,
-    fileSize: buffer.length,
-    filePath,
-    extractedText,
-  };
+  extractedText?: string;
+  base64?: string;
 }
 
 export async function extractTextFromFile(fileType: string, buffer: Buffer): Promise<string | null> {
@@ -93,6 +45,10 @@ export async function extractTextFromFile(fileType: string, buffer: Buffer): Pro
   return null;
 }
 
+export function fileToBase64(buffer: Buffer, mimeType: string): string {
+  return `data:${mimeType};base64,${buffer.toString('base64')}`;
+}
+
 function isTextFile(fileType: string): boolean {
   const textTypes = [
     'application/json',
@@ -122,12 +78,4 @@ export function isSupportedFile(fileType: string): boolean {
   if (fileType.startsWith('text/')) return true;
   if (isTextFile(fileType)) return true;
   return false;
-}
-
-export async function deleteFile(filePath: string): Promise<void> {
-  try {
-    await fs.unlink(filePath);
-  } catch {
-    // file may not exist
-  }
 }

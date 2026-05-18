@@ -45,7 +45,7 @@ export async function buildChatMessages(
   sessionId: string,
   systemPrompt: string,
   userContent: string,
-  imageAttachments?: Array<{ fileType: string; filePath: string }>
+  imageAttachments?: Array<{ fileType: string; base64: string }>
 ): Promise<ChatMessage[]> {
   const recentMessages = await db.select().from(messages)
     .where(and(
@@ -74,19 +74,11 @@ export async function buildChatMessages(
     ];
 
     for (const img of imageAttachments) {
-      if (isImageFile(img.fileType)) {
-        try {
-          const { readFile } = await import('fs/promises');
-          const buffer = await readFile(img.filePath);
-          const base64 = buffer.toString('base64');
-          const mimeType = img.fileType || 'image/jpeg';
-          contentParts.push({
-            type: 'image_url',
-            image_url: { url: `data:${mimeType};base64,${base64}` },
-          });
-        } catch {
-          // skip unreadable images
-        }
+      if (isImageFile(img.fileType) && img.base64) {
+        contentParts.push({
+          type: 'image_url',
+          image_url: { url: img.base64 },
+        });
       }
     }
 
@@ -133,7 +125,7 @@ export async function* handleStreamChat(
     // Handle different actions
     let userMessageId: string;
     let textAttachments: string[] = [];
-    let imageAttachments: Array<{ fileType: string; filePath: string }> = [];
+    let imageAttachments: Array<{ fileType: string; base64: string }> = [];
 
     // Separate image and text attachments
     for (const att of attachments) {
@@ -150,14 +142,13 @@ export async function* handleStreamChat(
 
       // Save attachments for user message
       for (const att of attachments) {
-        if (att.filePath) {
+        if (att.extractedText || att.base64) {
           await messageService.createAttachment(
             userMessageId,
             att.fileName,
             att.fileType,
-            0, // fileSize not available from frontend, set 0
-            att.filePath,
-            att.extractedText
+            att.extractedText,
+            att.base64
           );
         }
       }
@@ -206,8 +197,8 @@ export async function* handleStreamChat(
     // Build prompt and messages
     const systemPrompt = await buildSystemPrompt(userId, sessionId, content, textAttachments, log);
 
-    // Get image file paths from attachments for vision models
-    const imageFiles = imageAttachments.map(a => ({ fileType: a.fileType, filePath: (a as any).filePath || '' }));
+    // Get image base64 from attachments for vision models
+    const imageFiles = imageAttachments.map(a => ({ fileType: a.fileType, base64: (a as any).base64 || '' }));
 
     const chatMessages = await buildChatMessages(
       sessionId,

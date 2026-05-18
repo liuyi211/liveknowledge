@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { chatSessions, messages, personas } from '../db/schema.js';
+import { chatSessions, messages, personas, attachments } from '../db/schema.js';
 import { eq, and, desc, sql, like, or } from 'drizzle-orm';
 
 export interface CreateSessionInput {
@@ -54,7 +54,15 @@ export async function getSessionWithMessages(id: string, userId: string) {
     ))
     .orderBy(messages.createdAt);
 
-  return { ...session, messages: sessionMessages };
+  // Fetch attachments for each message
+  const messagesWithAttachments = [];
+  for (const msg of sessionMessages) {
+    const atts = await db.select().from(attachments)
+      .where(eq(attachments.messageId, msg.id));
+    messagesWithAttachments.push({ ...msg, attachments: atts });
+  }
+
+  return { ...session, messages: messagesWithAttachments };
 }
 
 export async function listSessions(options: SessionListOptions) {

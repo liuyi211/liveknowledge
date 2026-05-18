@@ -19,11 +19,16 @@ interface ChatStore {
 
   messages: Message[];
   messagesLoading: boolean;
-  sendMessage: (content: string, attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; filePath?: string }>) => Promise<void>;
+  sendMessage: (content: string, attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }>) => Promise<void>;
   editAndResend: (messageId: string, newContent: string) => Promise<void>;
   regenerateMessage: (messageId: string, modelId?: string) => Promise<void>;
   deleteMessage: (messageId: string) => Promise<void>;
   feedbackMessage: (messageId: string, feedback: 'like' | 'dislike') => Promise<void>;
+
+  sessionAttachments: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }>;
+  addSessionAttachment: (att: { fileName: string; fileType: string; extractedText?: string; base64?: string }) => void;
+  removeSessionAttachment: (index: number) => void;
+  clearSessionAttachments: () => void;
 
   isStreaming: boolean;
   streamingContent: string;
@@ -50,7 +55,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   createSession: async (params = {}) => {
     const session = await api.sessions.create(params);
-    set((state) => ({ sessions: [session, ...state.sessions], currentSession: session, messages: [] }));
+    set((state) => ({ sessions: [session, ...state.sessions], currentSession: session, messages: [], sessionAttachments: [] }));
     return session;
   },
 
@@ -59,7 +64,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set((state) => {
       const sessions = state.sessions.filter((s) => s.id !== id);
       const currentSession = state.currentSession?.id === id ? null : state.currentSession;
-      return { sessions, currentSession, messages: currentSession ? state.messages : [] };
+      return { sessions, currentSession, messages: currentSession ? state.messages : [], sessionAttachments: currentSession ? state.sessionAttachments : [] };
     });
   },
 
@@ -76,11 +81,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set((state) => ({
       sessions: state.sessions.map((s) => (s.id === id ? { ...s, messageCount: 0, lastMessagePreview: null } : s)),
       messages: state.currentSession?.id === id ? [] : state.messages,
+      sessionAttachments: state.currentSession?.id === id ? [] : state.sessionAttachments,
     }));
   },
 
   currentSession: null,
-  setCurrentSession: (session) => set({ currentSession: session }),
+  setCurrentSession: (session) => set({ currentSession: session, sessionAttachments: [] }),
 
   loadSessionMessages: async (sessionId) => {
     set({ messagesLoading: true });
@@ -94,6 +100,15 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   messages: [],
   messagesLoading: false,
+
+  sessionAttachments: [],
+  addSessionAttachment: (att) => set((state) => ({
+    sessionAttachments: [...state.sessionAttachments, att],
+  })),
+  removeSessionAttachment: (index) => set((state) => ({
+    sessionAttachments: state.sessionAttachments.filter((_, i) => i !== index),
+  })),
+  clearSessionAttachments: () => set({ sessionAttachments: [] }),
 
   sendMessage: async (content, attachments = []) => {
     const { currentSession } = get();

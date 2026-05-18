@@ -1,17 +1,9 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Send, Square, Paperclip, X, FileText, Image, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { useChatStore } from '@/stores/chat-store';
 import { api } from '@/lib/api';
-
-interface PendingAttachment {
-  file: File;
-  fileName: string;
-  fileType: string;
-  filePath: string;
-  extractedText?: string;
-}
+import { Send, Square, Paperclip, X, FileText, Image, FileSpreadsheet, Loader2 } from 'lucide-react';
 
 function getFileIcon(fileType: string) {
   if (fileType.startsWith('image/')) return <Image size={14} />;
@@ -21,33 +13,34 @@ function getFileIcon(fileType: string) {
 
 export default function MessageInput() {
   const [input, setInput] = useState('');
-  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [uploadingCount, setUploadingCount] = useState(0);
   const currentSession = useChatStore((s) => s.currentSession);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const isStreaming = useChatStore((s) => s.isStreaming);
   const abortStream = useChatStore((s) => s.abortStream);
+  const sessionAttachments = useChatStore((s) => s.sessionAttachments);
+  const addSessionAttachment = useChatStore((s) => s.addSessionAttachment);
+  const removeSessionAttachment = useChatStore((s) => s.removeSessionAttachment);
+  const clearSessionAttachments = useChatStore((s) => s.clearSessionAttachments);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isUploading = uploadingCount > 0;
 
   const handleSend = useCallback(async () => {
-    if ((!input.trim() && pendingAttachments.length === 0) || !currentSession || isStreaming) return;
+    if ((!input.trim() && sessionAttachments.length === 0) || !currentSession || isStreaming) return;
 
-    const content = input.trim() || (pendingAttachments.length > 0 ? '请分析上传的文件' : '');
+    const content = input.trim() || (sessionAttachments.length > 0 ? '请分析上传的文件' : '');
     setInput('');
 
-    const attachments = pendingAttachments.map((a) => ({
+    const attachments = sessionAttachments.map((a) => ({
       fileName: a.fileName,
       fileType: a.fileType,
-      filePath: a.filePath,
       extractedText: a.extractedText,
+      base64: a.base64,
     }));
 
-    setPendingAttachments([]);
-
     await sendMessage(content, attachments);
-  }, [input, pendingAttachments, currentSession, isStreaming, sendMessage]);
+  }, [input, sessionAttachments, currentSession, isStreaming, sendMessage]);
 
   const handleStop = useCallback(() => {
     abortStream?.();
@@ -64,16 +57,12 @@ export default function MessageInput() {
     setUploadingCount((c) => c + 1);
     try {
       const result = await api.upload.uploadFile(file);
-      setPendingAttachments((prev) => [
-        ...prev,
-        {
-          file,
-          fileName: result.fileName,
-          fileType: result.fileType,
-          filePath: result.filePath,
-          extractedText: result.extractedText,
-        },
-      ]);
+      addSessionAttachment({
+        fileName: result.fileName,
+        fileType: result.fileType,
+        extractedText: result.extractedText,
+        base64: result.base64,
+      });
     } catch (err) {
       alert(`上传失败 "${file.name}": ${(err as Error).message}`);
     } finally {
@@ -106,10 +95,6 @@ export default function MessageInput() {
     }
   }, []);
 
-  const removeAttachment = (index: number) => {
-    setPendingAttachments((prev) => prev.filter((_, i) => i !== index));
-  };
-
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -124,10 +109,10 @@ export default function MessageInput() {
 
   return (
     <div className="border-t border-gray-200 bg-white px-4 py-3">
-      {/* Pending attachments + uploading indicator */}
-      {(pendingAttachments.length > 0 || isUploading) && (
+      {/* Session attachments + uploading indicator */}
+      {(sessionAttachments.length > 0 || isUploading) && (
         <div className="flex flex-wrap gap-2 mb-2">
-          {pendingAttachments.map((att, i) => (
+          {sessionAttachments.map((att, i) => (
             <div
               key={i}
               className="flex items-center space-x-1.5 bg-gray-100 px-2 py-1 rounded-lg text-xs text-gray-600"
@@ -135,7 +120,7 @@ export default function MessageInput() {
               {getFileIcon(att.fileType)}
               <span className="max-w-[120px] truncate">{att.fileName}</span>
               <button
-                onClick={() => removeAttachment(i)}
+                onClick={() => removeSessionAttachment(i)}
                 className="text-gray-400 hover:text-red-500"
               >
                 <X size={12} />
@@ -147,6 +132,14 @@ export default function MessageInput() {
               <Loader2 size={14} className="animate-spin" />
               <span>上传中 ({uploadingCount})...</span>
             </div>
+          )}
+          {sessionAttachments.length > 0 && (
+            <button
+              onClick={clearSessionAttachments}
+              className="text-xs text-gray-400 hover:text-red-500 px-1"
+            >
+              清空全部
+            </button>
           )}
         </div>
       )}
@@ -196,7 +189,7 @@ export default function MessageInput() {
         ) : (
           <button
             onClick={handleSend}
-            disabled={(!input.trim() && pendingAttachments.length === 0) || isUploading}
+            disabled={(!input.trim() && sessionAttachments.length === 0) || isUploading}
             className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             <Send size={18} />

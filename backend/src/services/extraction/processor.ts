@@ -11,12 +11,12 @@ export interface ExtractionOutput {
 }
 
 const processorLogger: FastifyBaseLogger = {
-  info: () => {},
-  error: console.error,
-  warn: console.warn,
-  debug: () => {},
-  trace: () => {},
-  fatal: console.error,
+  info: (...args: any[]) => console.log('[extraction]', ...args),
+  error: (...args: any[]) => console.error('[extraction]', ...args),
+  warn: (...args: any[]) => console.warn('[extraction]', ...args),
+  debug: (...args: any[]) => console.log('[extraction:debug]', ...args),
+  trace: (...args: any[]) => console.log('[extraction:trace]', ...args),
+  fatal: (...args: any[]) => console.error('[extraction:fatal]', ...args),
   child: () => processorLogger,
   silent: () => {},
 } as any;

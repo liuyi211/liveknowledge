@@ -19,21 +19,33 @@ interface MessageBubbleProps {
   isStreaming: boolean;
 }
 
-function AttachmentIcons({ attachments }: { attachments?: Array<{ fileName: string; fileType: string }> }) {
-  if (!attachments || attachments.length === 0) return null;
+function getAttachmentLabel(fileType: string): string {
+  if (fileType.startsWith('image/')) return '图片';
+  if (fileType.includes('pdf')) return 'PDF';
+  if (fileType.includes('word') || fileType.includes('document')) return '文档';
+  return '文件';
+}
+
+function AttachmentCard({ attachment }: { attachment: { fileName: string; fileType: string } }) {
+  const label = getAttachmentLabel(attachment.fileType);
 
   return (
-    <div className="flex flex-wrap gap-1.5 mb-2">
-      {attachments.map((att, i) => (
-        <span
-          key={i}
-          className="inline-flex items-center space-x-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500"
-          title={att.fileName}
-        >
-          {att.fileType.startsWith('image/') ? <Image size={10} /> : att.fileType.includes('word') || att.fileType.includes('document') ? <FileSpreadsheet size={10} /> : <FileText size={10} />}
-          <span className="max-w-[80px] truncate">{att.fileName}</span>
-        </span>
-      ))}
+    <div className="flex items-center space-x-2 mb-2 px-2 py-1.5 rounded-lg border border-gray-200 bg-gray-50 max-w-[200px]">
+      <div className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center shrink-0">
+        {attachment.fileType.startsWith('image/') ? (
+          <Image size={12} className="text-blue-500" />
+        ) : attachment.fileType.includes('pdf') ? (
+          <FileText size={12} className="text-red-500" />
+        ) : attachment.fileType.includes('word') || attachment.fileType.includes('document') ? (
+          <FileSpreadsheet size={12} className="text-blue-500" />
+        ) : (
+          <FileText size={12} className="text-gray-500" />
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-700 truncate" title={attachment.fileName}>{attachment.fileName}</p>
+        <p className="text-[10px] text-gray-400">{label}</p>
+      </div>
     </div>
   );
 }
@@ -117,6 +129,15 @@ export default function MessageBubble({ message, isLastUserMessage, isLastAssist
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} group`}>
       <div className={`max-w-3xl ${isUser ? 'w-auto' : 'w-full'}`}>
+        {/* Attachments - outside bubble */}
+        {message.attachments && message.attachments.length > 0 && (
+          <div className={`flex flex-wrap gap-2 mb-1.5 ${isUser ? 'justify-end' : 'justify-start'}`}>
+            {message.attachments.map((att, i) => (
+              <AttachmentCard key={i} attachment={att} />
+            ))}
+          </div>
+        )}
+
         {/* Thinking block for assistant */}
         {!isUser && message.thinkingContent && (
           <ThinkingBlock
@@ -159,9 +180,6 @@ export default function MessageBubble({ message, isLastUserMessage, isLastAssist
                 : 'bg-white border border-gray-200 text-gray-900 rounded-bl-sm shadow-sm'
             }`}
           >
-            {message.attachments && message.attachments.length > 0 && (
-              <AttachmentIcons attachments={message.attachments} />
-            )}
             {isUser ? (
               <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
             ) : (

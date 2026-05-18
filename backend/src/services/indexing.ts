@@ -3,19 +3,23 @@ import { notes } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import { splitDocument } from './chunking.js';
 import { storeNoteEmbeddings, deleteNoteEmbeddings } from './embedding.js';
+import type { FastifyBaseLogger } from 'fastify';
 
-export async function indexNote(noteId: string, userId: string): Promise<void> {
+export async function indexNote(noteId: string, userId: string, log: FastifyBaseLogger): Promise<void> {
   const startTime = Date.now();
   const logs: any[] = [];
 
   try {
+    log.info({ noteId }, 'Index: loading note');
     const [note] = await db.select().from(notes).where(eq(notes.id, noteId)).limit(1);
     if (!note) throw new Error('Note not found');
 
     // Step 1: Chunking
+    log.info({ noteId, contentLength: note.content.length }, 'Index: chunking');
     await db.update(notes).set({ indexStatus: 'chunking' }).where(eq(notes.id, noteId));
     const chunkStart = Date.now();
     const chunks = splitDocument(note.content, noteId);
+    log.info({ noteId, chunkCount: chunks.length }, 'Index: chunking done');
     logs.push({
       step: 'chunk',
       status: 'completed',
@@ -25,9 +29,11 @@ export async function indexNote(noteId: string, userId: string): Promise<void> {
     });
 
     // Step 2: Delete old embeddings
+    log.info({ noteId }, 'Index: deleting old embeddings');
     await deleteNoteEmbeddings(noteId);
 
     // Step 3: Embedding
+    log.info({ noteId, chunkCount: chunks.length }, 'Index: embedding');
     await db.update(notes).set({ indexStatus: 'embedding', indexLogs: logs }).where(eq(notes.id, noteId));
     const embedStart = Date.now();
     await storeNoteEmbeddings(
@@ -35,6 +41,7 @@ export async function indexNote(noteId: string, userId: string): Promise<void> {
       userId,
       noteId
     );
+    log.info({ noteId, chunkCount: chunks.length }, 'Index: embedding done');
     logs.push({
       step: 'embed',
       status: 'completed',
@@ -57,9 +64,11 @@ export async function indexNote(noteId: string, userId: string): Promise<void> {
       indexLogs: logs,
       indexedAt: new Date(),
     }).where(eq(notes.id, noteId));
+    log.info({ noteId, durationMs: Date.now() - startTime }, 'Index: completed');
 
   } catch (error) {
     const err = error as Error;
+    log.error({ err, noteId }, 'Index: failed');
     logs.push({
       step: 'index',
       status: 'failed',

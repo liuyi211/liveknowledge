@@ -27,9 +27,8 @@ export interface Attachment {
   messageId: string;
   fileName: string;
   fileType: string;
-  fileSize: number;
-  filePath: string;
   extractedText: string | null;
+  base64: string | null;
 }
 
 export interface Message {

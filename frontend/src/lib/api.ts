@@ -67,7 +67,7 @@ export const api = {
       action?: 'send' | 'editAndResend' | 'regenerate';
       messageId?: string;
       modelId?: string;
-      attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; filePath?: string }>;
+      attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }>;
     }) => {
       return fetch(`${API_BASE}/api/messages/session/${sessionId}/stream`, {
         method: 'POST',
