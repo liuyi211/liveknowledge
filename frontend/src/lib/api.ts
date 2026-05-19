@@ -135,8 +135,12 @@ export const api = {
   },
 
   extraction: {
-    createJob: (sourceType: string, sourceId: string) =>
-      fetchApi('/api/extraction/jobs', { method: 'POST', body: JSON.stringify({ sourceType, sourceId }) }),
+    createJob: (
+      sourceType: string,
+      sourceId?: string,
+      extra?: { title?: string; content?: string; metadata?: Record<string, unknown> }
+    ) =>
+      fetchApi('/api/extraction/jobs', { method: 'POST', body: JSON.stringify({ sourceType, sourceId, ...extra }) }),
     getJob: (jobId: string) => fetchApi(`/api/extraction/jobs/${jobId}`),
     adopt: (jobId: string, data: any) =>
       fetchApi(`/api/extraction/jobs/${jobId}/adopt`, { method: 'POST', body: JSON.stringify(data) }),

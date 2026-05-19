@@ -1,0 +1,3 @@
+-- PostgreSQL does not enforce Drizzle's text enum at the database level here.
+-- This migration records the application-level expansion of extraction_jobs.source_type
+-- to include "import" alongside note/conversation/document.

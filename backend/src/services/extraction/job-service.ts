@@ -2,12 +2,18 @@ import { db } from '../../db/index.js';
 import { extractionJobs } from '../../db/schema.js';
 import { eq } from 'drizzle-orm';
 
-export async function createJob(userId: string, sourceType: string, sourceId: string): Promise<string> {
+export async function createJob(
+  userId: string,
+  sourceType: string,
+  sourceId: string,
+  config?: Record<string, unknown>
+): Promise<string> {
   const [result] = await db.insert(extractionJobs).values({
     userId,
     sourceType: sourceType as any,
     sourceId,
     status: 'pending',
+    userFeedback: config ? { config } : undefined,
   }).returning({ id: extractionJobs.id });
 
   return result.id;

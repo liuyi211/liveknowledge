@@ -74,7 +74,7 @@ export async function uploadRoutes(app: FastifyInstance) {
         warning: extractedText.length >= 10000 ? '文本已截断到前 10000 字符' : undefined,
       };
     } catch (err) {
-      request.log.error({ err }, 'Upload processing failed');
+      request.log.error({ err }, '上传文件处理失败');
       return reply.status(500).send({ error: 'Upload processing failed' });
     }
   });
@@ -119,7 +119,7 @@ export async function uploadRoutes(app: FastifyInstance) {
         warning: extractedText.length > clipped.length ? '网页正文已截断到前 10000 字符' : undefined,
       };
     } catch (err) {
-      request.log.error({ err, url }, 'URL processing failed');
+      request.log.error({ err, url }, 'URL 内容处理失败');
       return reply.status(500).send({ error: 'URL processing failed' });
     }
   });

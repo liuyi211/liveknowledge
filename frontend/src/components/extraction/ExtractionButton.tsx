@@ -10,12 +10,15 @@ import { EXTRACTION_STEPS } from '../progress/types';
 
 interface Props {
   sourceType: string;
-  sourceId: string;
+  sourceId?: string;
+  title?: string;
+  content?: string;
+  metadata?: Record<string, unknown>;
   onComplete?: (job: any) => void;
   variant?: 'button' | 'menu';
 }
 
-export default function ExtractionButton({ sourceType, sourceId, onComplete, variant = 'button' }: Props) {
+export default function ExtractionButton({ sourceType, sourceId, title, content, metadata, onComplete, variant = 'button' }: Props) {
   const [showProgress, setShowProgress] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [job, setJob] = useState<any>(null);
@@ -55,7 +58,7 @@ export default function ExtractionButton({ sourceType, sourceId, onComplete, var
       return;
     }
     try {
-      const { jobId } = await api.extraction.createJob(sourceType, sourceId);
+      const { jobId } = await api.extraction.createJob(sourceType, sourceId, { title, content, metadata });
       jobIdRef.current = jobId;
       setShowProgress(true);
       extractionProgress.startPolling();

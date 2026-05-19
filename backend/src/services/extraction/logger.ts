@@ -7,15 +7,15 @@ export class JobLogger {
     const duration = detail ? (detail.durationMs as number | undefined) : undefined;
     this.log.info(
       { jobId: this.jobId, step, status, ...detail },
-      `Job[${this.jobId}] ${step} ${status}${duration ? ` (${duration}ms)` : ''}`
+      `提炼任务[${this.jobId}] ${step} ${status}${duration ? `（${duration}ms）` : ''}`
     );
   }
 
   debug(step: string, detail: object) {
-    this.log.debug({ jobId: this.jobId, step, ...detail }, `Job[${this.jobId}] ${step}`);
+    this.log.debug({ jobId: this.jobId, step, ...detail }, `提炼任务[${this.jobId}] ${step}`);
   }
 
   error(step: string, err: Error) {
-    this.log.error({ jobId: this.jobId, step, err }, `Job[${this.jobId}] ${step} FAILED`);
+    this.log.error({ jobId: this.jobId, step, err }, `提炼任务[${this.jobId}] ${step} 失败`);
   }
 }

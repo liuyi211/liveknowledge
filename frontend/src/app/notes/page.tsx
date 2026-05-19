@@ -13,6 +13,7 @@ import MoveToFolderDialog from '@/components/notes/MoveToFolderDialog';
 import ConfirmDeleteDialog from '@/components/notes/ConfirmDeleteDialog';
 import IconButton from '@/components/notes/IconButton';
 import TagFilter from '@/components/notes/TagFilter';
+import DocumentExtractionDialog from '@/components/extraction/DocumentExtractionDialog';
 
 export default function NotesPage() {
   const router = useRouter();
@@ -118,6 +119,9 @@ export default function NotesPage() {
           <IconButton tooltip="全部折叠" onClick={collapseAllFolders}>
             <ChevronsDownUp size={16} />
           </IconButton>
+          <div className="ml-auto">
+            <DocumentExtractionDialog />
+          </div>
         </div>
         {searchActive && (
           <div className="px-2 py-2 border-b">

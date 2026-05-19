@@ -102,7 +102,7 @@ export async function discoverCommunities(): Promise<void> {
       RETURN graphName
     `);
   } catch (err) {
-    console.warn('GDS community discovery failed:', err);
+    console.warn('图谱社区发现失败：', err);
   }
 }
 
@@ -127,7 +127,7 @@ export async function generateCommunitySummaries(model: string, userId: string):
       `, { communityId, summary: summary.slice(0, 500) });
     }
   } catch (err) {
-    console.warn('Community summary generation failed:', err);
+    console.warn('社区摘要生成失败：', err);
   }
 }
 

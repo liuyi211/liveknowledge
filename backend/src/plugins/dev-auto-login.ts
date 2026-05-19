@@ -8,14 +8,14 @@ const DEV_USERNAME = 'dev';
 const DEV_PASSWORD = 'dev123';
 
 /**
- * Development auto-login plugin.
- * In development mode, automatically creates a test user and sets session.
- * Set DEV_AUTO_LOGIN=false to disable.
+ * 开发环境自动登录插件。
+ * 开发模式下自动创建测试用户并写入 session。
+ * 设置 DEV_AUTO_LOGIN=false 可关闭。
  */
 export default fp(async (fastify) => {
   const enabled = process.env.DEV_AUTO_LOGIN !== 'false';
   if (process.env.NODE_ENV === 'production' || !enabled) {
-    fastify.log.debug('Dev auto-login: disabled');
+    fastify.log.debug('开发自动登录：已关闭');
     return;
   }
 
@@ -39,11 +39,11 @@ export default fp(async (fastify) => {
         username: DEV_USERNAME,
         passwordHash,
       }).returning();
-      fastify.log.debug({ userId: user.id }, 'Dev auto-login: created test user');
+      fastify.log.debug({ userId: user.id }, '开发自动登录：已创建测试用户');
     }
 
     // Auto-login
     request.session.userId = user.id;
-    fastify.log.debug({ userId: user.id }, 'Dev auto-login: auto-authenticated');
+    fastify.log.debug({ userId: user.id }, '开发自动登录：已自动认证');
   });
 });

@@ -1,4 +1,4 @@
-import { pgTable, uuid, varchar, text, timestamp, integer, boolean, jsonb, real, vector, foreignKey, customType, index } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, varchar, text, timestamp, integer, boolean, jsonb, real, vector, foreignKey, customType, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 const tsvector = customType<{ data: string }>({
@@ -153,7 +153,7 @@ export const userRetrievalSettings = pgTable('user_retrieval_settings', {
 export const extractionJobs = pgTable('extraction_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: uuid('user_id').notNull().references(() => users.id),
-  sourceType: text('source_type', { enum: ['note', 'conversation', 'document'] }).notNull(),
+  sourceType: text('source_type', { enum: ['note', 'conversation', 'document', 'import'] }).notNull(),
   sourceId: uuid('source_id').notNull(),
   status: text('status', { enum: ['pending', 'preprocessing', 'extracting', 'generating', 'completed', 'failed'] }).default('pending'),
   currentStep: text('current_step'),
@@ -164,6 +164,19 @@ export const extractionJobs = pgTable('extraction_jobs', {
   createdAt: timestamp('created_at').defaultNow(),
   completedAt: timestamp('completed_at'),
 });
+
+export const importSources = pgTable('import_sources', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  sourceType: text('source_type', { enum: ['document', 'import'] }).notNull(),
+  title: varchar('title', { length: 200 }).notNull(),
+  content: text('content').notNull(),
+  contentHash: varchar('content_hash', { length: 64 }).notNull(),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  userSourceHashIdx: uniqueIndex('idx_import_sources_user_type_hash').on(table.userId, table.sourceType, table.contentHash),
+}));
 
 export const cards = pgTable('cards', {
   id: uuid('id').primaryKey().defaultRandom(),

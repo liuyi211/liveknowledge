@@ -12,6 +12,8 @@ export default function ExtractionPanel({ job, onClose }: Props) {
   const [activeTab, setActiveTab] = useState<'summary' | 'cards' | 'entities' | 'relations'>('summary');
   const [adoptedSummary, setAdoptedSummary] = useState(false);
   const [adoptedCards, setAdoptedCards] = useState<number[]>([]);
+  const [adoptedEntities, setAdoptedEntities] = useState<number[]>([]);
+  const [adoptedRelations, setAdoptedRelations] = useState<number[]>([]);
   const [saving, setSaving] = useState(false);
 
   const output = job.output || {};
@@ -22,12 +24,17 @@ export default function ExtractionPanel({ job, onClose }: Props) {
       await api.extraction.adopt(job.id, {
         summary: adoptedSummary ? output.summary : null,
         cards: output.cards?.filter((_: any, i: number) => adoptedCards.includes(i)),
+        entities: output.entities?.filter((_: any, i: number) => adoptedEntities.includes(i)),
+        relations: output.relations?.filter((_: any, i: number) => adoptedRelations.includes(i)),
       });
       onClose();
     } finally {
       setSaving(false);
     }
   };
+
+  const selectedCount = (adoptedSummary ? 1 : 0) + adoptedCards.length + adoptedEntities.length + adoptedRelations.length;
+  const meta = output.meta || {};
 
   const tabs = [
     { key: 'summary' as const, label: '摘要' },
@@ -40,7 +47,16 @@ export default function ExtractionPanel({ job, onClose }: Props) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-[800px] max-h-[85vh] flex flex-col">
         <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-bold">提炼结果预览</h2>
+          <div>
+            <h2 className="text-lg font-bold">提炼结果预览</h2>
+            {meta.version && (
+              <p className="text-xs text-gray-500 mt-1">
+                第 {meta.version} 次提炼
+                {meta.duplicateSource ? ' · 检测到重复来源' : ''}
+                {meta.previousJobIds?.length ? ` · 历史任务 ${meta.previousJobIds.length} 个` : ''}
+              </p>
+            )}
+          </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
         </div>
 
@@ -90,6 +106,19 @@ export default function ExtractionPanel({ job, onClose }: Props) {
 
           {activeTab === 'entities' && output.entities?.map((e: any, i: number) => (
             <div key={i} className="border rounded-md p-3 mb-2">
+              <label className="flex items-center gap-2 mb-2">
+                <input type="checkbox"
+                  checked={adoptedEntities.includes(i)}
+                  onChange={event => {
+                    setAdoptedEntities(event.target.checked
+                      ? [...adoptedEntities, i]
+                      : adoptedEntities.filter(item => item !== i)
+                    );
+                  }}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">采纳</span>
+              </label>
               <span className="font-medium">{e.name}</span>
               <span className="text-gray-500 text-xs ml-2">({e.type})</span>
               <p className="text-sm text-gray-600 mt-1">{e.description}</p>
@@ -98,19 +127,33 @@ export default function ExtractionPanel({ job, onClose }: Props) {
 
           {activeTab === 'relations' && output.relations?.map((r: any, i: number) => (
             <div key={i} className="border rounded-md p-3 mb-2 text-sm">
+              <label className="flex items-center gap-2 mb-2">
+                <input type="checkbox"
+                  checked={adoptedRelations.includes(i)}
+                  onChange={event => {
+                    setAdoptedRelations(event.target.checked
+                      ? [...adoptedRelations, i]
+                      : adoptedRelations.filter(item => item !== i)
+                    );
+                  }}
+                  className="rounded"
+                />
+                <span className="text-sm font-medium">采纳</span>
+              </label>
               <span className="font-medium">{r.source}</span>
               <span className="text-blue-600 mx-2">→ {r.type} →</span>
               <span className="font-medium">{r.target}</span>
+              {r.description && <p className="text-gray-500 mt-1">{r.description}</p>}
             </div>
           ))}
         </div>
 
         <div className="p-4 border-t flex justify-end gap-2">
           <button onClick={onClose} className="px-4 py-2 rounded-md border text-sm hover:bg-gray-50">取消</button>
-          <button onClick={handleAdopt} disabled={saving || (!adoptedSummary && adoptedCards.length === 0)}
+          <button onClick={handleAdopt} disabled={saving || selectedCount === 0}
             className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
           >
-            {saving ? '保存中...' : '采纳选中项'}
+            {saving ? '保存中...' : `采纳选中项 (${selectedCount})`}
           </button>
         </div>
       </div>

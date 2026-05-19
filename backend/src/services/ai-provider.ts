@@ -361,7 +361,7 @@ export async function* streamChat(
   const client = await createProviderClient(userId, providerType);
   const startTime = Date.now();
 
-  log.debug({ provider: providerType, model: options.model }, 'AI: provider call start');
+  log.debug({ provider: providerType, model: options.model }, 'AI：开始调用模型服务');
 
   try {
     const stream = await client.chat.completions.create({
@@ -386,19 +386,19 @@ export async function* streamChat(
       const content = chunk.choices[0]?.delta?.content;
       if (content) {
         chunkCount++;
-        log.debug({ chunk: chunkCount, length: content.length }, 'AI: stream chunk');
+        log.debug({ chunk: chunkCount, length: content.length }, 'AI：收到流式片段');
         yield { type: 'content', content };
       }
     }
 
     const duration = Date.now() - startTime;
-    log.debug({ duration, chunkCount }, 'AI: provider call done');
+    log.debug({ duration, chunkCount }, 'AI：模型流式调用完成');
   } catch (err) {
     if ((err as any).name === 'AbortError') {
-      log.info('AI: stream aborted by user');
+      log.info('AI：用户已停止流式生成');
       return;
     }
-    log.error({ err }, 'AI: provider call failed');
+    log.error({ err }, 'AI：模型调用失败');
     throw err;
   }
 }
@@ -412,7 +412,7 @@ export async function chat(userId: string, options: ChatOptions, log: FastifyBas
   const client = await createProviderClient(userId, providerType);
   const startTime = Date.now();
 
-  log.debug({ provider: providerType, model: options.model }, 'AI: provider call start');
+  log.debug({ provider: providerType, model: options.model }, 'AI：开始调用模型服务');
 
   try {
     const response = await client.chat.completions.create({
@@ -428,11 +428,11 @@ export async function chat(userId: string, options: ChatOptions, log: FastifyBas
     const thinkingContent = (message as any)?.reasoning_content;
 
     const duration = Date.now() - startTime;
-    log.debug({ duration, tokens: response.usage?.total_tokens }, 'AI: provider call done');
+    log.debug({ duration, tokens: response.usage?.total_tokens }, 'AI：模型调用完成');
 
     return { content, thinkingContent };
   } catch (err) {
-    log.error({ err }, 'AI: provider call failed');
+    log.error({ err }, 'AI：模型调用失败');
     throw err;
   }
 }

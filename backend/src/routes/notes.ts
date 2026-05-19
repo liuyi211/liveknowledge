@@ -195,18 +195,18 @@ export async function noteRoutes(app: FastifyInstance) {
   app.post('/:id/index', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const userId = request.user!.id;
-    app.log.info({ noteId: id, userId }, 'Index requested');
+    app.log.info({ noteId: id, userId }, '收到笔记索引请求');
 
     const [note] = await db.select().from(notes)
       .where(and(eq(notes.id, id), eq(notes.userId, userId)))
       .limit(1);
 
     if (!note) {
-      app.log.warn({ noteId: id }, 'Note not found for indexing');
+      app.log.warn({ noteId: id }, '索引失败：未找到笔记');
       return reply.status(404).send({ error: 'Note not found' });
     }
 
-    app.log.info({ noteId: id, contentLength: note.content.length }, 'Starting index');
+    app.log.info({ noteId: id, contentLength: note.content.length }, '开始建立笔记索引');
 
     await db.update(notes)
       .set({ indexStatus: 'chunking', indexLogs: [], indexError: null })
@@ -216,14 +216,14 @@ export async function noteRoutes(app: FastifyInstance) {
     try {
       const { indexNote } = await import('../services/indexing.js');
       indexNote(id, userId, app.log).catch(err => {
-        app.log.error({ err }, 'Indexing failed');
+        app.log.error({ err }, '笔记索引任务失败');
         db.update(notes)
           .set({ indexStatus: 'failed', indexError: err.message })
           .where(eq(notes.id, id));
       });
-      app.log.info({ noteId: id }, 'Index job started');
+      app.log.info({ noteId: id }, '笔记索引任务已启动');
     } catch (err) {
-      app.log.error({ err, noteId: id }, 'Failed to load indexing service');
+      app.log.error({ err, noteId: id }, '加载索引服务失败');
       await db.update(notes)
         .set({ indexStatus: 'failed', indexError: (err as Error).message })
         .where(eq(notes.id, id));

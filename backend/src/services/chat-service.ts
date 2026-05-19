@@ -256,13 +256,13 @@ export async function* handleStreamChat(
 
     yield { type: 'done', messageId: assistantMsg.id };
   } catch (err) {
-    log.error({ err }, 'Chat stream error');
+    log.error({ err }, '聊天流式生成出错');
     if (userMessageId) {
       try {
         await messageService.createAssistantMessage(sessionId, `（生成失败：${(err as Error).message}）`);
         await sessionService.updateSessionStats(sessionId);
       } catch (saveErr) {
-        log.error({ err: saveErr }, 'Failed to save assistant error marker');
+        log.error({ err: saveErr }, '保存助手错误占位消息失败');
       }
     }
     yield { type: 'error', error: (err as Error).message };

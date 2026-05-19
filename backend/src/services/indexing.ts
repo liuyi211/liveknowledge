@@ -10,12 +10,12 @@ export async function indexNote(noteId: string, userId: string, log: FastifyBase
   const logs: any[] = [];
 
   try {
-    log.info({ noteId }, 'Index: loading note');
+    log.info({ noteId }, '索引：加载笔记');
     const [note] = await db.select().from(notes).where(eq(notes.id, noteId)).limit(1);
     if (!note) throw new Error('Note not found');
 
     // Step 1: Chunking
-    log.info({ noteId, contentLength: note.content.length }, 'Index: chunking');
+    log.info({ noteId, contentLength: note.content.length }, '索引：切分笔记内容');
     await db.update(notes).set({ indexStatus: 'chunking' }).where(eq(notes.id, noteId));
     const chunkStart = Date.now();
     const chunks = splitDocument(note.content, noteId);
@@ -37,7 +37,7 @@ export async function indexNote(noteId: string, userId: string, log: FastifyBase
           : null,
       },
     }));
-    log.info({ noteId, chunkCount: chunks.length }, 'Index: chunking done');
+    log.info({ noteId, chunkCount: chunks.length }, '索引：内容切分完成');
     logs.push({
       step: 'chunk',
       status: 'completed',
@@ -47,11 +47,11 @@ export async function indexNote(noteId: string, userId: string, log: FastifyBase
     });
 
     // Step 2: Delete old embeddings
-    log.info({ noteId }, 'Index: deleting old embeddings');
+    log.info({ noteId }, '索引：删除旧向量');
     await deleteNoteEmbeddings(noteId);
 
     // Step 3: Embedding
-    log.info({ noteId, chunkCount: chunks.length }, 'Index: embedding');
+    log.info({ noteId, chunkCount: chunks.length }, '索引：生成向量');
     await db.update(notes).set({ indexStatus: 'embedding', indexLogs: logs }).where(eq(notes.id, noteId));
     const embedStart = Date.now();
     await storeNoteEmbeddings(
@@ -59,7 +59,7 @@ export async function indexNote(noteId: string, userId: string, log: FastifyBase
       userId,
       noteId
     );
-    log.info({ noteId, chunkCount: chunks.length }, 'Index: embedding done');
+    log.info({ noteId, chunkCount: chunks.length }, '索引：向量生成完成');
     logs.push({
       step: 'embed',
       status: 'completed',
@@ -82,11 +82,11 @@ export async function indexNote(noteId: string, userId: string, log: FastifyBase
       indexLogs: logs,
       indexedAt: new Date(),
     }).where(eq(notes.id, noteId));
-    log.info({ noteId, durationMs: Date.now() - startTime }, 'Index: completed');
+    log.info({ noteId, durationMs: Date.now() - startTime }, '索引：全部完成');
 
   } catch (error) {
     const err = error as Error;
-    log.error({ err, noteId }, 'Index: failed');
+    log.error({ err, noteId }, '索引：执行失败');
     logs.push({
       step: 'index',
       status: 'failed',

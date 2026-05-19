@@ -64,6 +64,20 @@
       "when": 1779030300000,
       "tag": "0008_note_version_source_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779030400000,
+      "tag": "0009_add_import_sources",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1779030500000,
+      "tag": "0010_allow_import_extraction_jobs",
+      "breakpoints": true
     }
   ]
 }

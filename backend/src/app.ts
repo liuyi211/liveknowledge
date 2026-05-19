@@ -119,7 +119,7 @@ export async function buildApp() {
           defaultModel: 'gpt-4o-mini',
         },
       ]);
-      app.log.info({ userId: user.id }, 'Seeded default personas for user');
+      app.log.info({ userId: user.id }, '已为用户初始化默认导师人格');
     }
   });
 
