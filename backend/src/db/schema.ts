@@ -184,6 +184,38 @@ export const cards = pgTable('cards', {
   noteId: uuid('note_id').references(() => notes.id),
   front: text('front').notNull(),
   back: text('back').notNull(),
+  type: text('type', { enum: ['basic', 'cloze', 'image_occlusion'] }).default('basic').notNull(),
   tags: text('tags').array(),
+  difficulty: real('difficulty').default(6).notNull(),
+  halfLife: real('half_life').default(1).notNull(),
+  retrievability: real('retrievability').default(1).notNull(),
+  lastReviewedAt: timestamp('last_reviewed_at'),
+  nextReviewAt: timestamp('next_review_at').defaultNow().notNull(),
+  reviewCount: integer('review_count').default(0).notNull(),
+  lapseCount: integer('lapse_count').default(0).notNull(),
+  suspended: boolean('suspended').default(false).notNull(),
+  qualityReviewedAt: timestamp('quality_reviewed_at'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  dueIdx: index('idx_cards_due').on(table.userId, table.nextReviewAt),
+  noteIdx: index('idx_cards_note').on(table.noteId),
+}));
+
+export const cardReviews = pgTable('card_reviews', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  cardId: uuid('card_id').notNull().references(() => cards.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id),
+  rating: integer('rating').notNull(),
+  responseTimeMs: integer('response_time_ms').default(0).notNull(),
+  halfLifeBefore: real('half_life_before').notNull(),
+  halfLifeAfter: real('half_life_after').notNull(),
+  difficultyBefore: real('difficulty_before').notNull(),
+  difficultyAfter: real('difficulty_after').notNull(),
+  retrievabilityBefore: real('retrievability_before').notNull(),
+  retrievabilityAfter: real('retrievability_after').notNull(),
+  reviewedAt: timestamp('reviewed_at').defaultNow().notNull(),
+}, (table) => ({
+  cardIdx: index('idx_card_reviews_card').on(table.cardId, table.reviewedAt),
+  userIdx: index('idx_card_reviews_user').on(table.userId, table.reviewedAt),
+}));

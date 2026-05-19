@@ -134,6 +134,35 @@ export const api = {
     debug: (query: string) => fetchApi('/api/retrieval/debug', { method: 'POST', body: JSON.stringify({ query }) }),
   },
 
+  review: {
+    due: (params?: { limit?: number; tag?: string; noteId?: string; mode?: 'due' | 'weak' }) => {
+      const search = new URLSearchParams();
+      if (params?.limit) search.set('limit', String(params.limit));
+      if (params?.tag) search.set('tag', params.tag);
+      if (params?.noteId) search.set('noteId', params.noteId);
+      if (params?.mode) search.set('mode', params.mode);
+      const qs = search.toString();
+      return fetchApi(`/api/review/due${qs ? `?${qs}` : ''}`);
+    },
+    rate: (cardId: string, data: { rating: 1 | 2 | 3 | 4; responseTimeMs: number }) =>
+      fetchApi(`/api/review/cards/${cardId}/rate`, { method: 'POST', body: JSON.stringify(data) }),
+    updateCard: (cardId: string, data: { front?: string; back?: string }) =>
+      fetchApi(`/api/review/cards/${cardId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    suspendCard: (cardId: string) =>
+      fetchApi(`/api/review/cards/${cardId}/suspend`, { method: 'POST' }),
+    markQualityReviewed: (cardId: string) =>
+      fetchApi(`/api/review/cards/${cardId}/quality-reviewed`, { method: 'POST' }),
+    stats: () => fetchApi('/api/review/stats'),
+    filters: () => fetchApi('/api/review/filters'),
+    quality: (params?: { includeReviewed?: boolean; limit?: number }) => {
+      const search = new URLSearchParams();
+      if (params?.includeReviewed !== undefined) search.set('includeReviewed', String(params.includeReviewed));
+      if (params?.limit) search.set('limit', String(params.limit));
+      const qs = search.toString();
+      return fetchApi(`/api/review/quality${qs ? `?${qs}` : ''}`);
+    },
+  },
+
   extraction: {
     createJob: (
       sourceType: string,

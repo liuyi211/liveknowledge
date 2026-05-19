@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { SquarePen, FolderPlus, Search, ChevronsDownUp, Tags } from 'lucide-react';
 import { useAppStore } from '@/stores/app-store';
 import { api } from '@/lib/api';
@@ -16,7 +16,27 @@ import TagFilter from '@/components/notes/TagFilter';
 import DocumentExtractionDialog from '@/components/extraction/DocumentExtractionDialog';
 
 export default function NotesPage() {
+  return (
+    <Suspense fallback={<NotesLoading />}>
+      <NotesContent />
+    </Suspense>
+  );
+}
+
+function NotesLoading() {
+  return (
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="text-gray-500">加载中...</div>
+      </div>
+    </div>
+  );
+}
+
+function NotesContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [pageLoading, setPageLoading] = useState(true);
   const [searchActive, setSearchActive] = useState(false);
   const [tagFilterActive, setTagFilterActive] = useState(false);
@@ -34,6 +54,7 @@ export default function NotesPage() {
   const collapseAllFolders = useAppStore((s) => s.collapseAllFolders);
 
   useEffect(() => {
+    const targetNoteId = searchParams.get('noteId');
     api.auth.me()
       .then(() => setPageLoading(false))
       .catch(() => router.push('/login'));
@@ -45,12 +66,16 @@ export default function NotesPage() {
       setNotes(notesData);
       setFolders(foldersData);
       setTagStats(tagsData);
+      if (targetNoteId) {
+        const target = notesData.find((note: { id: string }) => note.id === targetNoteId);
+        if (target) setSelectedNote(target);
+      }
     });
     return () => {
       setSearchQuery('');
       setSelectedTag(null);
     };
-  }, [router, setNotes, setFolders, setSearchQuery, setSelectedTag]);
+  }, [router, searchParams, setNotes, setFolders, setSearchQuery, setSelectedNote, setSelectedTag]);
 
   useEffect(() => {
     api.notes.tags().then(setTagStats).catch(() => setTagStats([]));

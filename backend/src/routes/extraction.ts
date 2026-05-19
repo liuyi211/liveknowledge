@@ -239,7 +239,15 @@ export async function extractionRoutes(app: FastifyInstance) {
         noteId,
         front: card.front,
         back: card.back,
+        type: 'basic' as const,
         tags: ['extraction'],
+        difficulty: 6,
+        halfLife: 1,
+        retrievability: 1,
+        nextReviewAt: new Date(),
+        reviewCount: 0,
+        lapseCount: 0,
+        suspended: false,
       }))).returning({ id: cardsTable.id })
       : [];
 
