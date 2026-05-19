@@ -54,6 +54,10 @@ export interface Note {
   content: string;
   tags: string[] | null;
   folderId: string | null;
+  sourceType: string | null;
+  sourceId: string | null;
+  sourceMetadata: Record<string, unknown> | null;
+  version: number;
   createdAt: string;
   updatedAt: string;
 }

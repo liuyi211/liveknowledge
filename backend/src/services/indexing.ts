@@ -19,6 +19,24 @@ export async function indexNote(noteId: string, userId: string, log: FastifyBase
     await db.update(notes).set({ indexStatus: 'chunking' }).where(eq(notes.id, noteId));
     const chunkStart = Date.now();
     const chunks = splitDocument(note.content, noteId);
+    const enrichedChunks = chunks.map(chunk => ({
+      ...chunk,
+      metadata: {
+        ...chunk.metadata,
+        title: note.title,
+        tags: note.tags ?? [],
+        sourceType: 'note',
+        sourceId: note.id,
+        noteVersion: note.version,
+        source: note.sourceType
+          ? {
+            type: note.sourceType,
+            id: note.sourceId,
+            metadata: note.sourceMetadata,
+          }
+          : null,
+      },
+    }));
     log.info({ noteId, chunkCount: chunks.length }, 'Index: chunking done');
     logs.push({
       step: 'chunk',
@@ -37,7 +55,7 @@ export async function indexNote(noteId: string, userId: string, log: FastifyBase
     await db.update(notes).set({ indexStatus: 'embedding', indexLogs: logs }).where(eq(notes.id, noteId));
     const embedStart = Date.now();
     await storeNoteEmbeddings(
-      chunks.map(c => ({ content: c.content, metadata: c.metadata })),
+      enrichedChunks.map(c => ({ content: c.content, metadata: c.metadata })),
       userId,
       noteId
     );

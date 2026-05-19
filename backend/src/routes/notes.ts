@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
 import { notes } from '../db/schema.js';
-import { eq, and, desc, or, ilike, isNull, ne } from 'drizzle-orm';
+import { eq, and, desc, or, ilike, isNull, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 const titleSchema = z.string()
@@ -14,12 +14,23 @@ const noteSchema = z.object({
   content: z.string().default(''),
   tags: z.array(z.string()).optional(),
   folderId: z.string().uuid().nullable().optional(),
+  sourceType: z.string().max(50).nullable().optional(),
+  sourceId: z.string().uuid().nullable().optional(),
+  sourceMetadata: z.record(z.unknown()).nullable().optional(),
+  version: z.number().int().positive().optional(),
 });
 
 const listQuerySchema = z.object({
   folderId: z.string().optional(),
   q: z.string().optional(),
+  tag: z.string().optional(),
 });
+
+function cleanTags(tags?: string[] | null): string[] | null {
+  if (!tags) return null;
+  const cleaned = Array.from(new Set(tags.map(tag => tag.trim()).filter(Boolean)));
+  return cleaned.length > 0 ? cleaned : null;
+}
 
 function makeUniqueName(name: string, existingNames: Set<string>): string {
   if (!existingNames.has(name)) return name;
@@ -51,7 +62,7 @@ async function getSiblingNoteTitles(userId: string, folderId: string | null, exc
 
 export async function noteRoutes(app: FastifyInstance) {
   app.get('/', { onRequest: [app.authenticate] }, async (request) => {
-    const { folderId, q } = listQuerySchema.parse(request.query ?? {});
+    const { folderId, q, tag } = listQuerySchema.parse(request.query ?? {});
     const userId = request.user!.id;
 
     const conditions = [eq(notes.userId, userId)];
@@ -65,6 +76,10 @@ export async function noteRoutes(app: FastifyInstance) {
       } else {
         conditions.push(eq(notes.folderId, folderId));
       }
+    }
+
+    if (tag && tag.trim()) {
+      conditions.push(sql`${tag.trim()} = ANY(${notes.tags})`);
     }
 
     return db.select().from(notes)
@@ -84,10 +99,29 @@ export async function noteRoutes(app: FastifyInstance) {
       userId,
       title: uniqueTitle,
       content: body.content,
-      tags: body.tags || null,
+      tags: cleanTags(body.tags),
       folderId,
+      sourceType: body.sourceType ?? null,
+      sourceId: body.sourceId ?? null,
+      sourceMetadata: body.sourceMetadata ?? null,
     }).returning();
     return note;
+  });
+
+  app.get('/meta/tags', { onRequest: [app.authenticate] }, async (request) => {
+    const userId = request.user!.id;
+    const rows = await db.execute(sql`
+      SELECT tag, count(*)::int AS count
+      FROM notes, unnest(coalesce(tags, ARRAY[]::text[])) AS tag
+      WHERE user_id = ${userId}
+      GROUP BY tag
+      ORDER BY count DESC, tag ASC
+    `);
+
+    return ((rows as any).rows || rows).map((row: any) => ({
+      tag: row.tag,
+      count: Number(row.count),
+    }));
   });
 
   app.get('/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
@@ -102,30 +136,48 @@ export async function noteRoutes(app: FastifyInstance) {
     return note;
   });
 
-  app.patch('/:id', { onRequest: [app.authenticate] }, async (request) => {
+  app.patch('/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
     const body = noteSchema.partial().parse(request.body);
     const userId = request.user!.id;
+
+    const [current] = await db.select().from(notes)
+      .where(and(eq(notes.id, id), eq(notes.userId, userId)))
+      .limit(1);
+
+    if (!current) {
+      return reply.status(404).send({ error: 'Note not found' });
+    }
+
+    if (body.version !== undefined && body.version !== current.version) {
+      return reply.status(409).send({
+        error: 'NOTE_VERSION_CONFLICT',
+        message: '笔记已被其他操作更新，请刷新后再保存。',
+        current,
+      });
+    }
 
     if (body.title) {
       let folderId: string | null = null;
       if ('folderId' in body) {
         folderId = body.folderId ?? null;
       } else {
-        const [existing] = await db.select({ folderId: notes.folderId })
-          .from(notes)
-          .where(and(eq(notes.id, id), eq(notes.userId, userId)))
-          .limit(1);
-        if (existing) {
-          folderId = existing.folderId;
-        }
+        folderId = current.folderId;
       }
       const siblingTitles = await getSiblingNoteTitles(userId, folderId, id);
       body.title = makeUniqueName(body.title, siblingTitles);
     }
 
+    const { version: _version, tags, ...patchBody } = body;
+    const shouldBumpVersion = 'title' in patchBody || 'content' in patchBody || tags !== undefined;
+
     const [note] = await db.update(notes)
-      .set({ ...body, updatedAt: new Date() })
+      .set({
+        ...patchBody,
+        ...(tags !== undefined ? { tags: cleanTags(tags) } : {}),
+        ...(shouldBumpVersion ? { version: current.version + 1 } : {}),
+        updatedAt: new Date(),
+      })
       .where(and(eq(notes.id, id), eq(notes.userId, userId)))
       .returning();
 

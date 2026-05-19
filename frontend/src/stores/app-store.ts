@@ -34,6 +34,8 @@ interface AppState {
 
   searchQuery: string;
   setSearchQuery: (q: string) => void;
+  selectedTag: string | null;
+  setSelectedTag: (tag: string | null) => void;
 
   renamingItem: { type: 'note' | 'folder'; id: string } | null;
   setRenamingItem: (item: { type: 'note' | 'folder'; id: string } | null) => void;
@@ -106,6 +108,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   searchQuery: '',
   setSearchQuery: (searchQuery) => set({ searchQuery }),
+  selectedTag: null,
+  setSelectedTag: (selectedTag) => set({ selectedTag }),
 
   renamingItem: null,
   setRenamingItem: (renamingItem) => set({ renamingItem }),

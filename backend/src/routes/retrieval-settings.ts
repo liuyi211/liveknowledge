@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { db } from '../db/index.js';
 import { userRetrievalSettings } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 
 const defaultSettings = {
   vectorTopK: 10,
@@ -39,5 +40,15 @@ export async function retrievalSettingsRoutes(app: FastifyInstance) {
       });
 
     return { success: true };
+  });
+
+  app.post('/debug', { onRequest: [app.authenticate] }, async (request) => {
+    const body = z.object({
+      query: z.string().trim().min(1),
+      sessionSummary: z.string().optional().nullable(),
+    }).parse(request.body ?? {});
+
+    const { retrieveContextDetailed } = await import('../services/retrieval/index.js');
+    return retrieveContextDetailed(body.query, request.user!.id, body.sessionSummary);
   });
 }

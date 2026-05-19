@@ -13,7 +13,10 @@ export interface RetrievalResult {
 
 export async function retrieveVector(query: string, userId: string, topK: number): Promise<RetrievalResult[]> {
   const queryVector = await generateEmbedding(query, userId);
+  return retrieveVectorByEmbedding(queryVector, userId, topK);
+}
 
+export async function retrieveVectorByEmbedding(queryVector: number[], userId: string, topK: number): Promise<RetrievalResult[]> {
   const results = await db.execute(sql`
     SELECT id, content, metadata, source_id,
            1 - (embedding <=> ${sql.raw(`'[${queryVector.join(',')}]'::vector`)}) AS similarity

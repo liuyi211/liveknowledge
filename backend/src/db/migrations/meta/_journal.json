@@ -57,6 +57,13 @@
       "when": 1779030200000,
       "tag": "0007_ensure_session_context_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779030300000,
+      "tag": "0008_note_version_source_metadata",
+      "breakpoints": true
     }
   ]
 }

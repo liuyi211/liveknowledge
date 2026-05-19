@@ -29,7 +29,9 @@ export async function extractionRoutes(app: FastifyInstance) {
 
     let content = '';
     if (sourceType === 'note') {
-      const [note] = await db.select().from(notes).where(eq(notes.id, sourceId)).limit(1);
+      const [note] = await db.select().from(notes)
+        .where(and(eq(notes.id, sourceId), eq(notes.userId, userId)))
+        .limit(1);
       if (!note) return reply.status(404).send({ error: 'Note not found' });
       content = note.content;
     } else if (sourceType === 'conversation') {
@@ -102,6 +104,12 @@ export async function extractionRoutes(app: FastifyInstance) {
         content: summaryContent,
         sourceType: 'extraction',
         sourceId: id,
+        sourceMetadata: {
+          extractionJobId: id,
+          originalSourceType: job.sourceType,
+          originalSourceId: job.sourceId,
+          adoptedAt: new Date().toISOString(),
+        },
       }).returning({ id: notes.id });
 
       noteId = note.id;

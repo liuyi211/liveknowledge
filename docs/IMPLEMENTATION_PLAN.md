@@ -35,21 +35,21 @@
 - [x] 笔记 CRUD：创建、编辑、删除、搜索可用。
 - [x] 文件夹树：文件夹、移动、重命名、删除可用。
 - [x] Markdown/LaTeX 预览：Markdown、代码块、KaTeX 正常渲染。
-- [ ] 自动保存/冲突处理：编辑不会误丢内容，多端/快速操作稳定。
-- [ ] 标签体系完善：标签编辑、筛选、统计可用。
-- [ ] 笔记来源追踪：从对话/导入/提炼生成的笔记能追溯来源。
+- [x] 自动保存/冲突处理：编辑不会误丢内容，多端/快速操作稳定。
+- [x] 标签体系完善：标签编辑、筛选、统计可用。
+- [x] 笔记来源追踪：从对话/导入/提炼生成的笔记能追溯来源。
 
 ## 4. 索引与 RAG
 
 - [x] 笔记 chunking：Markdown/文本结构感知切分。
 - [x] embedding 入库：笔记可生成向量并写入 pgvector。
 - [x] 修复全文检索 schema：`search_vector` 字段、索引、迁移与代码一致。
-- [ ] 中文全文检索：pg_jieba 或替代方案可用。
-- [ ] Query Rewrite：输出结构化 rewritten query、keywords、sub_queries、intent。
-- [ ] HyDE 可选策略：模糊问题可用假设答案辅助检索。
-- [ ] RRF 融合：向量、全文、图谱结果稳定融合。
-- [ ] rerank 完善：轻量模型重排结果可靠，成本可控。
-- [ ] 上下文预算管理：能按 token 预算去重、截断、注入 prompt。
+- [x] 中文全文检索：pg_jieba 或替代方案可用。
+- [x] Query Rewrite：输出结构化 rewritten query、keywords、sub_queries、intent。
+- [x] HyDE 可选策略：模糊问题可用假设答案辅助检索。
+- [x] RRF 融合：向量、全文、图谱结果稳定融合。
+- [x] rerank 完善：轻量模型重排结果可靠，成本可控。
+- [x] 上下文预算管理：能按 token 预算去重、截断、注入 prompt。
 
 ## 5. 知识提炼
 
@@ -126,3 +126,5 @@
 - [x] 修复中文乱码。
 - [x] 修复 `search_vector` / 全文检索 schema。
 - [x] 完成提炼结果保存 cards 的闭环。
+- [x] 完善笔记系统：自动保存冲突、标签、来源追踪。
+- [x] 完善索引与 RAG：Query Rewrite、HyDE、多路融合、上下文预算。

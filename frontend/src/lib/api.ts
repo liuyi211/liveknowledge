@@ -13,7 +13,12 @@ async function fetchApi(path: string, options: RequestInit = {}) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(error.error || `HTTP ${response.status}`);
+    const message = error.message || error.error || `HTTP ${response.status}`;
+    const apiError = new Error(message) as Error & { status?: number; code?: string; data?: unknown };
+    apiError.status = response.status;
+    apiError.code = error.error;
+    apiError.data = error;
+    throw apiError;
   }
 
   return response.json();
@@ -102,20 +107,23 @@ export const api = {
   },
 
   notes: {
-    list: (params?: { folderId?: string | null; q?: string }) => {
+    list: (params?: { folderId?: string | null; q?: string; tag?: string | null }) => {
       const search = new URLSearchParams();
       if (params?.q) search.set('q', params.q);
       else if (params?.folderId !== undefined) {
         search.set('folderId', params.folderId === null ? 'root' : params.folderId);
       }
+      if (params?.tag) search.set('tag', params.tag);
       const qs = search.toString();
       return fetchApi(`/api/notes${qs ? `?${qs}` : ''}`);
     },
-    create: (data: { title: string; content: string; tags?: string[]; folderId?: string | null }) =>
+    create: (data: { title: string; content: string; tags?: string[]; folderId?: string | null; sourceType?: string | null; sourceId?: string | null; sourceMetadata?: Record<string, unknown> | null }) =>
       fetchApi('/api/notes', { method: 'POST', body: JSON.stringify(data) }),
-    update: (id: string, data: Partial<{ title: string; content: string; tags: string[]; folderId: string | null }>) =>
+    get: (id: string) => fetchApi(`/api/notes/${id}`),
+    update: (id: string, data: Partial<{ title: string; content: string; tags: string[]; folderId: string | null; version: number }>) =>
       fetchApi(`/api/notes/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => fetchApi(`/api/notes/${id}`, { method: 'DELETE' }),
+    tags: () => fetchApi('/api/notes/meta/tags'),
     index: (id: string) => fetchApi(`/api/notes/${id}/index`, { method: 'POST' }),
     indexStatus: (id: string) => fetchApi(`/api/notes/${id}/index-status`),
   },
@@ -123,6 +131,7 @@ export const api = {
   retrieval: {
     getSettings: () => fetchApi('/api/retrieval/settings'),
     updateSettings: (data: any) => fetchApi('/api/retrieval/settings', { method: 'PUT', body: JSON.stringify(data) }),
+    debug: (query: string) => fetchApi('/api/retrieval/debug', { method: 'POST', body: JSON.stringify({ query }) }),
   },
 
   extraction: {

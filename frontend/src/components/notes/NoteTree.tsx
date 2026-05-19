@@ -14,11 +14,12 @@ export default function NoteTree() {
   const selectedNote = useAppStore((s) => s.selectedNote);
   const setSelectedNote = useAppStore((s) => s.setSelectedNote);
   const searchQuery = useAppStore((s) => s.searchQuery);
+  const selectedTag = useAppStore((s) => s.selectedTag);
   const dragData = useAppStore((s) => s.dragData);
   const setDragData = useAppStore((s) => s.setDragData);
   const [isRootDropTarget, setIsRootDropTarget] = useState(false);
 
-  const isSearching = searchQuery.trim().length > 0;
+  const isSearching = searchQuery.trim().length > 0 || Boolean(selectedTag);
 
   const { rootFolders, rootNotes, folderChildrenMap, noteChildrenMap } = useMemo(() => {
     const folderChildren = new Map<string | null, Folder[]>();
@@ -49,10 +50,12 @@ export default function NoteTree() {
   const searchResults = useMemo(() => {
     if (!isSearching) return [];
     const q = searchQuery.trim().toLowerCase();
-    return notes.filter((n) =>
-      n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q),
-    );
-  }, [isSearching, searchQuery, notes]);
+    return notes.filter((n) => {
+      const matchesQuery = !q || n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q);
+      const matchesTag = !selectedTag || (n.tags ?? []).includes(selectedTag);
+      return matchesQuery && matchesTag;
+    });
+  }, [isSearching, searchQuery, selectedTag, notes]);
 
   const handleRootDragOver = (e: DragEvent<HTMLDivElement>) => {
     if (!dragData) return;
@@ -99,7 +102,10 @@ export default function NoteTree() {
           <div className="text-center text-gray-400 text-sm py-8">没有匹配的笔记</div>
         ) : (
           <>
-            <div className="px-3 py-1 text-xs text-gray-400">{searchResults.length} 条结果</div>
+            <div className="px-3 py-1 text-xs text-gray-400">
+              {searchResults.length} 条结果
+              {selectedTag ? ` · #${selectedTag}` : ''}
+            </div>
             {searchResults.map((note) => (
               <NoteRow key={note.id} note={note} depth={0} highlight={searchQuery.trim()} />
             ))}

@@ -1,13 +1,14 @@
-import { retrieveVector } from './vector.js';
-import { retrieveFullText } from './fulltext.js';
-import { reciprocalRankFusion } from './rrf.js';
-import { rerankResults } from './rerank.js';
-import { localSearch, globalSearch } from '../graphrag/query.js';
-import { extractEntitiesAndRelations } from '../graphrag/extract.js';
 import { db } from '../../db/index.js';
 import { userRetrievalSettings } from '../../db/schema.js';
 import { eq } from 'drizzle-orm';
-import type { RetrievalResult } from './vector.js';
+import { generateEmbedding, getDefaultChatModel } from '../ai-provider.js';
+import { extractEntitiesAndRelations } from '../graphrag/extract.js';
+import { globalSearch, localSearch } from '../graphrag/query.js';
+import { retrieveFullText } from './fulltext.js';
+import { reciprocalRankFusion } from './rrf.js';
+import { rerankResults } from './rerank.js';
+import { rewriteQuery, type RewrittenQuery } from './query-rewrite.js';
+import { retrieveVector, retrieveVectorByEmbedding, type RetrievalResult } from './vector.js';
 
 const DEFAULT_RETRIEVAL_CONFIG = {
   vectorTopK: 10,
@@ -23,7 +24,12 @@ const DEFAULT_RETRIEVAL_CONFIG = {
   contextBudgetTokens: 1500,
 };
 
-export async function retrieveContext(query: string, userId: string): Promise<string> {
+export async function retrieveContext(query: string, userId: string, sessionSummary?: string | null): Promise<string> {
+  const result = await retrieveContextDetailed(query, userId, sessionSummary);
+  return result.context;
+}
+
+export async function retrieveContextDetailed(query: string, userId: string, sessionSummary?: string | null) {
   const [settings] = await db.select().from(userRetrievalSettings)
     .where(eq(userRetrievalSettings.userId, userId))
     .limit(1);
@@ -42,76 +48,143 @@ export async function retrieveContext(query: string, userId: string): Promise<st
     contextBudgetTokens: settings?.contextBudgetTokens ?? DEFAULT_RETRIEVAL_CONFIG.contextBudgetTokens,
   };
 
-  // Get default model for entity extraction
-  const { getDefaultChatModel } = await import('../ai-provider.js');
+  const rewritten = await rewriteQuery(query, userId, sessionSummary);
+  const searchQueries = buildSearchQueries(rewritten);
+
   let defaultModel: string | undefined;
   try {
-    const defaultConfig = await getDefaultChatModel(userId);
-    defaultModel = defaultConfig.model;
+    defaultModel = (await getDefaultChatModel(userId)).model;
   } catch {
-    // No default model configured
+    defaultModel = undefined;
   }
 
-  // Extract entities from query for Local Search
   let localResults: RetrievalResult[] = [];
   let relationPaths: string[] = [];
   if (defaultModel) {
     try {
-      const extraction = await extractEntitiesAndRelations(query, defaultModel, userId);
-      const entities = extraction.entities.map(e => e.name);
+      const extraction = await extractEntitiesAndRelations(rewritten.rewrittenQuery, defaultModel, userId);
+      const entities = extraction.entities.map(e => e.name).filter(Boolean);
       if (entities.length > 0) {
         const local = await localSearch(entities, config.localSearchTopK);
         localResults = local.results;
         relationPaths = local.paths;
       }
     } catch {
-      // GraphRAG query failed, continue without it
+      localResults = [];
+      relationPaths = [];
     }
   }
 
-  // 4-way parallel retrieval
-  const [vectorResults, fullTextResults, globalResults] = await Promise.all([
-    retrieveVector(query, userId, config.vectorTopK),
-    retrieveFullText(query, userId, config.fullTextTopK),
-    globalSearch([], config.globalSearchTopK),
+  const [vectorResults, fullTextResults, hydeResults, globalResults] = await Promise.all([
+    collectVectorResults(searchQueries, userId, config.vectorTopK),
+    collectFullTextResults(searchQueries, userId, config.fullTextTopK),
+    rewritten.hyde
+      ? generateEmbedding(rewritten.hyde, userId)
+        .then(vector => retrieveVectorByEmbedding(vector, userId, Math.max(3, Math.ceil(config.vectorTopK / 2))))
+        .catch(() => [])
+      : Promise.resolve([]),
+    globalSearch([], config.globalSearchTopK).catch(() => []),
   ]);
 
-  // RRF fusion with 4 roads
-  const allLists = [vectorResults, fullTextResults, localResults, globalResults]
+  const allLists = [vectorResults, fullTextResults, hydeResults, localResults, globalResults]
     .filter(list => list.length > 0);
 
-  const fused = reciprocalRankFusion(allLists, config.rrfK);
-  const topFused = fused.slice(0, config.rrfTopN);
+  const fused = reciprocalRankFusion(allLists, config.rrfK).slice(0, config.rrfTopN);
 
-  // Rerank (if enabled)
-  let finalResults;
-  if (config.rerankEnabled && config.rerankModel) {
-    finalResults = await rerankResults(query, topFused, config.rerankModel, userId, config.rerankTopN);
-  } else {
-    finalResults = topFused.slice(0, config.rerankTopN);
-  }
+  const finalResults = config.rerankEnabled && config.rerankModel
+    ? await rerankResults(rewritten.rewrittenQuery, fused, config.rerankModel, userId, config.rerankTopN)
+    : fused.slice(0, config.rerankTopN);
 
-  return formatContext(finalResults, relationPaths, config.contextBudgetTokens);
+  const context = formatContext(finalResults, relationPaths, config.contextBudgetTokens, rewritten);
+
+  return {
+    rewritten,
+    counts: {
+      vector: vectorResults.length,
+      fullText: fullTextResults.length,
+      hyde: hydeResults.length,
+      localGraph: localResults.length,
+      globalGraph: globalResults.length,
+      fused: fused.length,
+      final: finalResults.length,
+    },
+    relationPaths,
+    results: finalResults,
+    context,
+  };
 }
 
-function formatContext(results: RetrievalResult[], paths: string[], budget: number): string {
+function buildSearchQueries(rewritten: RewrittenQuery): string[] {
+  return Array.from(new Set([
+    rewritten.rewrittenQuery,
+    ...rewritten.subQueries,
+    rewritten.keywords.join(' '),
+  ].map(value => value.trim()).filter(Boolean)));
+}
+
+async function collectVectorResults(queries: string[], userId: string, topK: number): Promise<RetrievalResult[]> {
+  const perQueryTopK = Math.max(3, Math.ceil(topK / Math.max(1, Math.min(queries.length, 3))));
+  const lists = await Promise.all(
+    queries.slice(0, 3).map(query => retrieveVector(query, userId, perQueryTopK).catch(() => []))
+  );
+  return dedupeResults(lists.flat()).slice(0, topK);
+}
+
+async function collectFullTextResults(queries: string[], userId: string, topK: number): Promise<RetrievalResult[]> {
+  const lists = await Promise.all(
+    queries.slice(0, 4).map(query => retrieveFullText(query, userId, topK).catch(() => []))
+  );
+  return dedupeResults(lists.flat()).slice(0, topK);
+}
+
+function dedupeResults(results: RetrievalResult[]): RetrievalResult[] {
+  const seen = new Set<string>();
+  const deduped: RetrievalResult[] = [];
+  for (const result of results) {
+    const key = `${result.sourceId}:${result.id}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(result);
+  }
+  return deduped;
+}
+
+function formatContext(
+  results: RetrievalResult[],
+  paths: string[],
+  budget: number,
+  rewritten: RewrittenQuery
+): string {
   if (results.length === 0 && paths.length === 0) return '';
 
   let context = '';
   let tokens = 0;
   const approxTokensPerChar = 0.5;
+  const seenSources = new Set<string>();
 
-  // Add relation paths
+  const queryMeta = [
+    `检索查询：${rewritten.rewrittenQuery}`,
+    rewritten.keywords.length > 0 ? `关键词：${rewritten.keywords.join('、')}` : '',
+    `意图：${rewritten.intent}`,
+  ].filter(Boolean).join('\n');
+  context += `${queryMeta}\n\n`;
+  tokens += queryMeta.length * approxTokensPerChar;
+
   if (paths.length > 0) {
     const pathsText = `[来自知识图谱的关系路径]\n${paths.join('\n')}\n\n`;
     context += pathsText;
     tokens += pathsText.length * approxTokensPerChar;
   }
 
-  // Add retrieved chunks
-  for (let i = 0; i < results.length; i++) {
-    const title = results[i].metadata?.title;
-    const chunk = `[${i + 1}] ${title ? `来自《${title}》：` : ''}\n${results[i].content}\n\n`;
+  for (const result of results) {
+    if (seenSources.has(result.sourceId)) continue;
+    seenSources.add(result.sourceId);
+
+    const title = result.metadata?.title;
+    const headingPath = Array.isArray(result.metadata?.headingPath) && result.metadata.headingPath.length > 0
+      ? ` / ${result.metadata.headingPath.join(' / ')}`
+      : '';
+    const chunk = `[${seenSources.size}] ${title ? `来自《${title}》${headingPath}：` : ''}\n${result.content}\n\n`;
     const chunkTokens = chunk.length * approxTokensPerChar;
 
     if (tokens + chunkTokens > budget) break;
@@ -120,5 +193,5 @@ function formatContext(results: RetrievalResult[], paths: string[], budget: numb
     tokens += chunkTokens;
   }
 
-  return `以下是从知识库中检索到的相关内容：\n\n${context}`;
+  return `以下是从知识库中检索到的相关内容。请优先依据这些内容回答；如果内容不足，请明确说明不足之处。\n\n${context}`;
 }

@@ -31,7 +31,7 @@ export async function buildSystemPrompt(
   }
 
   // RAG retrieval
-  const contextStr = await retrieveContext(query, userId);
+  const contextStr = await retrieveContext(query, userId, session?.contextSummary);
 
   if (contextStr) {
     systemPrompt += `\n\n${contextStr}`;

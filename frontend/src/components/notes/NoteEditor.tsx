@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/stores/app-store';
 import { api } from '@/lib/api';
-import { Eye, Pencil, Check, Loader2, Database } from 'lucide-react';
+import { Eye, Pencil, Check, Loader2, Database, AlertTriangle, Link2, X } from 'lucide-react';
 import MarkdownPreview from './MarkdownPreview';
 import ExtractionButton from '../extraction/ExtractionButton';
 import TaskProgressDrawer from '../progress/TaskProgressDrawer';
@@ -11,6 +11,24 @@ import { useTaskProgress } from '../progress/useTaskProgress';
 import { INDEX_STEPS } from '../progress/types';
 
 type SaveState = 'idle' | 'saving' | 'saved';
+
+function normalizeTags(value: string): string[] {
+  return Array.from(new Set(value.split(',').map((tag) => tag.trim()).filter(Boolean)));
+}
+
+function formatSource(sourceType: string | null, sourceMetadata: Record<string, unknown> | null): string | null {
+  if (!sourceType) return null;
+  if (sourceType === 'extraction') {
+    const original = sourceMetadata?.originalSourceType;
+    if (original === 'conversation') return '来源：会话提炼';
+    if (original === 'note') return '来源：笔记提炼';
+    return '来源：知识提炼';
+  }
+  if (sourceType === 'conversation') return '来源：会话';
+  if (sourceType === 'import') return '来源：导入';
+  if (sourceType === 'document') return '来源：文档';
+  return `来源：${sourceType}`;
+}
 
 export default function NoteEditor() {
   const selectedNote = useAppStore((s) => s.selectedNote);
@@ -22,12 +40,94 @@ export default function NoteEditor() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [tagText, setTagText] = useState('');
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [hasConflict, setHasConflict] = useState(false);
   const [indexStatus, setIndexStatus] = useState<any>(null);
   const [showIndexDrawer, setShowIndexDrawer] = useState(false);
   const lastSavedRef = useRef<{ title: string; content: string } | null>(null);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedNoteRef = useRef(selectedNote);
+  const editStateRef = useRef({ title: '', content: '', tagText: '' });
   selectedNoteRef.current = selectedNote;
+  editStateRef.current = { title, content, tagText };
+
+  const refreshSelectedNote = useCallback(async () => {
+    const note = selectedNoteRef.current;
+    if (!note) return;
+    const latest = await api.notes.get(note.id);
+    setSelectedNote(latest);
+    setNotes(useAppStore.getState().notes.map((n) => (n.id === latest.id ? latest : n)));
+    setHasConflict(false);
+    setSaveError(null);
+  }, [setNotes, setSelectedNote]);
+
+  const persistNoteSnapshot = useCallback(async (
+    note = selectedNoteRef.current,
+    editState = editStateRef.current,
+    immediate = false
+  ) => {
+    if (!note || hasConflict) return;
+    const isActiveNote = () => selectedNoteRef.current?.id === note.id;
+
+    const tags = normalizeTags(editState.tagText);
+    const last = lastSavedRef.current;
+    const tagsChanged = JSON.stringify(tags) !== JSON.stringify(note.tags ?? []);
+    if (isActiveNote() && last && last.title === editState.title && last.content === editState.content && !tagsChanged) {
+      return;
+    }
+
+    if (!editState.title.trim()) {
+      if (isActiveNote()) {
+        setSaveError('标题不能为空');
+      }
+      return;
+    }
+
+    if (isActiveNote()) {
+      setSaveState('saving');
+      setSaveError(null);
+    }
+
+    try {
+      const updated = await api.notes.update(note.id, {
+        title: editState.title.trim(),
+        content: editState.content,
+        tags,
+        version: note.version,
+      });
+      if (isActiveNote()) {
+        lastSavedRef.current = { title: updated.title, content: updated.content };
+        setSelectedNote(updated);
+        setSaveState('saved');
+        if (!immediate) {
+          setTimeout(() => setSaveState('idle'), 1200);
+        }
+      }
+      setNotes(useAppStore.getState().notes.map((n) => (n.id === updated.id ? updated : n)));
+    } catch (err) {
+      const apiError = err as Error & { status?: number; code?: string; data?: any };
+      if (apiError.status === 409 && apiError.data?.current) {
+        const latest = apiError.data.current;
+        if (isActiveNote()) {
+          setHasConflict(true);
+          setSaveError('检测到笔记已被其他操作更新。已暂停自动保存，请刷新后继续编辑。');
+          setSelectedNote(latest);
+        }
+        setNotes(useAppStore.getState().notes.map((n) => (n.id === latest.id ? latest : n)));
+      } else if (isActiveNote()) {
+        setSaveError(apiError.message || '保存失败');
+      }
+      if (isActiveNote()) {
+        setSaveState('idle');
+      }
+    }
+  }, [hasConflict, setNotes, setSelectedNote]);
+
+  const persistCurrentNote = useCallback((immediate = false) => {
+    return persistNoteSnapshot(selectedNoteRef.current, editStateRef.current, immediate);
+  }, [persistNoteSnapshot]);
 
   // Index progress tracking
   const indexProgress = useTaskProgress(
@@ -53,11 +153,15 @@ export default function NoteEditor() {
   );
 
   useEffect(() => {
+    const noteForCleanup = selectedNote;
     if (selectedNote) {
       setTitle(selectedNote.title);
       setContent(selectedNote.content);
+      setTagText((selectedNote.tags ?? []).join(', '));
       lastSavedRef.current = { title: selectedNote.title, content: selectedNote.content };
       setSaveState('idle');
+      setSaveError(null);
+      setHasConflict(false);
       // Load index status
       api.notes.indexStatus(selectedNote.id).then(setIndexStatus).catch(() => setIndexStatus(null));
     } else {
@@ -67,7 +171,18 @@ export default function NoteEditor() {
     // Stop any running progress polling when switching notes
     indexProgress.stopPolling();
     setShowIndexDrawer(false);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      void persistNoteSnapshot(noteForCleanup, editStateRef.current, true);
+    };
   }, [selectedNote?.id]);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      void persistCurrentNote(true);
+    };
+  }, [persistCurrentNote]);
 
   const handleIndex = useCallback(async () => {
     if (!selectedNote) return;
@@ -96,31 +211,28 @@ export default function NoteEditor() {
     if (last.title !== selectedNote.title || last.content !== selectedNote.content) {
       setTitle(selectedNote.title);
       setContent(selectedNote.content);
+      setTagText((selectedNote.tags ?? []).join(', '));
       lastSavedRef.current = { title: selectedNote.title, content: selectedNote.content };
     }
-  }, [selectedNote?.title, selectedNote?.content]);
+  }, [selectedNote?.title, selectedNote?.content, selectedNote?.tags]);
 
   useEffect(() => {
     if (!selectedNote) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     const last = lastSavedRef.current;
-    if (last && last.title === title && last.content === content) {
+    const tags = normalizeTags(tagText);
+    const tagsChanged = JSON.stringify(tags) !== JSON.stringify(selectedNote.tags ?? []);
+    if (last && last.title === title && last.content === content && !tagsChanged) {
       return;
     }
     setSaveState('saving');
-    const timeout = setTimeout(async () => {
-      try {
-        const updated = await api.notes.update(selectedNote.id, { title, content });
-        lastSavedRef.current = { title: updated.title, content: updated.content };
-        setSelectedNote(updated);
-        setNotes(notes.map((n) => (n.id === updated.id ? updated : n)));
-        setSaveState('saved');
-        setTimeout(() => setSaveState('idle'), 1200);
-      } catch {
-        setSaveState('idle');
-      }
+    saveTimerRef.current = setTimeout(() => {
+      void persistCurrentNote();
     }, 800);
-    return () => clearTimeout(timeout);
-  }, [title, content, selectedNote?.id]);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [title, content, tagText, selectedNote?.id, selectedNote?.tags, persistCurrentNote]);
 
   if (!selectedNote) {
     return (
@@ -134,6 +246,7 @@ export default function NoteEditor() {
   }
 
   const mode = viewMode[selectedNote.id] ?? 'edit';
+  const sourceLabel = formatSource(selectedNote.sourceType, selectedNote.sourceMetadata);
 
   const indexButtonState = indexProgress.isPolling
     ? 'running'
@@ -150,6 +263,8 @@ export default function NoteEditor() {
         <div className="flex items-center gap-2 text-xs text-gray-500 min-w-0">
           {saveState === 'saving' && <><Loader2 size={12} className="animate-spin" /><span>保存中…</span></>}
           {saveState === 'saved' && <><Check size={12} className="text-green-600" /><span>已保存</span></>}
+          {saveError && <><AlertTriangle size={12} className="text-amber-600" /><span className="text-amber-700 truncate">{saveError}</span></>}
+          {sourceLabel && !saveError && <><Link2 size={12} /><span>{sourceLabel}</span></>}
         </div>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
           <button
@@ -195,6 +310,18 @@ export default function NoteEditor() {
           sourceId={selectedNote.id}
         />
       </div>
+      {hasConflict && (
+        <div className="mx-8 mt-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-center justify-between gap-3">
+          <span>当前笔记出现版本冲突，自动保存已暂停。</span>
+          <button
+            type="button"
+            onClick={() => void refreshSelectedNote()}
+            className="rounded bg-amber-600 px-3 py-1 text-white hover:bg-amber-700"
+          >
+            刷新笔记
+          </button>
+        </div>
+      )}
 
       {/* Title */}
       <input
@@ -209,6 +336,29 @@ export default function NoteEditor() {
         className="px-12 pt-8 pb-2 text-3xl font-bold focus:outline-none bg-white placeholder-gray-300"
         placeholder="无标题"
       />
+
+      <div className="px-12 py-2 border-b border-gray-100 flex items-center gap-2">
+        <span className="text-xs text-gray-400 shrink-0">标签</span>
+        <div className="flex-1 flex items-center gap-2 min-w-0">
+          <input
+            type="text"
+            value={tagText}
+            onChange={(e) => setTagText(e.target.value)}
+            className="min-w-0 flex-1 text-sm focus:outline-none text-gray-700 placeholder-gray-300"
+            placeholder="用英文逗号分隔，例如：数学, 线性代数"
+          />
+          {tagText && (
+            <button
+              type="button"
+              onClick={() => setTagText('')}
+              className="h-7 w-7 inline-flex items-center justify-center rounded hover:bg-gray-100 text-gray-400"
+              title="清空标签"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Body */}
       <div className="flex-1 overflow-auto">

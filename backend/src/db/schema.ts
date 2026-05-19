@@ -103,6 +103,8 @@ export const notes = pgTable('notes', {
   tags: text('tags').array(),
   sourceType: varchar('source_type', { length: 50 }),
   sourceId: uuid('source_id'),
+  sourceMetadata: jsonb('source_metadata'),
+  version: integer('version').default(1).notNull(),
   indexStatus: text('index_status', { enum: ['idle', 'chunking', 'embedding', 'storing', 'done', 'failed'] }).default('idle'),
   indexLogs: jsonb('index_logs').default('[]'),
   indexError: text('index_error'),
