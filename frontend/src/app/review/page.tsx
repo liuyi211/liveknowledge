@@ -3,10 +3,28 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, BookOpen, Brain, Check, CheckCircle2, Clock3, Eye, FileText, PauseCircle, Play, RotateCcw, Save, Tag, Timer } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Brain,
+  Check,
+  CheckCircle2,
+  Clock3,
+  Eye,
+  FileText,
+  GitBranch,
+  Loader2,
+  PauseCircle,
+  Play,
+  RotateCcw,
+  Save,
+  Tag,
+  Timer,
+} from 'lucide-react';
 import { api } from '@/lib/api';
 import Sidebar from '@/components/layout/Sidebar';
-import type { ReviewCard, ReviewFilters, ReviewStats } from '@/types';
+import type { CardGraphContext, ReviewCard, ReviewFilters, ReviewStats } from '@/types';
 
 type Rating = 1 | 2 | 3 | 4;
 type ReviewMode = 'overview' | 'session' | 'summary';
@@ -153,7 +171,6 @@ export default function ReviewPage() {
       setResults((items) => [...items, { rating, responseTimeMs, intervalLabel }]);
       setFeedback(`已安排 ${intervalLabel} 后复习`);
       setRatedCurrentCard(true);
-
       refreshStats();
     } catch (err) {
       setError(err instanceof Error ? err.message : '评分失败');
@@ -178,7 +195,7 @@ export default function ReviewPage() {
     <div className="flex h-screen bg-slate-50">
       <Sidebar />
       <main className="flex-1 overflow-auto">
-        <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-6 py-8">
+        <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-8">
           <Header progressText={mode === 'session' ? progressText : undefined} />
 
           {loading ? (
@@ -537,6 +554,7 @@ function QualityWorkbench({
                 {card.noteSummary ? (
                   <div className="mt-3 text-sm leading-6 text-slate-500">来源摘要：{card.noteSummary}</div>
                 ) : null}
+                <CardGraphContextPanel cardId={card.id} compact />
               </article>
             );
           })}
@@ -575,108 +593,201 @@ function Session({
 
   return (
     <section className="flex flex-1 items-center justify-center">
-      <div className="w-full max-w-3xl">
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <BookOpen className="h-4 w-4" />
-                {card.noteTitle || '未关联笔记'}
-              </div>
-              <div className="text-xs text-slate-400">
-                {statusLabel(card.dueStatus)} · 难度 {card.difficulty.toFixed(1)} · 半衰期 {card.halfLife.toFixed(1)} 天
+      <div className="grid w-full gap-4 lg:grid-cols-[1fr_320px]">
+        <div className="min-w-0">
+          <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-100 px-6 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <BookOpen className="h-4 w-4" />
+                  {card.noteTitle || '未关联笔记'}
+                </div>
+                <div className="text-xs text-slate-400">
+                  {statusLabel(card.dueStatus)} · 难度 {card.difficulty.toFixed(1)} · 半衰期 {card.halfLife.toFixed(1)} 天
+                </div>
               </div>
             </div>
-          </div>
-          <div className="min-h-48 px-6 py-8">
-            <p className="whitespace-pre-wrap text-lg leading-8 text-slate-900">{card.front}</p>
+            <div className="min-h-48 px-6 py-8">
+              <p className="whitespace-pre-wrap text-lg leading-8 text-slate-900">{card.front}</p>
+            </div>
+
+            {revealed ? (
+              <div className="border-t border-slate-100 px-6 py-6">
+                <div className="mb-3 text-sm font-medium text-slate-500">答案</div>
+                <p className="whitespace-pre-wrap text-base leading-7 text-slate-800">{card.back}</p>
+                {card.noteSummary ? (
+                  <div className="mt-5 rounded-md bg-slate-50 px-4 py-3">
+                    <div className="mb-1 text-xs font-medium text-slate-500">来源摘要</div>
+                    <p className="text-sm leading-6 text-slate-700">{card.noteSummary}</p>
+                    {card.noteId ? (
+                      <Link href={`/notes?noteId=${card.noteId}`} className="mt-3 inline-flex text-sm font-medium text-slate-900 hover:text-blue-700">
+                        打开来源笔记
+                      </Link>
+                    ) : null}
+                  </div>
+                ) : card.noteId ? (
+                  <Link href={`/notes?noteId=${card.noteId}`} className="mt-5 inline-flex text-sm font-medium text-slate-900 hover:text-blue-700">
+                    打开来源笔记
+                  </Link>
+                ) : null}
+                {card.lapseCount >= 3 ? (
+                  <div className="mt-5 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    这张卡片已经多次遗忘，后续可以考虑把问题拆小或改写答案。
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
-          {revealed ? (
-            <div className="border-t border-slate-100 px-6 py-6">
-              <div className="mb-3 text-sm font-medium text-slate-500">答案</div>
-              <p className="whitespace-pre-wrap text-base leading-7 text-slate-800">{card.back}</p>
-              {card.noteSummary ? (
-                <div className="mt-5 rounded-md bg-slate-50 px-4 py-3">
-                  <div className="mb-1 text-xs font-medium text-slate-500">来源摘要</div>
-                  <p className="text-sm leading-6 text-slate-700">{card.noteSummary}</p>
-                  {card.noteId ? (
-                    <Link
-                      href={`/notes?noteId=${card.noteId}`}
-                      className="mt-3 inline-flex text-sm font-medium text-slate-900 hover:text-blue-700"
-                    >
-                      打开来源笔记
-                    </Link>
-                  ) : null}
-                </div>
-              ) : card.noteId ? (
-                <Link
-                  href={`/notes?noteId=${card.noteId}`}
-                  className="mt-5 inline-flex text-sm font-medium text-slate-900 hover:text-blue-700"
-                >
-                  打开来源笔记
-                </Link>
-              ) : null}
-              {card.lapseCount >= 3 ? (
-                <div className="mt-5 rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  这张卡片已经多次遗忘，后续可以考虑把问题拆小或改写答案。
-                </div>
-              ) : null}
+          {feedback ? <div className="mt-4 rounded-md bg-slate-900 px-4 py-3 text-sm text-white">{feedback}</div> : null}
+          {error ? <div className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
+
+          <div className="mt-5">
+            {!revealed ? (
+              <button
+                onClick={onReveal}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-3 text-sm font-medium text-white hover:bg-slate-800"
+              >
+                <Eye className="h-4 w-4" />
+                显示答案
+              </button>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-4">
+                {ratingButtons.map((button) => (
+                  <button
+                    key={button.rating}
+                    onClick={() => onRate(button.rating)}
+                    disabled={submitting || rated}
+                    className={`rounded-md border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${button.className}`}
+                  >
+                    <div className="font-semibold">{button.label}</div>
+                    <div className="mt-1 text-xs opacity-80">{button.hint}</div>
+                    <div className="mt-2 text-xs font-medium">约 {card.predictedIntervals[button.intervalKey]} 后</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-5 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              返回复习主页
+            </button>
+            <button
+              type="button"
+              onClick={onNext}
+              disabled={!rated}
+              className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+            >
+              {isLastCard ? '完成本轮' : '下一张卡片'}
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <CardGraphContextPanel cardId={card.id} />
+      </div>
+    </section>
+  );
+}
+
+function CardGraphContextPanel({ cardId, compact = false }: { cardId: string; compact?: boolean }) {
+  const [context, setContext] = useState<CardGraphContext | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    api.graph.cardContext(cardId)
+      .then((data: CardGraphContext) => {
+        if (!cancelled) setContext(data);
+      })
+      .catch(() => {
+        if (!cancelled) setContext(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cardId]);
+
+  const hasContext = Boolean(
+    context &&
+    (context.concepts.length || context.prerequisites.length || context.related.length || context.notes.length)
+  );
+
+  return (
+    <aside className={`${compact ? 'mt-4' : ''} rounded-lg border border-slate-200 bg-white p-4 shadow-sm`}>
+      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+        <GitBranch className="h-4 w-4" />
+        相关知识
+      </div>
+
+      {loading ? (
+        <div className="mt-4 flex items-center gap-2 text-sm text-slate-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          加载图谱上下文
+        </div>
+      ) : !hasContext ? (
+        <div className="mt-4 rounded-md bg-slate-50 px-3 py-3 text-sm text-slate-500">
+          暂无图谱上下文。后续可以通过提炼采纳或索引同步来补齐。
+        </div>
+      ) : (
+        <div className="mt-4 space-y-4">
+          <ContextSection title="考察概念" items={context?.concepts ?? []} />
+          <ContextSection title="前置知识" items={context?.prerequisites ?? []} />
+          <ContextSection title="相关概念" items={context?.related ?? []} />
+          {context?.notes.length ? (
+            <div>
+              <div className="mb-2 text-xs font-medium text-slate-500">关联笔记</div>
+              <div className="space-y-2">
+                {context.notes.map(note => (
+                  <Link key={note.id} href={`/notes?noteId=${note.id}`} className="block rounded-md bg-slate-50 px-3 py-2 hover:bg-slate-100">
+                    <div className="text-sm font-medium text-slate-800">{note.title}</div>
+                    <div className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{note.summary}</div>
+                  </Link>
+                ))}
+              </div>
             </div>
           ) : null}
         </div>
+      )}
+    </aside>
+  );
+}
 
-        {feedback ? <div className="mt-4 rounded-md bg-slate-900 px-4 py-3 text-sm text-white">{feedback}</div> : null}
-        {error ? <div className="mt-4 rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
-
-        <div className="mt-5">
-          {!revealed ? (
-            <button
-              onClick={onReveal}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-3 text-sm font-medium text-white hover:bg-slate-800"
-            >
-              <Eye className="h-4 w-4" />
-              显示答案
-            </button>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-4">
-              {ratingButtons.map((button) => (
-                <button
-                  key={button.rating}
-                  onClick={() => onRate(button.rating)}
-                  disabled={submitting || rated}
-                  className={`rounded-md border px-4 py-3 text-left transition disabled:cursor-not-allowed disabled:opacity-60 ${button.className}`}
-                >
-                  <div className="font-semibold">{button.label}</div>
-                  <div className="mt-1 text-xs opacity-80">{button.hint}</div>
-                  <div className="mt-2 text-xs font-medium">约 {card.predictedIntervals[button.intervalKey]} 后</div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="mt-5 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+function ContextSection({
+  title,
+  items,
+}: {
+  title: string;
+  items: Array<{ id: string; label: string; description: string | null; confidence: number }>;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <div>
+      <div className="mb-2 text-xs font-medium text-slate-500">{title}</div>
+      <div className="flex flex-wrap gap-2">
+        {items.map(item => (
+          <Link
+            key={item.id}
+            href="/graph"
+            title={item.description || item.label}
+            className="rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
           >
-            <ArrowLeft className="h-4 w-4" />
-            返回复习主页
-          </button>
-          <button
-            type="button"
-            onClick={onNext}
-            disabled={!rated}
-            className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
-            {isLastCard ? '完成本轮' : '下一张卡片'}
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
+            {item.label}
+          </Link>
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
 

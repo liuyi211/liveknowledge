@@ -18,6 +18,7 @@ import { folderRoutes } from './routes/folders.js';
 import { retrievalSettingsRoutes } from './routes/retrieval-settings.js';
 import { extractionRoutes } from './routes/extraction.js';
 import { reviewRoutes } from './routes/review.js';
+import { graphRoutes } from './routes/graph.js';
 import { db } from './db/index.js';
 import { users, personas } from './db/schema.js';
 import { eq } from 'drizzle-orm';
@@ -95,6 +96,7 @@ export async function buildApp() {
   await app.register(retrievalSettingsRoutes, { prefix: '/api/retrieval' });
   await app.register(extractionRoutes, { prefix: '/api/extraction' });
   await app.register(reviewRoutes, { prefix: '/api/review' });
+  await app.register(graphRoutes, { prefix: '/api/graph' });
 
   // Seed default personas for existing users on startup
   app.addHook('onReady', async () => {

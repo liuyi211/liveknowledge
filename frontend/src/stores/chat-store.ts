@@ -182,14 +182,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
       const decoder = new TextDecoder();
       let done = false;
+      let buffer = '';
 
       while (!done && !abortController.signal.aborted) {
         const { value, done: streamDone } = await reader.read();
         done = streamDone || abortController.signal.aborted;
         if (!value) continue;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
@@ -288,14 +290,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
       const decoder = new TextDecoder();
       let done = false;
+      let buffer = '';
 
       while (!done && !abortController.signal.aborted) {
         const { value, done: streamDone } = await reader.read();
         done = streamDone || abortController.signal.aborted;
         if (!value) continue;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
@@ -384,14 +388,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
       const decoder = new TextDecoder();
       let done = false;
+      let buffer = '';
 
       while (!done && !abortController.signal.aborted) {
         const { value, done: streamDone } = await reader.read();
         done = streamDone || abortController.signal.aborted;
         if (!value) continue;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;

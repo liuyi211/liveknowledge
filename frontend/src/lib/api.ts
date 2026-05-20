@@ -1,4 +1,5 @@
 const API_BASE = '';
+const STREAM_API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
 
 async function fetchApi(path: string, options: RequestInit = {}) {
   const headers: Record<string, string> = { ...(options.headers as Record<string, string> | undefined) };
@@ -74,7 +75,7 @@ export const api = {
       modelId?: string;
       attachments?: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }>;
     }, signal?: AbortSignal) => {
-      return fetch(`${API_BASE}/api/messages/session/${sessionId}/stream`, {
+      return fetch(`${STREAM_API_BASE}/api/messages/session/${sessionId}/stream`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -173,6 +174,48 @@ export const api = {
     getJob: (jobId: string) => fetchApi(`/api/extraction/jobs/${jobId}`),
     adopt: (jobId: string, data: any) =>
       fetchApi(`/api/extraction/jobs/${jobId}/adopt`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+
+  graph: {
+    overview: (params?: { limit?: number; q?: string; relationType?: string; isolatedOnly?: boolean }) => {
+      const search = new URLSearchParams();
+      if (params?.limit) search.set('limit', String(params.limit));
+      if (params?.q) search.set('q', params.q);
+      if (params?.relationType) search.set('relationType', params.relationType);
+      if (params?.isolatedOnly !== undefined) search.set('isolatedOnly', String(params.isolatedOnly));
+      const qs = search.toString();
+      return fetchApi(`/api/graph/overview${qs ? `?${qs}` : ''}`);
+    },
+    search: (q: string) => fetchApi(`/api/graph/search?q=${encodeURIComponent(q)}`),
+    concept: (id: string) => fetchApi(`/api/graph/concepts/${id}`),
+    neighborhood: (id: string) => fetchApi(`/api/graph/concepts/${id}/neighborhood`),
+    cardContext: (cardId: string) => fetchApi(`/api/graph/cards/${cardId}/context`),
+    quality: (params?: { limit?: number }) => {
+      const search = new URLSearchParams();
+      if (params?.limit) search.set('limit', String(params.limit));
+      const qs = search.toString();
+      return fetchApi(`/api/graph/quality${qs ? `?${qs}` : ''}`);
+    },
+    health: () => fetchApi('/api/graph/health'),
+    path: (params: { sourceId: string; targetId: string; maxDepth?: number }) => {
+      const search = new URLSearchParams();
+      search.set('sourceId', params.sourceId);
+      search.set('targetId', params.targetId);
+      if (params.maxDepth) search.set('maxDepth', String(params.maxDepth));
+      return fetchApi(`/api/graph/path?${search.toString()}`);
+    },
+    learningPath: (params?: { targetConceptId?: string; limit?: number }) => {
+      const search = new URLSearchParams();
+      if (params?.targetConceptId) search.set('targetConceptId', params.targetConceptId);
+      if (params?.limit) search.set('limit', String(params.limit));
+      const qs = search.toString();
+      return fetchApi(`/api/graph/learning-path${qs ? `?${qs}` : ''}`);
+    },
+    syncNeo4j: () => fetchApi('/api/graph/sync/neo4j', { method: 'POST' }),
+    confirmRelation: (relationId: string) =>
+      fetchApi(`/api/graph/relations/${relationId}/confirm`, { method: 'POST' }),
+    deleteRelation: (relationId: string) =>
+      fetchApi(`/api/graph/relations/${relationId}`, { method: 'DELETE' }),
   },
 
   folders: {

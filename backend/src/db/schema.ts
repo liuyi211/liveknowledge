@@ -219,3 +219,73 @@ export const cardReviews = pgTable('card_reviews', {
   cardIdx: index('idx_card_reviews_card').on(table.cardId, table.reviewedAt),
   userIdx: index('idx_card_reviews_user').on(table.userId, table.reviewedAt),
 }));
+
+export const concepts = pgTable('concepts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  label: varchar('label', { length: 200 }).notNull(),
+  normalizedLabel: varchar('normalized_label', { length: 200 }).notNull(),
+  description: text('description'),
+  domain: varchar('domain', { length: 120 }),
+  aliases: text('aliases').array(),
+  sourceType: varchar('source_type', { length: 50 }),
+  sourceId: uuid('source_id'),
+  confidence: real('confidence').default(0.8).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userNormalizedIdx: uniqueIndex('idx_concepts_user_normalized').on(table.userId, table.normalizedLabel),
+  userLabelIdx: index('idx_concepts_user_label').on(table.userId, table.label),
+}));
+
+export const conceptRelations = pgTable('concept_relations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  sourceConceptId: uuid('source_concept_id').notNull().references(() => concepts.id, { onDelete: 'cascade' }),
+  targetConceptId: uuid('target_concept_id').notNull().references(() => concepts.id, { onDelete: 'cascade' }),
+  relationType: varchar('relation_type', { length: 50 }).notNull(),
+  weight: real('weight').default(1).notNull(),
+  evidence: text('evidence'),
+  sourceType: varchar('source_type', { length: 50 }),
+  sourceId: uuid('source_id'),
+  confidence: real('confidence').default(0.8).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userSourceIdx: index('idx_concept_relations_user_source').on(table.userId, table.sourceConceptId),
+  userTargetIdx: index('idx_concept_relations_user_target').on(table.userId, table.targetConceptId),
+  uniqueRelationIdx: uniqueIndex('idx_concept_relations_unique').on(
+    table.userId,
+    table.sourceConceptId,
+    table.targetConceptId,
+    table.relationType
+  ),
+}));
+
+export const noteConcepts = pgTable('note_concepts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  noteId: uuid('note_id').notNull().references(() => notes.id, { onDelete: 'cascade' }),
+  conceptId: uuid('concept_id').notNull().references(() => concepts.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 50 }).default('mentions').notNull(),
+  confidence: real('confidence').default(0.8).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  noteIdx: index('idx_note_concepts_note').on(table.noteId),
+  conceptIdx: index('idx_note_concepts_concept').on(table.conceptId),
+  uniqueNoteConceptIdx: uniqueIndex('idx_note_concepts_unique').on(table.userId, table.noteId, table.conceptId),
+}));
+
+export const cardConcepts = pgTable('card_concepts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  cardId: uuid('card_id').notNull().references(() => cards.id, { onDelete: 'cascade' }),
+  conceptId: uuid('concept_id').notNull().references(() => concepts.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 50 }).default('tests').notNull(),
+  confidence: real('confidence').default(0.8).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  cardIdx: index('idx_card_concepts_card').on(table.cardId),
+  conceptIdx: index('idx_card_concepts_concept').on(table.conceptId),
+  uniqueCardConceptIdx: uniqueIndex('idx_card_concepts_unique').on(table.userId, table.cardId, table.conceptId),
+}));

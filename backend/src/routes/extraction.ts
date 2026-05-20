@@ -4,6 +4,7 @@ import { cards as cardsTable, chatSessions, extractionJobs, importSources, messa
 import { and, eq } from 'drizzle-orm';
 import { createJob, getJob } from '../services/extraction/job-service.js';
 import { processExtraction } from '../services/extraction/processor.js';
+import { adoptGraphFromExtraction } from '../services/graph-store.js';
 import { z } from 'zod';
 import { createHash } from 'crypto';
 
@@ -14,15 +15,20 @@ const cardSchema = z.object({
 
 const entitySchema = z.object({
   name: z.string().trim().min(1).max(200),
-  type: z.string().trim().min(1).max(50),
+  type: z.string().trim().min(1).max(50).optional().default('Concept'),
   description: z.string().trim().max(1000).optional().default(''),
+  domain: z.string().trim().max(120).optional(),
+  aliases: z.array(z.string().trim().min(1).max(120)).optional(),
+  confidence: z.number().min(0).max(1).optional(),
 });
 
 const relationSchema = z.object({
   source: z.string().trim().min(1).max(200),
   target: z.string().trim().min(1).max(200),
-  type: z.string().trim().min(1).max(80),
+  type: z.string().trim().min(1).max(80).optional().default('RELATED_TO'),
   description: z.string().trim().max(1000).optional().default(''),
+  evidence: z.string().trim().max(1000).optional(),
+  confidence: z.number().min(0).max(1).optional(),
 });
 
 const adoptSchema = z.object({
@@ -164,13 +170,13 @@ export async function extractionRoutes(app: FastifyInstance) {
       previousJobIds: previousJobs.map(job => job.id),
       version: previousJobs.length + 1,
     });
+
     processExtraction(jobId, body.sourceType, sourceId!, content, userId, undefined, {
       inputSnapshot: snapshot,
       duplicateSource,
       previousJobIds: previousJobs.map(job => job.id),
       version: previousJobs.length + 1,
-    })
-      .catch(err => request.log.error({ err, jobId }, '知识提炼任务失败'));
+    }).catch(err => request.log.error({ err, jobId }, '知识提炼任务失败'));
 
     return {
       jobId,
@@ -251,12 +257,22 @@ export async function extractionRoutes(app: FastifyInstance) {
       }))).returning({ id: cardsTable.id })
       : [];
 
+    const graphAdoption = await adoptGraphFromExtraction({
+      userId,
+      noteId,
+      cardIds: createdCards.map(card => card.id),
+      sourceType: 'extraction',
+      sourceId: id,
+      entities,
+      relations,
+    });
+
     const feedback = {
-      accepted: Boolean(summary) || createdCards.length > 0,
+      accepted: Boolean(summary) || createdCards.length > 0 || graphAdoption.conceptIds.length > 0,
       accepted_notes: noteId && summary ? [noteId] : [],
       accepted_cards: createdCards.map(card => card.id),
-      accepted_entities: entities,
-      accepted_relations: relations,
+      accepted_entities: graphAdoption.conceptIds,
+      accepted_relations: graphAdoption.relationIds,
       modifications: {
         selectedCounts: {
           notes: summary ? 1 : 0,
@@ -277,6 +293,7 @@ export async function extractionRoutes(app: FastifyInstance) {
       success: true,
       noteId,
       cardIds: createdCards.map(card => card.id),
+      graph: graphAdoption,
     };
   });
 }

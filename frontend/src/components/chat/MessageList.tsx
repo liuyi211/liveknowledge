@@ -1,16 +1,30 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { useChatStore } from '@/stores/chat-store';
 import MessageBubble from './MessageBubble';
 
 export default function MessageList() {
   const messages = useChatStore((s) => s.messages);
   const isStreaming = useChatStore((s) => s.isStreaming);
+  const messagesLoading = useChatStore((s) => s.messagesLoading);
+  const currentSession = useChatStore((s) => s.currentSession);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const visibleMessages = messages.filter((m) => !m.isDeleted);
 
   const lastUserIndex = visibleMessages.map((m) => m.role).lastIndexOf('user');
   const lastAssistantIndex = visibleMessages.map((m) => m.role).lastIndexOf('assistant');
+
+  useEffect(() => {
+    if (messagesLoading) return;
+    bottomRef.current?.scrollIntoView({ block: 'end' });
+  }, [currentSession?.id, messagesLoading, visibleMessages.length]);
+
+  useEffect(() => {
+    if (!isStreaming) return;
+    bottomRef.current?.scrollIntoView({ block: 'end' });
+  }, [isStreaming, visibleMessages[visibleMessages.length - 1]?.content]);
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
@@ -30,6 +44,7 @@ export default function MessageList() {
           isStreaming={isStreaming}
         />
       ))}
+      <div ref={bottomRef} />
     </div>
   );
 }

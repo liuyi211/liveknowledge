@@ -23,3 +23,12 @@ export async function runQuery(query: string, params: Record<string, any> = {}):
     await session.close();
   }
 }
+
+export async function testNeo4jConnection(): Promise<boolean> {
+  try {
+    await runQuery('RETURN 1 AS ok');
+    return true;
+  } catch {
+    return false;
+  }
+}

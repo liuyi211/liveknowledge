@@ -25,10 +25,8 @@ export default function Sidebar() {
 
   return (
     <div className="w-16 bg-gray-900 text-white flex flex-col items-center py-4 shrink-0">
-      {/* Logo */}
       <div className="mb-6 text-blue-400 font-bold text-lg">LK</div>
 
-      {/* Nav items */}
       <nav className="flex-1 flex flex-col space-y-2 w-full px-2">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);

@@ -37,7 +37,10 @@ export async function messageRoutes(app: FastifyInstance) {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
+      'X-Accel-Buffering': 'no',
     });
+    reply.raw.flushHeaders?.();
+    reply.raw.socket?.setNoDelay(true);
 
     const abortController = new AbortController();
 
@@ -48,9 +51,11 @@ export async function messageRoutes(app: FastifyInstance) {
     try {
       for await (const chunk of handleStreamChat(userId, sessionId, body, request.log, abortController.signal)) {
         reply.raw.write(`data: ${JSON.stringify(chunk)}\n\n`);
+        (reply.raw as any).flush?.();
       }
     } catch (err) {
       reply.raw.write(`data: ${JSON.stringify({ type: 'error', error: (err as Error).message })}\n\n`);
+      (reply.raw as any).flush?.();
     } finally {
       reply.raw.end();
     }

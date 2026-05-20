@@ -126,3 +126,176 @@ export interface ReviewFilters {
   tags: Array<{ tag: string; count: number }>;
   notes: Array<{ noteId: string; title: string; count: number }>;
 }
+
+export interface GraphNode {
+  id: string;
+  label: string;
+  type: 'concept';
+  description: string | null;
+  domain: string | null;
+  confidence: number;
+  noteCount?: number;
+  isolated?: boolean;
+  x?: number;
+  y?: number;
+}
+
+export interface GraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type: string;
+  weight: number;
+  evidence: string | null;
+  confidence: number;
+}
+
+export interface GraphOverview {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  stats: {
+    conceptCount: number;
+    relationCount: number;
+    isolatedCount: number;
+  };
+}
+
+export interface GraphData {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+}
+
+export interface ConceptDetail {
+  concept: {
+    id: string;
+    label: string;
+    description: string | null;
+    domain: string | null;
+    confidence: number;
+  };
+  notes: Array<{
+    id: string;
+    title: string;
+    summary: string;
+    role: string;
+  }>;
+  cards: Array<{
+    id: string;
+    front: string;
+    back: string;
+    role: string;
+  }>;
+  relations: Array<{
+    id: string;
+    sourceConceptId: string;
+    targetConceptId: string;
+    relationType: string;
+    evidence: string | null;
+    confidence: number;
+  }>;
+}
+
+export interface CardGraphContext {
+  cardId: string;
+  concepts: Array<{
+    id: string;
+    label: string;
+    description: string | null;
+    domain: string | null;
+    confidence: number;
+    role: string;
+  }>;
+  prerequisites: Array<{
+    id: string;
+    label: string;
+    description: string | null;
+    confidence: number;
+  }>;
+  related: Array<{
+    id: string;
+    label: string;
+    description: string | null;
+    confidence: number;
+  }>;
+  notes: Array<{
+    id: string;
+    title: string;
+    summary: string;
+  }>;
+}
+
+export interface GraphQualityReport {
+  isolatedConcepts: Array<{
+    id: string;
+    label: string;
+    description: string | null;
+    domain: string | null;
+    confidence: number;
+  }>;
+  lowConfidenceRelations: Array<{
+    id: string;
+    type: string;
+    evidence: string | null;
+    confidence: number;
+    source: { id: string; label: string };
+    target: { id: string; label: string };
+  }>;
+  unboundCards: Array<{
+    id: string;
+    front: string;
+    back: string;
+    noteTitle: string | null;
+    lapseCount: number;
+  }>;
+  stats: {
+    isolatedConceptCount: number;
+    lowConfidenceRelationCount: number;
+    unboundCardCount: number;
+  };
+}
+
+export interface GraphHealth {
+  conceptCount: number;
+  relationCount: number;
+  cardCount: number;
+  boundCardCount: number;
+  noteCount: number;
+  boundNoteCount: number;
+  isolatedConceptCount: number;
+  lowConfidenceRelationCount: number;
+  unboundCardCount: number;
+  relationDensity: number;
+  cardBindingRatio: number;
+  noteBindingRatio: number;
+  healthScore: number;
+}
+
+export interface GraphPathResult {
+  nodes: Array<{
+    id: string;
+    label: string;
+    description: string | null;
+    domain: string | null;
+  }>;
+  edges: Array<{
+    id: string;
+    source: string;
+    target: string;
+    type: string;
+    evidence: string | null;
+    confidence: number;
+  }>;
+}
+
+export interface LearningPath {
+  targetConceptId: string | null;
+  steps: Array<{
+    order: number;
+    id: string;
+    label: string;
+    description: string | null;
+    domain: string | null;
+    prerequisiteCount: number;
+    unlocksCount: number;
+  }>;
+}
