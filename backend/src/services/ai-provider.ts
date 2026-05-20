@@ -394,7 +394,9 @@ export async function* streamChat(
     const duration = Date.now() - startTime;
     log.debug({ duration, chunkCount }, 'AI：模型流式调用完成');
   } catch (err) {
-    if ((err as any).name === 'AbortError') {
+    const errorName = (err as any).name;
+    const errorType = (err as any).type;
+    if (errorName === 'AbortError' || errorName === 'APIUserAbortError' || errorType === 'APIUserAbortError') {
       log.info('AI：用户已停止流式生成');
       return;
     }

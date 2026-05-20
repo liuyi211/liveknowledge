@@ -8,6 +8,12 @@ const createSchema = z.object({
   title: z.string().optional(),
 });
 
+const updateSchema = z.object({
+  personaId: z.string().nullable().optional(),
+  modelId: z.string().nullable().optional(),
+  title: z.string().optional(),
+});
+
 const listQuerySchema = z.object({
   q: z.string().optional(),
   sort: z.enum(['updated', 'created']).optional().default('updated'),
@@ -50,7 +56,7 @@ export async function sessionRoutes(app: FastifyInstance) {
 
   app.patch('/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const body = createSchema.partial().parse(request.body);
+    const body = updateSchema.parse(request.body);
     const userId = request.user!.id;
 
     const session = await sessionService.updateSessionWithPersonaSummary(id, userId, body, request.log);

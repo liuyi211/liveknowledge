@@ -1,5 +1,5 @@
 const API_BASE = '';
-const STREAM_API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
+const STREAM_API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 async function fetchApi(path: string, options: RequestInit = {}) {
   const headers: Record<string, string> = { ...(options.headers as Record<string, string> | undefined) };
@@ -37,8 +37,11 @@ export const api = {
 
   personas: {
     list: () => fetchApi('/api/personas'),
-    create: (data: { name: string; systemPromptTemplate: string }) =>
+    create: (data: { name: string; systemPromptTemplate?: string; description?: string; knowledgeDomains?: string[] }) =>
       fetchApi('/api/personas', { method: 'POST', body: JSON.stringify(data) }),
+    generate: (description: string) =>
+      fetchApi('/api/personas/generate', { method: 'POST', body: JSON.stringify({ description }) }),
+    delete: (id: string) => fetchApi(`/api/personas/${id}`, { method: 'DELETE' }),
   },
 
   sessions: {

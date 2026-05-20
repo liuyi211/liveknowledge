@@ -20,8 +20,8 @@ import { extractionRoutes } from './routes/extraction.js';
 import { reviewRoutes } from './routes/review.js';
 import { graphRoutes } from './routes/graph.js';
 import { db } from './db/index.js';
-import { users, personas } from './db/schema.js';
-import { eq } from 'drizzle-orm';
+import { users } from './db/schema.js';
+import { ensureBuiltinPersonasForUser } from './services/persona-service.js';
 
 dotenv.config();
 
@@ -102,28 +102,8 @@ export async function buildApp() {
   app.addHook('onReady', async () => {
     const allUsers = await db.select().from(users);
     for (const user of allUsers) {
-      const existing = await db.select().from(personas).where(eq(personas.userId, user.id)).limit(1);
-      if (existing.length > 0) continue;
-
-      await db.insert(personas).values([
-        {
-          userId: user.id,
-          name: '通用助手',
-          description: '全能型学习助手，善于解释各类知识',
-          systemPromptTemplate: '你是一位博学多才的学习助手。请用清晰易懂的方式回答用户的问题。如果涉及复杂概念，请先给出直观理解，再补充细节。',
-          isBuiltin: true,
-          defaultModel: 'gpt-4o-mini',
-        },
-        {
-          userId: user.id,
-          name: '算法导师',
-          description: '专注算法与数据结构，擅长逐步推导',
-          systemPromptTemplate: '你是一位算法导师。讲解算法时请：1) 先说明问题背景和应用场景；2) 给出直观理解（如类比、图示描述）；3) 逐步推导算法逻辑；4) 分析时间/空间复杂度；5) 给出代码示例。',
-          isBuiltin: true,
-          defaultModel: 'gpt-4o-mini',
-        },
-      ]);
-      app.log.info({ userId: user.id }, '已为用户初始化默认导师人格');
+      await ensureBuiltinPersonasForUser(user.id);
+      app.log.info({ userId: user.id }, 'Initialized built-in personas for user');
     }
   });
 

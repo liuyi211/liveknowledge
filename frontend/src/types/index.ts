@@ -8,7 +8,15 @@ export interface Persona {
   name: string;
   description: string | null;
   systemPromptTemplate: string;
+  teachingStyle: {
+    responseStyle?: string[];
+    questionStyle?: string[];
+    reminders?: string[];
+    tone?: string[];
+  } | null;
+  knowledgeDomains: string[] | null;
   defaultModel: string | null;
+  isBuiltin: boolean;
 }
 
 export interface ChatSession {

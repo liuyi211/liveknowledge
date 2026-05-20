@@ -57,15 +57,15 @@ export default function ChatHeader() {
 
   if (!currentSession) {
     return (
-      <div className="h-12 border-b border-gray-200 flex items-center px-4 bg-white">
+      <div className="flex h-12 items-center border-b border-gray-200 bg-white px-4">
         <span className="text-sm text-gray-400">选择一个对话或创建新对话</span>
       </div>
     );
   }
 
   return (
-    <div className="h-12 border-b border-gray-200 flex items-center justify-between px-4 bg-white">
-      <div className="flex items-center space-x-2 flex-1 min-w-0">
+    <div className="flex h-12 items-center justify-between border-b border-gray-200 bg-white px-4">
+      <div className="flex min-w-0 flex-1 items-center space-x-2">
         {isEditing ? (
           <div className="flex items-center space-x-2">
             <input
@@ -77,7 +77,7 @@ export default function ChatHeader() {
                 if (e.key === 'Escape') setIsEditing(false);
               }}
               onBlur={handleSave}
-              className="text-sm font-medium px-2 py-0.5 border border-blue-400 rounded focus:outline-none"
+              className="rounded border border-blue-400 px-2 py-0.5 text-sm font-medium focus:outline-none"
             />
             <button onClick={handleSave} className="text-green-600 hover:text-green-700">
               <Check size={16} />
@@ -87,11 +87,12 @@ export default function ChatHeader() {
             </button>
           </div>
         ) : (
-          <div className="flex items-center space-x-2 group">
-            <h2 className="text-sm font-medium text-gray-800 truncate">{currentSession.title}</h2>
+          <div className="group flex items-center space-x-2">
+            <h2 className="truncate text-sm font-medium text-gray-800">{currentSession.title}</h2>
             <button
               onClick={() => setIsEditing(true)}
-              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 transition-opacity"
+              className="text-gray-400 opacity-0 transition-opacity hover:text-gray-600 group-hover:opacity-100"
+              title="重命名"
             >
               <Edit3 size={14} />
             </button>
@@ -99,17 +100,17 @@ export default function ChatHeader() {
         )}
       </div>
 
-      <div className="flex items-center space-x-2 shrink-0">
+      <div className="flex shrink-0 items-center space-x-2">
         <div className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-1">
           <UserRound size={13} className="text-gray-500" />
           <select
             value={currentSession.personaId || ''}
             onChange={(e) => handlePersonaChange(e.target.value)}
             disabled={personaSaving}
-            className="max-w-[150px] bg-transparent text-xs text-gray-700 focus:outline-none disabled:opacity-60"
-            title={currentSession.contextSummary ? `已携带上下文摘要：${currentSession.contextSummary}` : '选择导师人格'}
+            className="max-w-[170px] bg-transparent text-xs text-gray-700 focus:outline-none disabled:opacity-60"
+            title={currentSession.contextSummary ? `已携带上下文摘要：${currentSession.contextSummary}` : '选择对话角色'}
           >
-            <option value="">默认助手</option>
+            <option value="">通用助手</option>
             {personas.map((persona) => (
               <option key={persona.id} value={persona.id}>{persona.name}</option>
             ))}
@@ -120,7 +121,7 @@ export default function ChatHeader() {
           sourceId={currentSession.id}
         />
         {currentSession.modelId && (
-          <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+          <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600">
             {currentSession.modelId}
           </span>
         )}

@@ -21,6 +21,16 @@ const feedbackSchema = z.object({
 });
 
 export async function messageRoutes(app: FastifyInstance) {
+  app.options('/session/:sessionId/stream', async (_request, reply) => {
+    reply
+      .header('Access-Control-Allow-Origin', 'http://localhost:3000')
+      .header('Access-Control-Allow-Credentials', 'true')
+      .header('Access-Control-Allow-Headers', 'Content-Type')
+      .header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+      .status(204)
+      .send();
+  });
+
   app.get('/session/:sessionId', { onRequest: [app.authenticate] }, async (request) => {
     const { sessionId } = request.params as { sessionId: string };
     const limit = z.coerce.number().optional().parse((request.query as any)?.limit) || undefined;
@@ -38,26 +48,35 @@ export async function messageRoutes(app: FastifyInstance) {
       'Cache-Control': 'no-cache',
       'Connection': 'keep-alive',
       'X-Accel-Buffering': 'no',
+      'Access-Control-Allow-Origin': 'http://localhost:3000',
+      'Access-Control-Allow-Credentials': 'true',
     });
     reply.raw.flushHeaders?.();
     reply.raw.socket?.setNoDelay(true);
 
     const abortController = new AbortController();
+    const writeEvent = (payload: unknown) => {
+      if (reply.raw.writableEnded || reply.raw.destroyed) return;
+      reply.raw.write(`data: ${JSON.stringify(payload)}\n\n`);
+      (reply.raw as any).flush?.();
+    };
 
-    reply.raw.on('close', () => {
-      abortController.abort();
-    });
+    writeEvent({ type: 'ping' });
+    const heartbeat = setInterval(() => {
+      writeEvent({ type: 'ping' });
+    }, 10000);
 
     try {
       for await (const chunk of handleStreamChat(userId, sessionId, body, request.log, abortController.signal)) {
-        reply.raw.write(`data: ${JSON.stringify(chunk)}\n\n`);
-        (reply.raw as any).flush?.();
+        writeEvent(chunk);
       }
     } catch (err) {
-      reply.raw.write(`data: ${JSON.stringify({ type: 'error', error: (err as Error).message })}\n\n`);
-      (reply.raw as any).flush?.();
+      writeEvent({ type: 'error', error: (err as Error).message });
     } finally {
-      reply.raw.end();
+      clearInterval(heartbeat);
+      if (!reply.raw.writableEnded && !reply.raw.destroyed) {
+        reply.raw.end();
+      }
     }
   });
 

@@ -402,7 +402,7 @@ export default function GraphPage() {
         setDetail(null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '鍔犺浇鍥捐氨澶辫触');
+      setError(err instanceof Error ? err.message : '加载图谱失败');
     } finally {
       setLoading(false);
     }
@@ -444,7 +444,7 @@ export default function GraphPage() {
       setNeighborhood(data);
       setMode('neighborhood');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '鍔犺浇閭诲煙澶辫触');
+      setError(err instanceof Error ? err.message : '加载邻域失败');
     } finally {
       setLoading(false);
     }
