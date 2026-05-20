@@ -182,7 +182,7 @@ export const api = {
       if (params?.limit) search.set('limit', String(params.limit));
       if (params?.q) search.set('q', params.q);
       if (params?.relationType) search.set('relationType', params.relationType);
-      if (params?.isolatedOnly !== undefined) search.set('isolatedOnly', String(params.isolatedOnly));
+      if (params?.isolatedOnly) search.set('isolatedOnly', 'true');
       const qs = search.toString();
       return fetchApi(`/api/graph/overview${qs ? `?${qs}` : ''}`);
     },

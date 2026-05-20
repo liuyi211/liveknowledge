@@ -19,7 +19,10 @@ const overviewQuerySchema = z.object({
   limit: z.coerce.number().int().min(20).max(300).default(120),
   q: z.string().trim().optional(),
   relationType: z.string().trim().optional(),
-  isolatedOnly: z.coerce.boolean().default(false),
+  isolatedOnly: z
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform(value => value === true || value === 'true'),
 });
 
 const searchQuerySchema = z.object({

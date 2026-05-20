@@ -63,11 +63,11 @@
 
 ## 6. 复习系统
 
-- [ ] cards 完整数据模型：difficulty、half_life、next_review_at、review logs 完整。
-- [ ] SSP-MMC 调度：Again/Hard/Good/Easy 后计算下次复习时间。
-- [ ] 复习队列 API：查询今日到期卡片并排序。
-- [ ] 复习前端：翻卡、自评、下一张、进度反馈完整。
-- [ ] 复习历史：每次评分、响应时间、参数变化可追踪。
+- [x] cards 完整数据模型：difficulty、half_life、next_review_at、review logs 完整。
+- [x] SSP-MMC 调度：Again/Hard/Good/Easy 后计算下次复习时间。
+- [x] 复习队列 API：查询今日到期卡片并排序。
+- [x] 复习前端：翻卡、自评、下一张、进度反馈完整。
+- [x] 复习历史：每次评分、响应时间、参数变化可追踪。
 - [ ] 图谱联动：复习卡片时展示关联知识点上下文。
 
 ## 7. 知识图谱
