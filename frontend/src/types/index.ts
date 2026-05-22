@@ -307,3 +307,50 @@ export interface LearningPath {
     unlocksCount: number;
   }>;
 }
+
+export interface UserProfile {
+  userId: string;
+  styleVisual: number;
+  styleIntuitive: number;
+  styleGradual: number;
+  styleConcise: number;
+  attentionSpan: number;
+  optimalSessionLength: number;
+  preferredDifficulty: number;
+  memoryStabilityFactor: number;
+  memoryRetrievabilityThreshold: number;
+  confidence: number;
+  stats: Record<string, unknown>;
+  updatedAt: string;
+}
+
+export interface DomainMastery {
+  id: string;
+  userId: string;
+  domain: string;
+  masteryLevel: number;
+  cardsTotal: number;
+  cardsMastered: number;
+  avgRetrievability: number;
+  lastStudied: string | null;
+  updatedAt: string;
+}
+
+export interface WeakPoint {
+  id: string;
+  userId: string;
+  conceptAId: string | null;
+  conceptBId: string | null;
+  conceptALabel: string;
+  conceptBLabel: string | null;
+  confusionCount: number;
+  evidence: Record<string, unknown>;
+  lastConfused: string;
+  updatedAt: string;
+}
+
+export interface ProfileOverview {
+  profile: UserProfile;
+  domainMastery: DomainMastery[];
+  weakPoints: WeakPoint[];
+}

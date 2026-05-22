@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import Sidebar from '@/components/layout/Sidebar';
-import type { GraphHealth, Note, ReviewCard, ReviewStats } from '@/types';
+import type { DomainMastery, GraphHealth, Note, ProfileOverview, ReviewCard, ReviewStats, UserProfile, WeakPoint } from '@/types';
 import {
   AlertTriangle,
   ArrowRight,
@@ -17,6 +17,7 @@ import {
   GitBranch,
   Loader2,
   NotebookText,
+  RefreshCw,
   Sparkles,
 } from 'lucide-react';
 
@@ -30,6 +31,9 @@ export default function DashboardPage() {
   const [qualityCards, setQualityCards] = useState<ReviewCard[]>([]);
   const [recentNotes, setRecentNotes] = useState<Note[]>([]);
   const [sessionCount, setSessionCount] = useState(0);
+  const [profileOverview, setProfileOverview] = useState<ProfileOverview | null>(null);
+  const [profileRefreshing, setProfileRefreshing] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -40,12 +44,13 @@ export default function DashboardPage() {
         return;
       }
 
-      const [health, review, quality, notes, sessions] = await Promise.all([
+      const [health, review, quality, notes, sessions, profile] = await Promise.all([
         api.graph.health().catch(() => null),
         api.review.stats().catch(() => null),
         api.review.quality({ limit: 5 }).catch(() => ({ cards: [] })),
         api.notes.list().catch(() => []),
         api.sessions.list({ limit: 5 }).catch(() => []),
+        api.profile.get().catch(() => null),
       ]);
 
       setGraphHealth(health);
@@ -53,10 +58,25 @@ export default function DashboardPage() {
       setQualityCards((quality as ReviewQualityResponse).cards ?? []);
       setRecentNotes(Array.isArray(notes) ? notes.slice(0, 5) : []);
       setSessionCount(Array.isArray(sessions) ? sessions.length : 0);
+      setProfileOverview(profile as ProfileOverview | null);
+      setProfileError(profile ? null : '画像数据暂不可用。');
       setLoading(false);
     }
     load();
   }, [router]);
+
+  async function refreshProfile() {
+    setProfileRefreshing(true);
+    setProfileError(null);
+    try {
+      const profile = await api.profile.recompute();
+      setProfileOverview(profile as ProfileOverview);
+    } catch (err) {
+      setProfileError((err as Error).message || '画像重算失败');
+    } finally {
+      setProfileRefreshing(false);
+    }
+  }
 
   const nextActions = useMemo(() => {
     const actions = [];
@@ -126,11 +146,12 @@ export default function DashboardPage() {
             </div>
           </header>
 
-          <section className="grid gap-4 md:grid-cols-4">
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <MetricCard icon={Brain} label="今日到期" value={reviewStats?.dueCount ?? 0} hint="等待复习的卡片" />
             <MetricCard icon={CheckCircle2} label="今日已复习" value={reviewStats?.reviewedToday ?? 0} hint={formatAccuracy(reviewStats?.accuracyToday)} />
             <MetricCard icon={NotebookText} label="笔记" value={graphHealth?.noteCount ?? 0} hint={`${graphHealth?.boundNoteCount ?? 0} 篇已绑定图谱`} />
             <MetricCard icon={GitBranch} label="概念 / 关系" value={`${graphHealth?.conceptCount ?? 0}/${graphHealth?.relationCount ?? 0}`} hint={`健康分 ${graphHealth?.healthScore ?? 0}`} />
+            <MetricCard icon={Brain} label="画像置信度" value={`${Math.round((profileOverview?.profile.confidence ?? 0) * 100)}%`} hint="基于对话、复习和图谱数据" />
           </section>
 
           <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
@@ -181,6 +202,13 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </Panel>
+
+              <ProfilePanel
+                overview={profileOverview}
+                error={profileError}
+                refreshing={profileRefreshing}
+                onRefresh={refreshProfile}
+              />
             </div>
 
             <aside className="space-y-5">
@@ -252,6 +280,141 @@ function Panel({ title, icon: Icon, children }: { title: string; icon: typeof Br
       </div>
       {children}
     </section>
+  );
+}
+
+function ProfilePanel({
+  overview,
+  error,
+  refreshing,
+  onRefresh,
+}: {
+  overview: ProfileOverview | null;
+  error: string | null;
+  refreshing: boolean;
+  onRefresh: () => void;
+}) {
+  const profile = overview?.profile;
+  const domains = overview?.domainMastery ?? [];
+  const weakPoints = overview?.weakPoints ?? [];
+
+  return (
+    <section className="rounded-md border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Brain size={18} className="text-gray-500" />
+          <h2 className="font-semibold text-gray-900">认知画像</h2>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={refreshing}
+          className="inline-flex items-center gap-2 rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+        >
+          <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+          重算
+        </button>
+      </div>
+
+      {error ? (
+        <EmptyState text={error} />
+      ) : !profile ? (
+        <EmptyState text="画像数据暂不可用。" />
+      ) : (
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="space-y-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StyleGauge label="视觉偏好" value={profile.styleVisual} left="文本" right="视觉" />
+              <StyleGauge label="解释偏好" value={profile.styleIntuitive} left="形式" right="直觉" />
+              <StyleGauge label="推进节奏" value={profile.styleGradual} left="跳跃" right="渐进" />
+              <StyleGauge label="回答长度" value={profile.styleConcise} left="详实" right="简洁" />
+            </div>
+
+            <div>
+              <div className="mb-3 text-sm font-medium text-gray-800">领域熟练度</div>
+              {domains.length ? (
+                <div className="space-y-3">
+                  {domains.slice(0, 5).map(domain => (
+                    <DomainRow key={domain.id} domain={domain} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState text="还没有足够的领域数据。完成提炼并复习几张卡片后，这里会开始生长。" />
+              )}
+            </div>
+          </div>
+
+          <aside className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <MiniStat label="偏好难度" value={profile.preferredDifficulty.toFixed(1)} />
+              <MiniStat label="专注窗口" value={`${profile.attentionSpan} 分钟`} />
+              <MiniStat label="稳定因子" value={profile.memoryStabilityFactor.toFixed(2)} />
+              <MiniStat label="提取阈值" value={`${Math.round(profile.memoryRetrievabilityThreshold * 100)}%`} />
+            </div>
+
+            <div>
+              <div className="mb-3 text-sm font-medium text-gray-800">薄弱点</div>
+              {weakPoints.length ? (
+                <div className="space-y-2">
+                  {weakPoints.slice(0, 5).map(point => (
+                    <WeakPointItem key={point.id} point={point} />
+                  ))}
+                </div>
+              ) : (
+                <EmptyState text="暂时没有明显薄弱点。" />
+              )}
+            </div>
+          </aside>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function StyleGauge({ label, value, left, right }: { label: string; value: number; left: string; right: string }) {
+  const percent = Math.round(((Math.max(-1, Math.min(1, value)) + 1) / 2) * 100);
+  return (
+    <div className="rounded-md bg-gray-50 p-3">
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <span>{label}</span>
+        <span>{value.toFixed(2)}</span>
+      </div>
+      <div className="relative mt-3 h-2 rounded-full bg-gray-200">
+        <div className="absolute top-1/2 h-4 w-1 -translate-y-1/2 rounded bg-gray-900" style={{ left: `${percent}%` }} />
+      </div>
+      <div className="mt-2 flex justify-between text-[11px] text-gray-400">
+        <span>{left}</span>
+        <span>{right}</span>
+      </div>
+    </div>
+  );
+}
+
+function DomainRow({ domain }: { domain: DomainMastery }) {
+  const mastery = Math.round(Math.max(0, Math.min(100, domain.masteryLevel)));
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+        <span className="truncate font-medium text-gray-800">{domain.domain}</span>
+        <span className="shrink-0 text-gray-500">{mastery} 分</span>
+      </div>
+      <div className="h-2 rounded-full bg-gray-100">
+        <div className="h-2 rounded-full bg-emerald-600" style={{ width: `${mastery}%` }} />
+      </div>
+      <div className="mt-1 text-xs text-gray-500">
+        {domain.cardsMastered}/{domain.cardsTotal} 张稳定，平均保持率 {Math.round(domain.avgRetrievability * 100)}%
+      </div>
+    </div>
+  );
+}
+
+function WeakPointItem({ point }: { point: WeakPoint }) {
+  const label = point.conceptBLabel ? `${point.conceptALabel} / ${point.conceptBLabel}` : point.conceptALabel;
+  return (
+    <div className="rounded-md border border-amber-100 bg-amber-50 px-3 py-2">
+      <div className="truncate text-sm font-medium text-amber-950">{label}</div>
+      <div className="mt-1 text-xs text-amber-800">遗忘信号 {point.confusionCount} 次，最近 {formatDate(point.lastConfused)}</div>
+    </div>
   );
 }
 

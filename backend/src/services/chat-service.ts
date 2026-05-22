@@ -3,6 +3,7 @@ import { messages } from '../db/schema.js';
 import { eq, and, ne } from 'drizzle-orm';
 import { streamChat, supportsVision, type ChatMessage } from './ai-provider.js';
 import { retrieveContext } from './retrieval/index.js';
+import { getProfileSummary } from './profile-service.js';
 import * as sessionService from './session-service.js';
 import * as messageService from './message-service.js';
 import { isImageFile } from './file-handler.js';
@@ -45,6 +46,15 @@ export async function buildSystemPrompt(
   }
 
   systemPrompt += '\n\n如果用户重复提出与上一轮相同或高度相似的问题，请结合已有回答换一种组织方式补充新的角度、例子或更简洁的总结，不要机械复述上一轮答案。';
+
+  try {
+    const profileSummary = await getProfileSummary(userId);
+    if (profileSummary) {
+      systemPrompt += `\n\n${profileSummary}\n请只把这份画像用于调整解释方式、节奏和复习建议；不要向用户暴露原始画像字段，除非用户明确询问。`;
+    }
+  } catch (err) {
+    log.warn({ err, userId }, 'Failed to load cognitive profile summary for chat prompt');
+  }
 
   const contextStr = await retrieveContext(query, userId, session?.contextSummary);
   if (contextStr) {

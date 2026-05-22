@@ -221,6 +221,19 @@ export const api = {
       fetchApi(`/api/graph/relations/${relationId}`, { method: 'DELETE' }),
   },
 
+  profile: {
+    get: () => fetchApi('/api/profile'),
+    recompute: () => fetchApi('/api/profile/recompute', { method: 'POST' }),
+    summary: () => fetchApi('/api/profile/summary'),
+    domainMastery: () => fetchApi('/api/profile/domain-mastery'),
+    weakPoints: (params?: { limit?: number }) => {
+      const search = new URLSearchParams();
+      if (params?.limit) search.set('limit', String(params.limit));
+      const qs = search.toString();
+      return fetchApi(`/api/profile/weak-points${qs ? `?${qs}` : ''}`);
+    },
+  },
+
   folders: {
     list: () => fetchApi('/api/folders'),
     create: (data: { name: string; parentId?: string | null }) =>

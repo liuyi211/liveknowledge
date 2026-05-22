@@ -5,6 +5,7 @@ import { db } from '../db/index.js';
 import { cardReviews, cards, notes } from '../db/schema.js';
 import { formatInterval, predictRatingIntervals, scheduleReview } from '../services/review/scheduler.js';
 import type { ReviewRating } from '../services/review/types.js';
+import { refreshProfileAfterLearningEvent } from '../services/profile-service.js';
 
 const dueQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -312,6 +313,8 @@ export async function reviewRoutes(app: FastifyInstance) {
       .from(cards)
       .where(and(eq(cards.id, id), eq(cards.userId, userId)))
       .limit(1);
+
+    refreshProfileAfterLearningEvent(userId, request.log);
 
     return {
       card: updatedCard,

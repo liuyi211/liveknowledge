@@ -289,3 +289,50 @@ export const cardConcepts = pgTable('card_concepts', {
   conceptIdx: index('idx_card_concepts_concept').on(table.conceptId),
   uniqueCardConceptIdx: uniqueIndex('idx_card_concepts_unique').on(table.userId, table.cardId, table.conceptId),
 }));
+
+export const userProfiles = pgTable('user_profiles', {
+  userId: uuid('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  styleVisual: real('style_visual').default(0).notNull(),
+  styleIntuitive: real('style_intuitive').default(0).notNull(),
+  styleGradual: real('style_gradual').default(0).notNull(),
+  styleConcise: real('style_concise').default(0).notNull(),
+  attentionSpan: integer('attention_span').default(25).notNull(),
+  optimalSessionLength: integer('optimal_session_length').default(30).notNull(),
+  preferredDifficulty: real('preferred_difficulty').default(6).notNull(),
+  memoryStabilityFactor: real('memory_stability_factor').default(1).notNull(),
+  memoryRetrievabilityThreshold: real('memory_retrievability_threshold').default(0.8).notNull(),
+  confidence: real('confidence').default(0).notNull(),
+  stats: jsonb('stats').default({}).notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const domainMastery = pgTable('domain_mastery', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  domain: varchar('domain', { length: 120 }).notNull(),
+  masteryLevel: real('mastery_level').default(0).notNull(),
+  cardsTotal: integer('cards_total').default(0).notNull(),
+  cardsMastered: integer('cards_mastered').default(0).notNull(),
+  avgRetrievability: real('avg_retrievability').default(0).notNull(),
+  lastStudied: timestamp('last_studied'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userDomainIdx: uniqueIndex('idx_domain_mastery_user_domain').on(table.userId, table.domain),
+  userMasteryIdx: index('idx_domain_mastery_user_mastery').on(table.userId, table.masteryLevel),
+}));
+
+export const weakPoints = pgTable('weak_points', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  conceptAId: uuid('concept_a_id').references(() => concepts.id, { onDelete: 'cascade' }),
+  conceptBId: uuid('concept_b_id').references(() => concepts.id, { onDelete: 'cascade' }),
+  conceptALabel: varchar('concept_a_label', { length: 200 }).notNull(),
+  conceptBLabel: varchar('concept_b_label', { length: 200 }),
+  confusionCount: integer('confusion_count').default(1).notNull(),
+  evidence: jsonb('evidence').default({}).notNull(),
+  lastConfused: timestamp('last_confused').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userConceptAIdx: index('idx_weak_points_user_concept_a').on(table.userId, table.conceptAId),
+  userLastConfusedIdx: index('idx_weak_points_user_last_confused').on(table.userId, table.lastConfused),
+}));

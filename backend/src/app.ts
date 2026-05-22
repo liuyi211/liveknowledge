@@ -19,6 +19,7 @@ import { retrievalSettingsRoutes } from './routes/retrieval-settings.js';
 import { extractionRoutes } from './routes/extraction.js';
 import { reviewRoutes } from './routes/review.js';
 import { graphRoutes } from './routes/graph.js';
+import { profileRoutes } from './routes/profile.js';
 import { db } from './db/index.js';
 import { users } from './db/schema.js';
 import { ensureBuiltinPersonasForUser } from './services/persona-service.js';
@@ -97,6 +98,7 @@ export async function buildApp() {
   await app.register(extractionRoutes, { prefix: '/api/extraction' });
   await app.register(reviewRoutes, { prefix: '/api/review' });
   await app.register(graphRoutes, { prefix: '/api/graph' });
+  await app.register(profileRoutes, { prefix: '/api/profile' });
 
   // Seed default personas for existing users on startup
   app.addHook('onReady', async () => {

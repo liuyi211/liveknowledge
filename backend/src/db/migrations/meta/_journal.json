@@ -99,6 +99,13 @@
       "when": 1779172000000,
       "tag": "0013_add_knowledge_graph",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1779173000000,
+      "tag": "0014_add_cognitive_profile",
+      "breakpoints": true
     }
   ]
 }
