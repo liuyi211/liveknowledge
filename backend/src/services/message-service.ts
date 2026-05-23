@@ -1,6 +1,6 @@
 import { db } from '../db/index.js';
 import { messages, attachments } from '../db/schema.js';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, gte, gt, lt } from 'drizzle-orm';
 
 export async function listMessages(sessionId: string, options?: { limit?: number; offset?: number }) {
   const msgs = await db.select().from(messages)
@@ -78,6 +78,53 @@ export async function softDeleteMessage(id: string) {
   return message || null;
 }
 
+export async function softDeleteMessageTurn(id: string) {
+  return db.transaction(async (tx) => {
+    const [targetMessage] = await tx.select().from(messages)
+      .where(and(eq(messages.id, id), eq(messages.isDeleted, false)))
+      .limit(1);
+
+    if (!targetMessage) return null;
+
+    if (targetMessage.role !== 'user') {
+      const [message] = await tx.update(messages)
+        .set({ isDeleted: true })
+        .where(eq(messages.id, id))
+        .returning();
+      return message || null;
+    }
+
+    const [nextUserMessage] = await tx.select().from(messages)
+      .where(and(
+        eq(messages.sessionId, targetMessage.sessionId),
+        eq(messages.role, 'user'),
+        eq(messages.isDeleted, false),
+        gt(messages.createdAt, targetMessage.createdAt)
+      ))
+      .orderBy(messages.createdAt)
+      .limit(1);
+
+    const turnEndCondition = nextUserMessage
+      ? lt(messages.createdAt, nextUserMessage.createdAt)
+      : undefined;
+
+    const conditions = [
+      eq(messages.sessionId, targetMessage.sessionId),
+      eq(messages.isDeleted, false),
+      gte(messages.createdAt, targetMessage.createdAt),
+    ];
+    if (turnEndCondition) {
+      conditions.push(turnEndCondition);
+    }
+
+    await tx.update(messages)
+      .set({ isDeleted: true })
+      .where(and(...conditions));
+
+    return targetMessage;
+  });
+}
+
 export async function updateMessageContent(id: string, content: string) {
   const [message] = await db.update(messages)
     .set({ content })
@@ -103,8 +150,44 @@ export async function deleteAssistantMessagesAfter(sessionId: string, afterMessa
     .where(and(
       eq(messages.sessionId, sessionId),
       eq(messages.role, 'assistant'),
-      sql`${messages.createdAt} >= ${targetMessage.createdAt}`
+      gte(messages.createdAt, targetMessage.createdAt)
     ));
+}
+
+export async function replaceUserMessageAndDeleteFollowing(
+  sessionId: string,
+  messageId: string,
+  content: string
+) {
+  return db.transaction(async (tx) => {
+    const [originalMessage] = await tx.select().from(messages)
+      .where(and(
+        eq(messages.id, messageId),
+        eq(messages.sessionId, sessionId),
+        eq(messages.role, 'user'),
+        eq(messages.isDeleted, false)
+      ))
+      .limit(1);
+
+    if (!originalMessage) return null;
+
+    await tx.update(messages)
+      .set({ isDeleted: true })
+      .where(and(
+        eq(messages.sessionId, sessionId),
+        gte(messages.createdAt, originalMessage.createdAt)
+      ));
+
+    const [newMessage] = await tx.insert(messages).values({
+      sessionId,
+      role: 'user',
+      content,
+      parentId: originalMessage.parentId || messageId,
+      version: originalMessage.version + 1,
+    }).returning();
+
+    return newMessage || null;
+  });
 }
 
 export async function getLatestUserMessage(sessionId: string) {

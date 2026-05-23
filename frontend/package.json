@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "rmdir /s /q .next\\cache 2>nul & next dev",
+    "dev": "rmdir /s /q .next\\cache 2>nul & next dev --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

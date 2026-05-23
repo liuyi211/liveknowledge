@@ -120,6 +120,8 @@ function MessageActions({ message, isLastUserMessage, isLastAssistantMessage, is
 export default function MessageBubble({ message, isLastUserMessage, isLastAssistantMessage, isStreaming }: MessageBubbleProps) {
   const editAndResend = useChatStore((s) => s.editAndResend);
   const isStreamingLast = isLastAssistantMessage && isStreaming;
+  const liveStreamingContent = useChatStore((s) => (isStreamingLast ? s.streamingContent : ''));
+  const liveThinkingContent = useChatStore((s) => (isStreamingLast ? s.thinkingContent : ''));
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(message.content);
 
@@ -131,6 +133,8 @@ export default function MessageBubble({ message, isLastUserMessage, isLastAssist
   };
 
   const isUser = message.role === 'user';
+  const displayContent = isStreamingLast ? liveStreamingContent || message.content : message.content;
+  const displayThinkingContent = isStreamingLast ? liveThinkingContent || message.thinkingContent : message.thinkingContent;
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} group`}>
@@ -145,10 +149,10 @@ export default function MessageBubble({ message, isLastUserMessage, isLastAssist
         )}
 
         {/* Thinking block for assistant */}
-        {!isUser && message.thinkingContent && (
+        {!isUser && displayThinkingContent && (
           <ThinkingBlock
-            content={message.thinkingContent}
-            isStreaming={isStreamingLast && !message.content}
+            content={displayThinkingContent}
+            isStreaming={isStreamingLast && !displayContent}
           />
         )}
 
@@ -190,17 +194,22 @@ export default function MessageBubble({ message, isLastUserMessage, isLastAssist
               <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
             ) : (
               <div className="prose prose-sm max-w-none">
-                {isStreamingLast && !message.content ? (
+                {isStreamingLast && !displayContent ? (
                   <div className="flex items-center space-x-1 text-gray-400">
                     <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                     <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
+                ) : isStreamingLast ? (
+                  <StreamingText content={displayContent} isStreaming />
                 ) : (
                   <ReactMarkdown
                     remarkPlugins={[remarkMath, remarkGfm]}
                     rehypePlugins={[rehypeKatex]}
                     components={{
+                      pre({ children }) {
+                        return <>{children}</>;
+                      },
                       code({ className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
                         const codeString = String(children).replace(/\n$/, '');
@@ -215,7 +224,7 @@ export default function MessageBubble({ message, isLastUserMessage, isLastAssist
                       },
                     }}
                   >
-                    {message.content}
+                    {displayContent}
                   </ReactMarkdown>
                 )}
               </div>

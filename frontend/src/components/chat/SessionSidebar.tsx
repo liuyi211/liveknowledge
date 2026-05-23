@@ -186,8 +186,12 @@ export default function SessionSidebar() {
             <span>重命名</span>
           </button>
           <button
-            onClick={() => {
-              clearSession(contextMenu.sessionId);
+            onClick={async () => {
+              try {
+                await clearSession(contextMenu.sessionId);
+              } catch (err) {
+                alert((err as Error).message || '清空对话失败');
+              }
               setContextMenu(null);
             }}
             className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -197,8 +201,12 @@ export default function SessionSidebar() {
           </button>
           <div className="border-t border-gray-200 my-1" />
           <button
-            onClick={() => {
-              deleteSession(contextMenu.sessionId);
+            onClick={async () => {
+              try {
+                await deleteSession(contextMenu.sessionId);
+              } catch (err) {
+                alert((err as Error).message || '删除对话失败');
+              }
               setContextMenu(null);
             }}
             className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"

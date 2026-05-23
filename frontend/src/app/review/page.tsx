@@ -294,10 +294,10 @@ function Overview({
         />
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_280px]">
-        <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between gap-4">
-            <div>
+      <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold text-slate-900">今日复习队列</h2>
               <p className="mt-1 text-sm text-slate-500">
                 {cards.length > 0 ? '开始后会进入专注模式，逐张完成评分。' : '现在没有到期卡片。'}
@@ -306,15 +306,21 @@ function Overview({
             <button
               onClick={onStart}
               disabled={cards.length === 0}
-              className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
               <Play className="h-4 w-4" />
               开始复习
             </button>
           </div>
 
-          <div className="mt-6 border-t border-slate-100 pt-5">
-            <div className="mb-3 text-sm font-medium text-slate-700">选择队列</div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <QueueMetric label="新卡片" value={stats?.groups?.newCount ?? 0} />
+            <QueueMetric label="复习卡片" value={stats?.groups?.reviewCount ?? 0} />
+            <QueueMetric label="遗忘回炉" value={stats?.groups?.lapsedCount ?? 0} />
+          </div>
+
+          <div className="mt-4 border-t border-slate-100 pt-4">
+            <div className="mb-2 text-sm font-medium text-slate-700">选择队列</div>
             <div className="flex flex-wrap gap-2">
               <FilterButton
                 active={activeFilter.type === 'all'}
@@ -352,42 +358,12 @@ function Overview({
               ))}
             </div>
           </div>
-
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <QueueMetric label="新卡片" value={stats?.groups?.newCount ?? 0} />
-            <QueueMetric label="复习卡片" value={stats?.groups?.reviewCount ?? 0} />
-            <QueueMetric label="遗忘回炉" value={stats?.groups?.lapsedCount ?? 0} />
-          </div>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">未来负载</h2>
-          <div className="mt-4 space-y-3 text-sm">
-            <LoadRow label="今天" value={stats?.upcoming.today ?? 0} />
-            <LoadRow label="明天" value={stats?.upcoming.tomorrow ?? 0} />
-            <LoadRow label="7 天内" value={stats?.upcoming.week ?? 0} />
-          </div>
-          {stats?.dailyLoad?.length ? (
-            <div className="mt-5 space-y-2">
-              {stats.dailyLoad.map((item) => (
-                <LoadBar
-                  key={item.date}
-                  label={formatLoadDate(item.date)}
-                  value={item.count}
-                  max={Math.max(...(stats.dailyLoad ?? []).map((load) => load.count), 1)}
-                />
-              ))}
-            </div>
-          ) : null}
-          <div className="mt-5 rounded-md bg-slate-50 px-3 py-3 text-sm text-slate-600">
-            {stats?.rewriteSuggestedCount
-              ? `${stats.rewriteSuggestedCount} 张卡片多次遗忘，建议后续改写。`
-              : '暂无需要改写提示的卡片。'}
-          </div>
-        </section>
+        <QualityWorkbench cards={qualityCards} onCardsChange={onQualityCardsChange} compact />
       </div>
 
-      <QualityWorkbench cards={qualityCards} onCardsChange={onQualityCardsChange} />
+      <FutureTasks stats={stats} />
     </div>
   );
 }
@@ -395,9 +371,11 @@ function Overview({
 function QualityWorkbench({
   cards,
   onCardsChange,
+  compact = false,
 }: {
   cards: ReviewCard[];
   onCardsChange: (cards: ReviewCard[]) => void;
+  compact?: boolean;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState({ front: '', back: '' });
@@ -455,11 +433,13 @@ function QualityWorkbench({
   };
 
   return (
-    <section className="mt-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+    <section className={`${compact ? '' : 'mt-6'} rounded-lg border border-slate-200 bg-white p-5 shadow-sm`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">坏卡片改写</h2>
-          <p className="mt-1 text-sm text-slate-500">连续遗忘 3 次以上的卡片会出现在这里，优先检查是否需要拆分、补充上下文或暂停。</p>
+          <h2 className={compact ? 'text-base font-semibold text-slate-900' : 'text-lg font-semibold text-slate-900'}>坏卡片改写</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            {compact ? '连续遗忘 3 次以上的卡片，优先拆分或补充上下文。' : '连续遗忘 3 次以上的卡片会出现在这里，优先检查是否需要拆分、补充上下文或暂停。'}
+          </p>
         </div>
         <div className="rounded-md bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-800">{cards.length} 张待处理</div>
       </div>
@@ -471,8 +451,8 @@ function QualityWorkbench({
           暂无需要改写的卡片。
         </div>
       ) : (
-        <div className="mt-5 space-y-4">
-          {cards.map((card) => {
+        <div className={compact ? 'mt-5 space-y-3' : 'mt-5 space-y-4'}>
+          {cards.slice(0, compact ? 2 : cards.length).map((card) => {
             const isEditing = editingId === card.id;
             const busy = busyId === card.id;
             return (
@@ -538,6 +518,16 @@ function QualityWorkbench({
                       />
                     </label>
                   </div>
+                ) : compact ? (
+                  <div className="space-y-3">
+                    <div className="rounded-md bg-slate-50 px-3 py-3">
+                      <div className="mb-1 text-xs font-medium text-slate-500">问题</div>
+                      <p className="line-clamp-3 text-sm leading-6 text-slate-800">{card.front}</p>
+                    </div>
+                    <div className="text-xs leading-5 text-slate-500">
+                      建议：如果问题过宽或答案过长，拆成更小的卡片。
+                    </div>
+                  </div>
                 ) : (
                   <div className="grid gap-3 lg:grid-cols-2">
                     <div className="rounded-md bg-slate-50 px-3 py-3">
@@ -552,15 +542,126 @@ function QualityWorkbench({
                 )}
 
                 {card.noteSummary ? (
-                  <div className="mt-3 text-sm leading-6 text-slate-500">来源摘要：{card.noteSummary}</div>
+                  <div className="mt-3 text-sm leading-6 text-slate-500">{compact ? `来源：${card.noteTitle || '未关联笔记'}` : `来源摘要：${card.noteSummary}`}</div>
                 ) : null}
-                <CardGraphContextPanel cardId={card.id} compact />
+                {!compact ? <CardGraphContextPanel cardId={card.id} compact /> : null}
               </article>
             );
           })}
+          {compact && cards.length > 2 ? (
+            <div className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">
+              还有 {cards.length - 2} 张待处理，完成前两张后会继续显示。
+            </div>
+          ) : null}
         </div>
       )}
     </section>
+  );
+}
+
+function FutureTasks({ stats }: { stats: ReviewStats | null }) {
+  const load = stats?.dailyLoad ?? [];
+  const max = Math.max(...load.map((item) => item.count), 1);
+  const total = load.reduce((sum, item) => sum + item.count, 0);
+  const riskTotal = load.reduce((sum, item) => sum + (item.riskCount ?? 0), 0);
+  const peak = load.reduce<typeof load[number] | null>((current, item) => {
+    if (!current || item.count > current.count) return item;
+    return current;
+  }, null);
+
+  return (
+    <section className="mt-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">未来任务</h2>
+          <p className="mt-1 text-sm text-slate-500">按 SSP-MMC 的下次复习时间预测未来 7 天任务量。</p>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-sm">
+          <MiniLoadStat label="7 天内" value={`${stats?.upcoming.week ?? total} 张`} />
+          <MiniLoadStat label="高风险" value={`${riskTotal} 张`} />
+          <MiniLoadStat label="峰值" value={peak ? formatLoadDate(peak.date) : '--'} />
+        </div>
+      </div>
+
+      {load.length ? (
+        <div className="mt-6 grid h-64 grid-cols-7 items-end gap-3">
+          {load.map((item, index) => (
+            <FutureTaskBar key={item.date} item={item} max={max} isToday={index === 0} />
+          ))}
+        </div>
+      ) : (
+        <div className="mt-6 rounded-md bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+          暂无未来任务数据。
+        </div>
+      )}
+
+      <div className="mt-5 flex flex-wrap gap-4 border-t border-slate-100 pt-4 text-xs text-slate-500">
+        <Legend color="bg-slate-900" label="今日 / 新卡" />
+        <Legend color="bg-blue-600" label="复习卡" />
+        <Legend color="bg-amber-500" label="遗忘回炉" />
+        <Legend color="bg-red-500" label="高风险标记" />
+      </div>
+    </section>
+  );
+}
+
+function FutureTaskBar({
+  item,
+  max,
+  isToday,
+}: {
+  item: NonNullable<ReviewStats['dailyLoad']>[number];
+  max: number;
+  isToday: boolean;
+}) {
+  const height = Math.max(10, Math.round((item.count / max) * 190));
+  const newCount = item.newCount ?? 0;
+  const reviewCount = item.reviewCount ?? Math.max(0, item.count - newCount - (item.lapsedCount ?? 0));
+  const lapsedCount = item.lapsedCount ?? 0;
+  const riskCount = item.riskCount ?? 0;
+
+  return (
+    <div className="flex h-full min-w-0 flex-col items-center justify-end">
+      <div className="mb-2 h-5 text-xs font-medium text-red-600">{riskCount > 0 ? riskCount : ''}</div>
+      <div className="mb-2 text-sm font-semibold text-slate-900">{item.count}</div>
+      <div className="flex h-48 w-full items-end justify-center">
+        <div
+          className="flex w-full max-w-16 flex-col justify-end overflow-hidden rounded-md bg-slate-100"
+          style={{ height }}
+          title={`${formatLoadDate(item.date)}：${item.count} 张，高风险 ${riskCount} 张`}
+        >
+          <Segment count={lapsedCount} total={item.count} color="bg-amber-500" minHeight={lapsedCount > 0 ? 8 : 0} />
+          <Segment count={reviewCount} total={item.count} color="bg-blue-600" minHeight={reviewCount > 0 ? 8 : 0} />
+          <Segment count={newCount} total={item.count} color={isToday ? 'bg-slate-900' : 'bg-slate-600'} minHeight={newCount > 0 ? 8 : 0} />
+        </div>
+      </div>
+      <div className={`mt-3 truncate text-xs ${isToday ? 'font-semibold text-slate-900' : 'text-slate-500'}`}>
+        {formatLoadDate(item.date)}
+      </div>
+    </div>
+  );
+}
+
+function Segment({ count, total, color, minHeight }: { count: number; total: number; color: string; minHeight: number }) {
+  if (count <= 0 || total <= 0) return null;
+  return <div className={color} style={{ height: `max(${minHeight}px, ${(count / total) * 100}%)` }} />;
+}
+
+function MiniLoadStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md bg-slate-50 px-3 py-2">
+      <div className="text-xs text-slate-500">{label}</div>
+      <div className="mt-1 font-semibold text-slate-900">{value}</div>
+    </div>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={`h-2.5 w-2.5 rounded-sm ${color}`} />
+      {label}
+    </div>
   );
 }
 

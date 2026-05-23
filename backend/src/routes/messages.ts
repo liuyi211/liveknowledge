@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import * as messageService from '../services/message-service.js';
+import * as sessionService from '../services/session-service.js';
 import { handleStreamChat } from '../services/chat-service.js';
 
 const sendSchema = z.object({
@@ -55,25 +56,38 @@ export async function messageRoutes(app: FastifyInstance) {
     reply.raw.socket?.setNoDelay(true);
 
     const abortController = new AbortController();
-    const writeEvent = (payload: unknown) => {
+    const abortStream = () => {
+      if (!abortController.signal.aborted) {
+        abortController.abort();
+      }
+    };
+    request.raw.on('aborted', abortStream);
+    reply.raw.on('close', abortStream);
+
+    const writeEvent = async (payload: unknown) => {
       if (reply.raw.writableEnded || reply.raw.destroyed) return;
-      reply.raw.write(`data: ${JSON.stringify(payload)}\n\n`);
+      const canContinue = reply.raw.write(`data: ${JSON.stringify(payload)}\n\n`);
+      if (!canContinue && !reply.raw.writableEnded && !reply.raw.destroyed) {
+        await new Promise<void>((resolve) => reply.raw.once('drain', resolve));
+      }
       (reply.raw as any).flush?.();
     };
 
-    writeEvent({ type: 'ping' });
+    await writeEvent({ type: 'ping' });
     const heartbeat = setInterval(() => {
-      writeEvent({ type: 'ping' });
+      void writeEvent({ type: 'ping' });
     }, 10000);
 
     try {
       for await (const chunk of handleStreamChat(userId, sessionId, body, request.log, abortController.signal)) {
-        writeEvent(chunk);
+        await writeEvent(chunk);
       }
     } catch (err) {
-      writeEvent({ type: 'error', error: (err as Error).message });
+      await writeEvent({ type: 'error', error: (err as Error).message });
     } finally {
       clearInterval(heartbeat);
+      request.raw.off('aborted', abortStream);
+      reply.raw.off('close', abortStream);
       if (!reply.raw.writableEnded && !reply.raw.destroyed) {
         reply.raw.end();
       }
@@ -93,10 +107,11 @@ export async function messageRoutes(app: FastifyInstance) {
 
   app.delete('/:id', { onRequest: [app.authenticate] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const message = await messageService.softDeleteMessage(id);
+    const message = await messageService.softDeleteMessageTurn(id);
     if (!message) {
       return reply.status(404).send({ error: 'Message not found' });
     }
+    await sessionService.updateSessionStats(message.sessionId);
     return reply.send({ message: 'Deleted' });
   });
 

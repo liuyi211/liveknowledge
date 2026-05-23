@@ -22,6 +22,7 @@ interface ProfileStats {
   avgUserMessageLength: number;
   sessionCount: number;
   cardCount: number;
+  dueCardCount: number;
   reviewCount: number;
   recallRate: number | null;
   againRate: number | null;
@@ -31,9 +32,21 @@ interface ProfileStats {
   avgDifficulty: number | null;
   avgRetrievability: number | null;
   lapsedCardCount: number;
+  highLapseCardCount: number;
   masteredCardCount: number;
   domainCount: number;
   weakPointCount: number;
+}
+
+export interface CognitiveProfileSummary {
+  status: 'forming' | 'ready';
+  weakness: string;
+  preference: string;
+  memoryStatus: string;
+  suggestion: string;
+  evidence: string;
+  confidence: number;
+  generatedAt: string;
 }
 
 interface DomainAggregate {
@@ -150,10 +163,12 @@ async function getProfileStats(userId: string): Promise<ProfileStats> {
 
   const [cardStats] = await db.select({
     cardCount: sql<number>`count(*)::int`,
+    dueCardCount: sql<number>`count(*) FILTER (WHERE ${cards.nextReviewAt} <= now())::int`,
     avgHalfLife: sql<number>`coalesce(avg(${cards.halfLife}), 0)::float`,
     avgDifficulty: sql<number>`coalesce(avg(${cards.difficulty}), 0)::float`,
     avgRetrievability: sql<number>`coalesce(avg(${cards.retrievability}), 0)::float`,
     lapsedCardCount: sql<number>`count(*) FILTER (WHERE ${cards.lapseCount} > 0)::int`,
+    highLapseCardCount: sql<number>`count(*) FILTER (WHERE ${cards.lapseCount} >= 3)::int`,
     masteredCardCount: sql<number>`count(*) FILTER (WHERE ${cards.reviewCount} > 0 AND ${cards.retrievability} >= 0.85 AND ${cards.lapseCount} = 0)::int`,
   })
     .from(cards)
@@ -181,6 +196,7 @@ async function getProfileStats(userId: string): Promise<ProfileStats> {
     avgUserMessageLength: Number(messageStats?.avgUserMessageLength ?? 0),
     sessionCount: Number(sessionStats?.sessionCount ?? 0),
     cardCount: Number(cardStats?.cardCount ?? 0),
+    dueCardCount: Number(cardStats?.dueCardCount ?? 0),
     reviewCount,
     recallRate: reviewCount > 0 ? Number(reviewStats?.rememberedCount ?? 0) / reviewCount : null,
     againRate: reviewCount > 0 ? Number(reviewStats?.againCount ?? 0) / reviewCount : null,
@@ -190,6 +206,7 @@ async function getProfileStats(userId: string): Promise<ProfileStats> {
     avgDifficulty: Number(cardStats?.cardCount ?? 0) > 0 ? Number(cardStats?.avgDifficulty ?? 0) : null,
     avgRetrievability: Number(cardStats?.cardCount ?? 0) > 0 ? Number(cardStats?.avgRetrievability ?? 0) : null,
     lapsedCardCount: Number(cardStats?.lapsedCardCount ?? 0),
+    highLapseCardCount: Number(cardStats?.highLapseCardCount ?? 0),
     masteredCardCount: Number(cardStats?.masteredCardCount ?? 0),
     domainCount: Number(domainCount?.value ?? 0),
     weakPointCount: 0,
@@ -374,11 +391,113 @@ export async function getWeakPoints(userId: string, limit = 20): Promise<WeakPoi
     .limit(Math.min(Math.max(limit, 1), 100));
 }
 
-export async function getProfileSummary(userId: string): Promise<string> {
+function describePreference(profile: ProfileRow): string {
+  const length = profile.styleConcise > 0.25
+    ? '简洁解释'
+    : profile.styleConcise < -0.25
+      ? '详细推导'
+      : '适中长度';
+  const reasoning = profile.styleIntuitive > 0.25
+    ? '先直觉后细节'
+    : profile.styleIntuitive < -0.25
+      ? '形式化表达'
+      : '例子和概念平衡';
+  const pace = profile.styleGradual > 0.25
+    ? '循序渐进'
+    : profile.styleGradual < -0.25
+      ? '快速进入抽象'
+      : '节奏适中';
+  const visual = profile.styleVisual > 0.25 ? '图示辅助' : null;
+  return [length, reasoning, pace, visual].filter(Boolean).join(' · ');
+}
+
+function describeWeakness(weak: WeakPointRow[], domains: DomainMasteryRow[], stats: ProfileStats): string {
+  const topWeakPoint = weak[0];
+  if (topWeakPoint) {
+    if (topWeakPoint.conceptBLabel) {
+      return `${topWeakPoint.conceptALabel} 与 ${topWeakPoint.conceptBLabel} 容易混淆`;
+    }
+    return `${topWeakPoint.conceptALabel} 需要重点巩固`;
+  }
+
+  const lowDomain = domains
+    .filter(item => item.cardsTotal > 0)
+    .sort((a, b) => (a.masteryLevel - b.masteryLevel) || (a.avgRetrievability - b.avgRetrievability))[0];
+  if (lowDomain && (lowDomain.masteryLevel < 65 || lowDomain.avgRetrievability < 0.65)) {
+    return `${lowDomain.domain} 记忆稳定性偏低`;
+  }
+
+  if (stats.lapsedCardCount > 0) {
+    return `${stats.lapsedCardCount} 张卡片出现过遗忘信号`;
+  }
+
+  return '暂无明确薄弱点';
+}
+
+function describeMemoryStatus(stats: ProfileStats): string {
+  if (stats.cardCount === 0) {
+    return '还没有复习卡片';
+  }
+  if (stats.dueCardCount > 0) {
+    return `${stats.dueCardCount} 张卡片今天需要巩固`;
+  }
+  const retrievability = stats.avgRetrievability == null
+    ? null
+    : `${Math.round(stats.avgRetrievability * 100)}%`;
+  if (retrievability) {
+    return `${stats.cardCount} 张卡片平均保持率 ${retrievability}`;
+  }
+  return `${stats.cardCount} 张卡片等待形成复习记录`;
+}
+
+function describeSuggestion(weak: WeakPointRow[], domains: DomainMasteryRow[], stats: ProfileStats): string {
+  if (stats.dueCardCount > 0) {
+    return '今天优先清空学习队列';
+  }
+  if (stats.highLapseCardCount > 0) {
+    return '先改写高遗忘卡片，再继续新增内容';
+  }
+  if (weak[0]) {
+    return `复习时重点区分「${weak[0].conceptALabel}」`;
+  }
+  const lowDomain = domains.find(item => item.cardsTotal > 0 && item.masteryLevel < 65);
+  if (lowDomain) {
+    return `围绕「${lowDomain.domain}」补几张基础卡片`;
+  }
+  if (stats.reviewCount < 5 && stats.cardCount > 0) {
+    return '完成几轮复习后，画像判断会更稳定';
+  }
+  return '保持当前节奏，定期回看薄弱概念';
+}
+
+export async function getCognitiveProfileSummary(userId: string): Promise<CognitiveProfileSummary> {
   const profile = await getOrCreateProfile(userId);
-  const [domains, weak] = await Promise.all([
+  const [domains, weak, stats] = await Promise.all([
     getDomainMastery(userId),
     getWeakPoints(userId, 5),
+    getProfileStats(userId),
+  ]);
+
+  const hasEnoughSignal = profile.confidence >= 0.15 || stats.reviewCount >= 5 || stats.cardCount >= 10 || stats.userMessageCount >= 10;
+
+  return {
+    status: hasEnoughSignal ? 'ready' : 'forming',
+    weakness: describeWeakness(weak, domains, stats),
+    preference: describePreference(profile),
+    memoryStatus: describeMemoryStatus(stats),
+    suggestion: describeSuggestion(weak, domains, stats),
+    evidence: `基于 ${stats.sessionCount} 次会话、${stats.cardCount} 张卡片、${stats.reviewCount} 次复习生成`,
+    confidence: profile.confidence,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+export async function getProfileSummary(userId: string): Promise<string> {
+  const profile = await getOrCreateProfile(userId);
+  const [domains, weak, summary] = await Promise.all([
+    getDomainMastery(userId),
+    getWeakPoints(userId, 5),
+    getCognitiveProfileSummary(userId),
   ]);
 
   const styleHints = [
@@ -399,7 +518,8 @@ export async function getProfileSummary(userId: string): Promise<string> {
     '用户认知画像：',
     `- 表达偏好：${styleHints.join('；')}。`,
     `- 近期领域掌握：${domainText}。`,
-    `- 当前薄弱点：${weakText}。`,
+    `- 当前薄弱点：${weakText}。仪表盘摘要判断：${summary.weakness}。`,
+    `- 当前建议：${summary.suggestion}。`,
     `- 记忆参数：稳定因子 ${profile.memoryStabilityFactor.toFixed(2)}，提取阈值 ${profile.memoryRetrievabilityThreshold.toFixed(2)}，画像置信度 ${Math.round(profile.confidence * 100)}%。`,
   ].join('\n');
 }

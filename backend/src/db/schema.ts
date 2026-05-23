@@ -51,6 +51,9 @@ export const chatSessions = pgTable('chat_sessions', {
   messageCount: integer('message_count').default(0).notNull(),
   lastMessagePreview: varchar('last_message_preview', { length: 200 }),
   contextSummary: text('context_summary'),
+  contextSummaryUpdatedAt: timestamp('context_summary_updated_at'),
+  contextSummaryUpToMessageId: uuid('context_summary_up_to_message_id'),
+  contextSummaryVersion: integer('context_summary_version').default(0).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -176,6 +179,29 @@ export const importSources = pgTable('import_sources', {
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   userSourceHashIdx: uniqueIndex('idx_import_sources_user_type_hash').on(table.userId, table.sourceType, table.contentHash),
+}));
+
+export const conversationMemories = pgTable('conversation_memories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  sessionId: uuid('session_id').references(() => chatSessions.id, { onDelete: 'set null' }),
+  type: text('type', {
+    enum: ['preference', 'goal', 'fact', 'decision', 'open_question', 'concept', 'correction'],
+  }).notNull(),
+  content: text('content').notNull(),
+  normalizedContent: text('normalized_content'),
+  sourceMessageIds: uuid('source_message_ids').array(),
+  importance: real('importance').default(0.5).notNull(),
+  confidence: real('confidence').default(0.7).notNull(),
+  status: text('status', { enum: ['active', 'archived', 'rejected'] }).default('active').notNull(),
+  metadata: jsonb('metadata').default({}).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  lastUsedAt: timestamp('last_used_at'),
+}, (table) => ({
+  userStatusIdx: index('idx_conversation_memories_user_status').on(table.userId, table.status, table.updatedAt),
+  userTypeIdx: index('idx_conversation_memories_user_type').on(table.userId, table.type),
+  userNormalizedIdx: index('idx_conversation_memories_user_normalized').on(table.userId, table.normalizedContent),
 }));
 
 export const cards = pgTable('cards', {

@@ -7,6 +7,7 @@ import MessageBubble from './MessageBubble';
 export default function MessageList() {
   const messages = useChatStore((s) => s.messages);
   const isStreaming = useChatStore((s) => s.isStreaming);
+  const streamingContent = useChatStore((s) => s.streamingContent);
   const messagesLoading = useChatStore((s) => s.messagesLoading);
   const currentSession = useChatStore((s) => s.currentSession);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -24,7 +25,7 @@ export default function MessageList() {
   useEffect(() => {
     if (!isStreaming) return;
     bottomRef.current?.scrollIntoView({ block: 'end' });
-  }, [isStreaming, visibleMessages[visibleMessages.length - 1]?.content]);
+  }, [isStreaming, streamingContent]);
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">

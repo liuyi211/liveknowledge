@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import {
+  getCognitiveProfileSummary,
   getDomainMastery,
   getOrCreateProfile,
   getProfileSummary,
@@ -15,16 +16,18 @@ const weakPointQuerySchema = z.object({
 export async function profileRoutes(app: FastifyInstance) {
   app.get('/', { onRequest: [app.authenticate] }, async (request) => {
     const userId = request.user!.id;
-    const [profile, mastery, weak] = await Promise.all([
+    const [profile, mastery, weak, summary] = await Promise.all([
       getOrCreateProfile(userId),
       getDomainMastery(userId),
       getWeakPoints(userId, 10),
+      getCognitiveProfileSummary(userId),
     ]);
 
     return {
       profile,
       domainMastery: mastery,
       weakPoints: weak,
+      summary,
     };
   });
 
@@ -37,6 +40,7 @@ export async function profileRoutes(app: FastifyInstance) {
     const userId = request.user!.id;
     return {
       summary: await getProfileSummary(userId),
+      structured: await getCognitiveProfileSummary(userId),
     };
   });
 

@@ -127,7 +127,14 @@ export interface ReviewStats {
     tomorrow: number;
     week: number;
   };
-  dailyLoad?: Array<{ date: string; count: number }>;
+  dailyLoad?: Array<{
+    date: string;
+    count: number;
+    newCount?: number;
+    reviewCount?: number;
+    lapsedCount?: number;
+    riskCount?: number;
+  }>;
 }
 
 export interface ReviewFilters {
@@ -349,8 +356,40 @@ export interface WeakPoint {
   updatedAt: string;
 }
 
+export interface CognitiveProfileSummary {
+  status: 'forming' | 'ready';
+  weakness: string;
+  preference: string;
+  memoryStatus: string;
+  suggestion: string;
+  evidence: string;
+  confidence: number;
+  generatedAt: string;
+}
+
 export interface ProfileOverview {
   profile: UserProfile;
   domainMastery: DomainMastery[];
   weakPoints: WeakPoint[];
+  summary?: CognitiveProfileSummary;
+}
+
+export type ConversationMemoryType = 'preference' | 'goal' | 'fact' | 'decision' | 'open_question' | 'concept' | 'correction';
+export type ConversationMemoryStatus = 'active' | 'archived' | 'rejected';
+
+export interface ConversationMemory {
+  id: string;
+  userId: string;
+  sessionId: string | null;
+  type: ConversationMemoryType;
+  content: string;
+  normalizedContent: string | null;
+  sourceMessageIds: string[] | null;
+  importance: number;
+  confidence: number;
+  status: ConversationMemoryStatus;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+  lastUsedAt: string | null;
 }

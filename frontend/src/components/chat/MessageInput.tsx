@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useChatStore } from '@/stores/chat-store';
 import { api } from '@/lib/api';
-import { Send, Square, Paperclip, X, FileText, Image, FileSpreadsheet, Loader2, Link } from 'lucide-react';
+import { Send, Square, Paperclip, X, FileText, Image, FileSpreadsheet, Loader2 } from 'lucide-react';
 
 interface ModelCapability {
   id: string;
@@ -52,11 +52,15 @@ function getAttachmentStatus(att: {
   return '已附加';
 }
 
+function extractUrls(text: string): string[] {
+  const matches = text.match(/https?:\/\/[^\s<>"')\]}]+/g) || [];
+  return [...new Set(matches.map((url) => url.replace(/[.,;:!?，。；：！？]+$/, '')))];
+}
+
 export default function MessageInput() {
   const [input, setInput] = useState('');
   const [uploadingCount, setUploadingCount] = useState(0);
-  const [urlInput, setUrlInput] = useState('');
-  const [addingUrl, setAddingUrl] = useState(false);
+  const [resolvingUrls, setResolvingUrls] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState('');
   const [chatModels, setChatModels] = useState<Array<ModelCapability & { providerType: string; providerLabel: string }>>([]);
   const currentSession = useChatStore((s) => s.currentSession);
@@ -70,7 +74,7 @@ export default function MessageInput() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isUploading = uploadingCount > 0;
-  const isBusyWithAttachments = isUploading || addingUrl;
+  const isBusyWithAttachments = isUploading || resolvingUrls;
   const selectedModel = chatModels.find((model) => model.id === selectedModelId);
 
   useEffect(() => {
@@ -108,6 +112,26 @@ export default function MessageInput() {
     }
 
     const content = input.trim() || (sessionAttachments.length > 0 ? '请分析上传的文件' : '');
+    const urls = extractUrls(content);
+    let urlAttachments: Array<{ fileName: string; fileType: string; extractedText?: string; base64?: string }> = [];
+
+    setResolvingUrls(urls.length > 0);
+    try {
+      urlAttachments = await Promise.all(urls.map(async (url) => {
+        const result = await api.upload.uploadUrl(url);
+        return {
+          fileName: result.fileName,
+          fileType: result.fileType,
+          extractedText: result.extractedText,
+          base64: result.base64,
+        };
+      }));
+    } catch (err) {
+      alert(`URL 读取失败：${(err as Error).message}`);
+      setResolvingUrls(false);
+      return;
+    }
+
     setInput('');
 
     const attachments = sessionAttachments.map((a) => ({
@@ -117,7 +141,11 @@ export default function MessageInput() {
       base64: a.base64,
     }));
 
-    await sendMessage(content, attachments, selectedModelId || undefined);
+    try {
+      await sendMessage(content, [...attachments, ...urlAttachments], selectedModelId || undefined);
+    } finally {
+      setResolvingUrls(false);
+    }
   }, [input, sessionAttachments, currentSession, isStreaming, sendMessage, selectedModel, selectedModelId]);
 
   const handleStop = useCallback(() => {
@@ -158,30 +186,7 @@ export default function MessageInput() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleAddUrl = async () => {
-    const url = urlInput.trim();
-    if (!url) return;
-
-    setAddingUrl(true);
-    try {
-      const result = await api.upload.uploadUrl(url);
-      addSessionAttachment({
-        fileName: result.fileName,
-        fileType: result.fileType,
-        extractedText: result.extractedText,
-        mode: result.mode,
-        extractedTextLength: result.extractedTextLength,
-        warning: result.warning,
-      });
-      setUrlInput('');
-    } catch (err) {
-      alert(`链接读取失败: ${(err as Error).message}`);
-    } finally {
-      setAddingUrl(false);
-    }
-  };
-
-  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+  const handlePaste = async (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     if (!items) return;
 
@@ -197,7 +202,7 @@ export default function MessageInput() {
       e.preventDefault();
       await Promise.all(imageItems.map(uploadSingleFile));
     }
-  }, []);
+  };
 
   const adjustTextareaHeight = () => {
     const textarea = textareaRef.current;
@@ -238,13 +243,12 @@ export default function MessageInput() {
         </div>
       )}
 
-      {/* Session attachments + uploading indicator */}
-      {(sessionAttachments.length > 0 || isUploading) && (
-        <div className="flex flex-wrap gap-2 mb-2">
+      {(sessionAttachments.length > 0 || isUploading || resolvingUrls) && (
+        <div className="mb-2 flex flex-wrap gap-2">
           {sessionAttachments.map((att, i) => (
             <div
               key={i}
-              className="flex items-center space-x-1.5 bg-gray-100 px-2 py-1 rounded-lg text-xs text-gray-600"
+              className="flex items-center space-x-1.5 rounded-lg bg-gray-100 px-2 py-1 text-xs text-gray-600"
               title={getAttachmentStatus(att)}
             >
               {getFileIcon(att.fileType)}
@@ -267,15 +271,21 @@ export default function MessageInput() {
             </div>
           ))}
           {isUploading && (
-            <div className="flex items-center space-x-1.5 bg-blue-50 px-2 py-1 rounded-lg text-xs text-blue-600">
+            <div className="flex items-center space-x-1.5 rounded-lg bg-blue-50 px-2 py-1 text-xs text-blue-600">
               <Loader2 size={14} className="animate-spin" />
               <span>上传中 ({uploadingCount})...</span>
+            </div>
+          )}
+          {resolvingUrls && (
+            <div className="flex items-center space-x-1.5 rounded-lg bg-blue-50 px-2 py-1 text-xs text-blue-600">
+              <Loader2 size={14} className="animate-spin" />
+              <span>读取链接...</span>
             </div>
           )}
           {sessionAttachments.length > 0 && (
             <button
               onClick={clearSessionAttachments}
-              className="text-xs text-gray-400 hover:text-red-500 px-1"
+              className="px-1 text-xs text-gray-400 hover:text-red-500"
             >
               清空全部
             </button>
@@ -283,38 +293,11 @@ export default function MessageInput() {
         </div>
       )}
 
-      <div className="mb-2 flex items-center gap-2">
-        <div className="flex flex-1 items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2 py-1">
-          <Link size={14} className="text-gray-400" />
-          <input
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddUrl();
-              }
-            }}
-            disabled={isStreaming || addingUrl}
-            placeholder="粘贴 URL 并加入上下文"
-            className="min-w-0 flex-1 bg-transparent text-xs text-gray-700 placeholder:text-gray-400 focus:outline-none disabled:opacity-60"
-          />
-          <button
-            onClick={handleAddUrl}
-            disabled={!urlInput.trim() || isStreaming || addingUrl}
-            className="rounded bg-gray-900 px-2 py-1 text-xs text-white disabled:opacity-40"
-          >
-            {addingUrl ? '读取中...' : '添加'}
-          </button>
-        </div>
-      </div>
-
       <div className="flex items-end space-x-2">
-        {/* Attachment button */}
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isBusyWithAttachments || isStreaming}
-          className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+          className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
         >
           <Paperclip size={18} />
         </button>
@@ -327,7 +310,6 @@ export default function MessageInput() {
           onChange={handleFileSelect}
         />
 
-        {/* Textarea */}
         <textarea
           ref={textareaRef}
           value={input}
@@ -337,17 +319,16 @@ export default function MessageInput() {
           }}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder="输入消息... (Shift+Enter 换行，粘贴图片直接上传)"
+          placeholder="输入消息... (Shift+Enter 换行，粘贴图片直接上传；消息中的 URL 会自动加入上下文)"
           rows={1}
-          disabled={isStreaming}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm leading-relaxed min-h-[40px] max-h-[200px] disabled:bg-gray-50"
+          disabled={isStreaming || resolvingUrls}
+          className="max-h-[200px] min-h-[40px] flex-1 resize-none rounded-xl border border-gray-300 px-3 py-2 text-sm leading-relaxed focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50"
         />
 
-        {/* Send/Stop button */}
         {isStreaming ? (
           <button
             onClick={handleStop}
-            className="p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+            className="rounded-xl bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
           >
             <Square size={18} fill="currentColor" />
           </button>
@@ -355,7 +336,7 @@ export default function MessageInput() {
           <button
             onClick={handleSend}
             disabled={(!input.trim() && sessionAttachments.length === 0) || isBusyWithAttachments}
-            className="p-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="rounded-xl bg-blue-600 p-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Send size={18} />
           </button>

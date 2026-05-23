@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import * as sessionService from '../services/session-service.js';
+import { updateSessionRollingSummaryAfterTurn } from '../services/session-memory-service.js';
 
 const createSchema = z.object({
   personaId: z.string().optional(),
@@ -76,5 +77,22 @@ export async function sessionRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string };
     await sessionService.clearSessionMessages(id, request.user!.id);
     return reply.send({ message: 'Cleared' });
+  });
+
+  app.post('/:id/summary/regenerate', { onRequest: [app.authenticate] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const userId = request.user!.id;
+    const session = await sessionService.getSessionById(id, userId);
+    if (!session) {
+      return reply.status(404).send({ error: 'Session not found' });
+    }
+
+    await updateSessionRollingSummaryAfterTurn(userId, id, { force: true, log: request.log });
+    const updated = await sessionService.getSessionById(id, userId);
+    return {
+      contextSummary: updated?.contextSummary || null,
+      contextSummaryUpdatedAt: updated?.contextSummaryUpdatedAt || null,
+      contextSummaryVersion: updated?.contextSummaryVersion || 0,
+    };
   });
 }

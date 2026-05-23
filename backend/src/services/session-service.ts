@@ -1,6 +1,6 @@
 import { db } from '../db/index.js';
 import { chatSessions, messages, personas, attachments } from '../db/schema.js';
-import { eq, and, desc, sql, like, or } from 'drizzle-orm';
+import { eq, and, desc, sql, like, or, inArray } from 'drizzle-orm';
 import { chat, getDefaultChatModel } from './ai-provider.js';
 import type { FastifyBaseLogger } from 'fastify';
 
@@ -175,7 +175,15 @@ export async function updateSessionWithPersonaSummary(
 }
 
 export async function deleteSession(id: string, userId: string) {
-  // Delete messages first to avoid FK constraint violation
+  const sessionMessages = await db.select({ id: messages.id }).from(messages)
+    .where(eq(messages.sessionId, id));
+  const messageIds = sessionMessages.map((message) => message.id);
+
+  if (messageIds.length > 0) {
+    await db.delete(attachments)
+      .where(inArray(attachments.messageId, messageIds));
+  }
+
   await db.delete(messages)
     .where(eq(messages.sessionId, id));
 
@@ -184,6 +192,15 @@ export async function deleteSession(id: string, userId: string) {
 }
 
 export async function clearSessionMessages(id: string, userId: string) {
+  const sessionMessages = await db.select({ id: messages.id }).from(messages)
+    .where(eq(messages.sessionId, id));
+  const messageIds = sessionMessages.map((message) => message.id);
+
+  if (messageIds.length > 0) {
+    await db.delete(attachments)
+      .where(inArray(attachments.messageId, messageIds));
+  }
+
   await db.delete(messages)
     .where(eq(messages.sessionId, id));
 

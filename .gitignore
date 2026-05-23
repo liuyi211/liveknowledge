@@ -43,7 +43,12 @@ coverage/
 *.temp
 .cache/
 
+
 # TypeScript
 *.tsbuildinfo
 
+.settings.local.json
 .claude
+.env
+package-lock.json
+package.json

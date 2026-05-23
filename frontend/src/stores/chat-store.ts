@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { api } from '@/lib/api';
+import { readSseStream } from '@/lib/sse';
 import type { ChatSession, Message } from '@/types';
 
 interface ChatStore {
@@ -61,6 +62,13 @@ function createTempMessage(role: 'user' | 'assistant', sessionId: string, conten
 
 type StoreSet = (partial: Partial<ChatStore> | ((state: ChatStore) => Partial<ChatStore>)) => void;
 
+type ChatStreamEvent =
+  | { type: 'ping' }
+  | { type: 'chunk'; content: string }
+  | { type: 'thinking'; content: string }
+  | { type: 'done'; messageId: string }
+  | { type: 'error'; error: string };
+
 function updateLastAssistant(set: StoreSet, content: string, thinkingContent?: string) {
   set((state) => {
     const messages = [...state.messages];
@@ -73,6 +81,48 @@ function updateLastAssistant(set: StoreSet, content: string, thinkingContent?: s
     }
     return { messages };
   });
+}
+
+function setLastAssistantError(set: StoreSet, content: string, error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  updateLastAssistant(set, content + '\n\n[Error: ' + message + ']');
+}
+
+function createStreamingUpdater(set: StoreSet) {
+  let latestContent = '';
+  let latestThinkingContent = '';
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const flush = () => {
+    timer = null;
+    set({
+      streamingContent: latestContent,
+      thinkingContent: latestThinkingContent,
+    });
+  };
+
+  const schedule = () => {
+    if (timer !== null) return;
+    timer = setTimeout(flush, 32);
+  };
+
+  return {
+    update(content: string, thinkingContent: string) {
+      latestContent = content;
+      latestThinkingContent = thinkingContent;
+      schedule();
+    },
+    flushNow() {
+      if (timer !== null) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      set({
+        streamingContent: latestContent,
+        thinkingContent: latestThinkingContent,
+      });
+    },
+  };
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -173,61 +223,41 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     let fullContent = '';
     let thinkingContent = '';
     const abortController = new AbortController();
+    const streamUpdater = createStreamingUpdater(set);
     set({ abortStream: () => abortController.abort() });
 
     try {
       const response = await api.messages.sendStream(currentSession.id, { content, attachments, modelId }, abortController.signal);
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let done = false;
-      let buffer = '';
-
-      while (!done && !abortController.signal.aborted) {
-        const { value, done: streamDone } = await reader.read();
-        done = streamDone || abortController.signal.aborted;
-        if (!value) continue;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const data = JSON.parse(line.slice(6));
-
-            if (data.type === 'chunk') {
-              fullContent += data.content;
-              set({ streamingContent: fullContent });
-              updateLastAssistant(set, fullContent);
-            } else if (data.type === 'thinking') {
-              thinkingContent += data.content;
-              set({ thinkingContent });
-              updateLastAssistant(set, fullContent, thinkingContent);
-            } else if (data.type === 'done') {
-              done = true;
-              // Refresh to get real IDs
-              const sessionData = await api.sessions.get(currentSession.id);
-              set({ messages: sessionData.messages || [] });
-            } else if (data.type === 'error') {
-              set((state) => {
-                const messages = [...state.messages];
-                const lastMsg = messages[messages.length - 1];
-                if (lastMsg && lastMsg.role === 'assistant') {
-                  lastMsg.content = fullContent + '\n\n[Error: ' + data.error + ']';
-                }
-                return { messages };
-              });
-              done = true;
+      await readSseStream<ChatStreamEvent>(response, async (data) => {
+        if (data.type === 'chunk') {
+          fullContent += data.content;
+          streamUpdater.update(fullContent, thinkingContent);
+        } else if (data.type === 'thinking') {
+          thinkingContent += data.content;
+          streamUpdater.update(fullContent, thinkingContent);
+        } else if (data.type === 'done') {
+          streamUpdater.flushNow();
+          set({ isStreaming: false, abortStream: null });
+          // Refresh to get real IDs
+          const sessionData = await api.sessions.get(currentSession.id);
+          set({ messages: sessionData.messages || [] });
+          return false;
+        } else if (data.type === 'error') {
+          streamUpdater.flushNow();
+          set({ isStreaming: false, abortStream: null });
+          set((state) => {
+            const messages = [...state.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.content = fullContent + '\n\n[Error: ' + data.error + ']';
             }
-          } catch {
-            // ignore parse errors
-          }
+            return { messages };
+          });
+          return false;
         }
-      }
+      }, abortController.signal);
     } catch (err) {
+      streamUpdater.flushNow();
       if (isAbortError(err)) {
         return;
       }
@@ -277,6 +307,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     let fullContent = '';
     let thinkingContent = '';
     const abortController = new AbortController();
+    const streamUpdater = createStreamingUpdater(set);
     set({ abortStream: () => abortController.abort() });
 
     try {
@@ -285,53 +316,25 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         action: 'editAndResend',
         messageId,
       }, abortController.signal);
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let done = false;
-      let buffer = '';
-
-      while (!done && !abortController.signal.aborted) {
-        const { value, done: streamDone } = await reader.read();
-        done = streamDone || abortController.signal.aborted;
-        if (!value) continue;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const data = JSON.parse(line.slice(6));
-
-            if (data.type === 'chunk') {
-              fullContent += data.content;
-              set({ streamingContent: fullContent });
-              updateLastAssistant(set, fullContent);
-            } else if (data.type === 'thinking') {
-              thinkingContent += data.content;
-              set({ thinkingContent });
-              updateLastAssistant(set, fullContent, thinkingContent);
-            } else if (data.type === 'done') {
-              done = true;
-              const sessionData = await api.sessions.get(currentSession.id);
-              set({ messages: sessionData.messages || [] });
-            } else if (data.type === 'error') {
-              done = true;
-              const sessionData = await api.sessions.get(currentSession.id);
-              set({ messages: sessionData.messages || [] });
-            }
-          } catch {
-            // ignore
-          }
+      await readSseStream<ChatStreamEvent>(response, async (data) => {
+        if (data.type === 'chunk') {
+          fullContent += data.content;
+          streamUpdater.update(fullContent, thinkingContent);
+        } else if (data.type === 'thinking') {
+          thinkingContent += data.content;
+          streamUpdater.update(fullContent, thinkingContent);
+        } else if (data.type === 'done' || data.type === 'error') {
+          streamUpdater.flushNow();
+          set({ isStreaming: false, abortStream: null });
+          const sessionData = await api.sessions.get(currentSession.id);
+          set({ messages: sessionData.messages || [] });
+          return false;
         }
-      }
+      }, abortController.signal);
     } catch (err) {
+      streamUpdater.flushNow();
       if (!isAbortError(err)) {
-        const sessionData = await api.sessions.get(currentSession.id);
-        set({ messages: sessionData.messages || [] });
+        setLastAssistantError(set, fullContent, err);
       }
     } finally {
       if (abortController.signal.aborted) {
@@ -374,6 +377,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     let fullContent = '';
     let thinkingContent = '';
     const abortController = new AbortController();
+    const streamUpdater = createStreamingUpdater(set);
     set({ abortStream: () => abortController.abort() });
 
     try {
@@ -383,53 +387,25 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         messageId,
         modelId,
       }, abortController.signal);
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let done = false;
-      let buffer = '';
-
-      while (!done && !abortController.signal.aborted) {
-        const { value, done: streamDone } = await reader.read();
-        done = streamDone || abortController.signal.aborted;
-        if (!value) continue;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
-          try {
-            const data = JSON.parse(line.slice(6));
-
-            if (data.type === 'chunk') {
-              fullContent += data.content;
-              set({ streamingContent: fullContent });
-              updateLastAssistant(set, fullContent);
-            } else if (data.type === 'thinking') {
-              thinkingContent += data.content;
-              set({ thinkingContent });
-              updateLastAssistant(set, fullContent, thinkingContent);
-            } else if (data.type === 'done') {
-              done = true;
-              const sessionData = await api.sessions.get(currentSession.id);
-              set({ messages: sessionData.messages || [] });
-            } else if (data.type === 'error') {
-              done = true;
-              const sessionData = await api.sessions.get(currentSession.id);
-              set({ messages: sessionData.messages || [] });
-            }
-          } catch {
-            // ignore
-          }
+      await readSseStream<ChatStreamEvent>(response, async (data) => {
+        if (data.type === 'chunk') {
+          fullContent += data.content;
+          streamUpdater.update(fullContent, thinkingContent);
+        } else if (data.type === 'thinking') {
+          thinkingContent += data.content;
+          streamUpdater.update(fullContent, thinkingContent);
+        } else if (data.type === 'done' || data.type === 'error') {
+          streamUpdater.flushNow();
+          set({ isStreaming: false, abortStream: null });
+          const sessionData = await api.sessions.get(currentSession.id);
+          set({ messages: sessionData.messages || [] });
+          return false;
         }
-      }
+      }, abortController.signal);
     } catch (err) {
+      streamUpdater.flushNow();
       if (!isAbortError(err)) {
-        const sessionData = await api.sessions.get(currentSession.id);
-        set({ messages: sessionData.messages || [] });
+        setLastAssistantError(set, fullContent, err);
       }
     } finally {
       if (abortController.signal.aborted) {
@@ -447,9 +423,30 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   deleteMessage: async (messageId) => {
     await api.messages.delete(messageId);
-    set((state) => ({
-      messages: state.messages.filter((m) => m.id !== messageId),
-    }));
+    set((state) => {
+      const targetIndex = state.messages.findIndex((message) => message.id === messageId);
+      if (targetIndex < 0) {
+        return { messages: state.messages };
+      }
+
+      const targetMessage = state.messages[targetIndex];
+      if (targetMessage.role !== 'user') {
+        return { messages: state.messages.filter((message) => message.id !== messageId) };
+      }
+
+      const nextUserIndex = state.messages.findIndex(
+        (message, index) => index > targetIndex && message.role === 'user'
+      );
+      const deleteUntilIndex = nextUserIndex >= 0 ? nextUserIndex : state.messages.length;
+
+      return {
+        messages: [
+          ...state.messages.slice(0, targetIndex),
+          ...state.messages.slice(deleteUntilIndex),
+        ],
+      };
+    });
+    get().loadSessions();
   },
 
   feedbackMessage: async (messageId, feedback) => {

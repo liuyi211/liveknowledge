@@ -1,5 +1,5 @@
 const API_BASE = '';
-const STREAM_API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
+const STREAM_API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3001';
 
 async function fetchApi(path: string, options: RequestInit = {}) {
   const headers: Record<string, string> = { ...(options.headers as Record<string, string> | undefined) };
@@ -61,6 +61,7 @@ export const api = {
       fetchApi(`/api/sessions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
     delete: (id: string) => fetchApi(`/api/sessions/${id}`, { method: 'DELETE' }),
     clear: (id: string) => fetchApi(`/api/sessions/${id}/clear`, { method: 'POST' }),
+    regenerateSummary: (id: string) => fetchApi(`/api/sessions/${id}/summary/regenerate`, { method: 'POST' }),
   },
 
   messages: {
@@ -232,6 +233,22 @@ export const api = {
       const qs = search.toString();
       return fetchApi(`/api/profile/weak-points${qs ? `?${qs}` : ''}`);
     },
+  },
+
+  memories: {
+    list: (params?: { status?: string; type?: string; limit?: number; offset?: number }) => {
+      const search = new URLSearchParams();
+      if (params?.status) search.set('status', params.status);
+      if (params?.type) search.set('type', params.type);
+      if (params?.limit) search.set('limit', String(params.limit));
+      if (params?.offset !== undefined) search.set('offset', String(params.offset));
+      const qs = search.toString();
+      return fetchApi(`/api/memories${qs ? `?${qs}` : ''}`);
+    },
+    update: (id: string, data: Partial<{ type: string; content: string; importance: number; confidence: number; status: string }>) =>
+      fetchApi(`/api/memories/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    archive: (id: string) => fetchApi(`/api/memories/${id}`, { method: 'DELETE' }),
+    reject: (id: string) => fetchApi(`/api/memories/${id}/reject`, { method: 'POST' }),
   },
 
   folders: {

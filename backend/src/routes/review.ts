@@ -373,7 +373,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     const dailyLoad = await Promise.all(Array.from({ length: 7 }, async (_, index) => {
       const dayStart = addDays(today, index);
       const dayEnd = addDays(dayStart, 1);
-      const [row] = await db.select({ value: count() })
+      const dayCards = await db.select()
         .from(cards)
         .where(and(
           eq(cards.userId, userId),
@@ -383,7 +383,11 @@ export async function reviewRoutes(app: FastifyInstance) {
         ));
       return {
         date: dayStart.toISOString().slice(0, 10),
-        count: row?.value ?? 0,
+        count: dayCards.length,
+        newCount: dayCards.filter((card) => getDueStatus(card) === 'new').length,
+        reviewCount: dayCards.filter((card) => getDueStatus(card) === 'review' || getDueStatus(card) === 'learning').length,
+        lapsedCount: dayCards.filter((card) => getDueStatus(card) === 'lapsed').length,
+        riskCount: dayCards.filter((card) => card.retrievability < 0.72 || card.lapseCount > 0).length,
       };
     }));
 
