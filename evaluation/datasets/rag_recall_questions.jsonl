@@ -1,0 +1,120 @@
+{"id":"q001","query":"How does RAG Query Rewrite work in LiveKnowledge?","goldSourceIds":["rag-query-rewrite"],"goldKeywords":["query rewrite","sub query","intent"]}
+{"id":"q002","query":"What problem does RAG Query Rewrite solve?","goldSourceIds":["rag-query-rewrite"],"goldKeywords":["query rewrite","sub query","intent"]}
+{"id":"q003","query":"Which metadata or state is important for RAG Query Rewrite?","goldSourceIds":["rag-query-rewrite"],"goldKeywords":["query rewrite","sub query","intent"]}
+{"id":"q004","query":"When should the system use RAG Query Rewrite?","goldSourceIds":["rag-query-rewrite"],"goldKeywords":["query rewrite","sub query","intent"]}
+{"id":"q005","query":"How is RAG Query Rewrite connected to the learning loop?","goldSourceIds":["rag-query-rewrite"],"goldKeywords":["query rewrite","sub query","intent"]}
+{"id":"q006","query":"How does HyDE Retrieval work in LiveKnowledge?","goldSourceIds":["rag-hyde"],"goldKeywords":["hyde","hypothetical answer","ambiguous question"]}
+{"id":"q007","query":"What problem does HyDE Retrieval solve?","goldSourceIds":["rag-hyde"],"goldKeywords":["hyde","hypothetical answer","ambiguous question"]}
+{"id":"q008","query":"Which metadata or state is important for HyDE Retrieval?","goldSourceIds":["rag-hyde"],"goldKeywords":["hyde","hypothetical answer","ambiguous question"]}
+{"id":"q009","query":"When should the system use HyDE Retrieval?","goldSourceIds":["rag-hyde"],"goldKeywords":["hyde","hypothetical answer","ambiguous question"]}
+{"id":"q010","query":"How is HyDE Retrieval connected to the learning loop?","goldSourceIds":["rag-hyde"],"goldKeywords":["hyde","hypothetical answer","ambiguous question"]}
+{"id":"q011","query":"How does Reciprocal Rank Fusion work in LiveKnowledge?","goldSourceIds":["rag-rrf"],"goldKeywords":["rrf","reciprocal rank fusion","rank"]}
+{"id":"q012","query":"What problem does Reciprocal Rank Fusion solve?","goldSourceIds":["rag-rrf"],"goldKeywords":["rrf","reciprocal rank fusion","rank"]}
+{"id":"q013","query":"Which metadata or state is important for Reciprocal Rank Fusion?","goldSourceIds":["rag-rrf"],"goldKeywords":["rrf","reciprocal rank fusion","rank"]}
+{"id":"q014","query":"When should the system use Reciprocal Rank Fusion?","goldSourceIds":["rag-rrf"],"goldKeywords":["rrf","reciprocal rank fusion","rank"]}
+{"id":"q015","query":"How does this feature work in the learning system?","goldSourceIds":["rag-rrf"],"goldKeywords":["ambiguous","context dependent"]}
+{"id":"q016","query":"How does RAG Rerank work in LiveKnowledge?","goldSourceIds":["rag-rerank"],"goldKeywords":["rerank","relevance score","top n"]}
+{"id":"q017","query":"What problem does RAG Rerank solve?","goldSourceIds":["rag-rerank"],"goldKeywords":["rerank","relevance score","top n"]}
+{"id":"q018","query":"Which metadata or state is important for RAG Rerank?","goldSourceIds":["rag-rerank"],"goldKeywords":["rerank","relevance score","top n"]}
+{"id":"q019","query":"When should the system use RAG Rerank?","goldSourceIds":["rag-rerank"],"goldKeywords":["rerank","relevance score","top n"]}
+{"id":"q020","query":"How is RAG Rerank connected to the learning loop?","goldSourceIds":["rag-rerank"],"goldKeywords":["rerank","relevance score","top n"]}
+{"id":"q021","query":"How does pgvector Indexing work in LiveKnowledge?","goldSourceIds":["vector-pgvector"],"goldKeywords":["pgvector","embedding","cosine"]}
+{"id":"q022","query":"What problem does pgvector Indexing solve?","goldSourceIds":["vector-pgvector"],"goldKeywords":["pgvector","embedding","cosine"]}
+{"id":"q023","query":"Which metadata or state is important for pgvector Indexing?","goldSourceIds":["vector-pgvector"],"goldKeywords":["pgvector","embedding","cosine"]}
+{"id":"q024","query":"When should the system use pgvector Indexing?","goldSourceIds":["vector-pgvector"],"goldKeywords":["pgvector","embedding","cosine"]}
+{"id":"q025","query":"How is pgvector Indexing connected to the learning loop?","goldSourceIds":["vector-pgvector"],"goldKeywords":["pgvector","embedding","cosine"]}
+{"id":"q026","query":"How does PostgreSQL Full Text Search work in LiveKnowledge?","goldSourceIds":["fulltext-postgres"],"goldKeywords":["full text search","tsvector","keyword"]}
+{"id":"q027","query":"What problem does PostgreSQL Full Text Search solve?","goldSourceIds":["fulltext-postgres"],"goldKeywords":["full text search","tsvector","keyword"]}
+{"id":"q028","query":"Which metadata or state is important for PostgreSQL Full Text Search?","goldSourceIds":["fulltext-postgres"],"goldKeywords":["full text search","tsvector","keyword"]}
+{"id":"q029","query":"When should the system use PostgreSQL Full Text Search?","goldSourceIds":["fulltext-postgres"],"goldKeywords":["full text search","tsvector","keyword"]}
+{"id":"q030","query":"How does this feature work in the learning system?","goldSourceIds":["fulltext-postgres"],"goldKeywords":["ambiguous","context dependent"]}
+{"id":"q031","query":"How does Neo4j Graph Retrieval work in LiveKnowledge?","goldSourceIds":["graph-neo4j"],"goldKeywords":["neo4j","concept","relation"]}
+{"id":"q032","query":"What problem does Neo4j Graph Retrieval solve?","goldSourceIds":["graph-neo4j"],"goldKeywords":["neo4j","concept","relation"]}
+{"id":"q033","query":"Which metadata or state is important for Neo4j Graph Retrieval?","goldSourceIds":["graph-neo4j"],"goldKeywords":["neo4j","concept","relation"]}
+{"id":"q034","query":"When should the system use Neo4j Graph Retrieval?","goldSourceIds":["graph-neo4j"],"goldKeywords":["neo4j","concept","relation"]}
+{"id":"q035","query":"How is Neo4j Graph Retrieval connected to the learning loop?","goldSourceIds":["graph-neo4j"],"goldKeywords":["neo4j","concept","relation"]}
+{"id":"q036","query":"How does RAG Context Budget work in LiveKnowledge?","goldSourceIds":["context-budget"],"goldKeywords":["context budget","token budget","dedupe"]}
+{"id":"q037","query":"What problem does RAG Context Budget solve?","goldSourceIds":["context-budget"],"goldKeywords":["context budget","token budget","dedupe"]}
+{"id":"q038","query":"Which metadata or state is important for RAG Context Budget?","goldSourceIds":["context-budget"],"goldKeywords":["context budget","token budget","dedupe"]}
+{"id":"q039","query":"When should the system use RAG Context Budget?","goldSourceIds":["context-budget"],"goldKeywords":["context budget","token budget","dedupe"]}
+{"id":"q040","query":"How is RAG Context Budget connected to the learning loop?","goldSourceIds":["context-budget"],"goldKeywords":["context budget","token budget","dedupe"]}
+{"id":"q041","query":"How does Structure Aware Chunking work in LiveKnowledge?","goldSourceIds":["chunking-markdown"],"goldKeywords":["chunking","markdown","heading path"]}
+{"id":"q042","query":"What problem does Structure Aware Chunking solve?","goldSourceIds":["chunking-markdown"],"goldKeywords":["chunking","markdown","heading path"]}
+{"id":"q043","query":"Which metadata or state is important for Structure Aware Chunking?","goldSourceIds":["chunking-markdown"],"goldKeywords":["chunking","markdown","heading path"]}
+{"id":"q044","query":"When should the system use Structure Aware Chunking?","goldSourceIds":["chunking-markdown"],"goldKeywords":["chunking","markdown","heading path"]}
+{"id":"q045","query":"How does this feature work in the learning system?","goldSourceIds":["chunking-markdown"],"goldKeywords":["ambiguous","context dependent"]}
+{"id":"q046","query":"How does Incremental Indexing work in LiveKnowledge?","goldSourceIds":["incremental-index"],"goldKeywords":["incremental indexing","content hash","chunk hash"]}
+{"id":"q047","query":"What problem does Incremental Indexing solve?","goldSourceIds":["incremental-index"],"goldKeywords":["incremental indexing","content hash","chunk hash"]}
+{"id":"q048","query":"Which metadata or state is important for Incremental Indexing?","goldSourceIds":["incremental-index"],"goldKeywords":["incremental indexing","content hash","chunk hash"]}
+{"id":"q049","query":"When should the system use Incremental Indexing?","goldSourceIds":["incremental-index"],"goldKeywords":["incremental indexing","content hash","chunk hash"]}
+{"id":"q050","query":"How is Incremental Indexing connected to the learning loop?","goldSourceIds":["incremental-index"],"goldKeywords":["incremental indexing","content hash","chunk hash"]}
+{"id":"q051","query":"How does Batch Embedding work in LiveKnowledge?","goldSourceIds":["embedding-batch"],"goldKeywords":["batch embedding","batch size","api call"]}
+{"id":"q052","query":"What problem does Batch Embedding solve?","goldSourceIds":["embedding-batch"],"goldKeywords":["batch embedding","batch size","api call"]}
+{"id":"q053","query":"Which metadata or state is important for Batch Embedding?","goldSourceIds":["embedding-batch"],"goldKeywords":["batch embedding","batch size","api call"]}
+{"id":"q054","query":"When should the system use Batch Embedding?","goldSourceIds":["embedding-batch"],"goldKeywords":["batch embedding","batch size","api call"]}
+{"id":"q055","query":"How is Batch Embedding connected to the learning loop?","goldSourceIds":["embedding-batch"],"goldKeywords":["batch embedding","batch size","api call"]}
+{"id":"q056","query":"How does AI Provider Abstraction work in LiveKnowledge?","goldSourceIds":["ai-provider"],"goldKeywords":["provider","openai","deepseek"]}
+{"id":"q057","query":"What problem does AI Provider Abstraction solve?","goldSourceIds":["ai-provider"],"goldKeywords":["provider","openai","deepseek"]}
+{"id":"q058","query":"Which metadata or state is important for AI Provider Abstraction?","goldSourceIds":["ai-provider"],"goldKeywords":["provider","openai","deepseek"]}
+{"id":"q059","query":"When should the system use AI Provider Abstraction?","goldSourceIds":["ai-provider"],"goldKeywords":["provider","openai","deepseek"]}
+{"id":"q060","query":"How does this feature work in the learning system?","goldSourceIds":["ai-provider"],"goldKeywords":["ambiguous","context dependent"]}
+{"id":"q061","query":"How does SSE Streaming Chat work in LiveKnowledge?","goldSourceIds":["sse-chat"],"goldKeywords":["sse","streaming","abort"]}
+{"id":"q062","query":"What problem does SSE Streaming Chat solve?","goldSourceIds":["sse-chat"],"goldKeywords":["sse","streaming","abort"]}
+{"id":"q063","query":"Which metadata or state is important for SSE Streaming Chat?","goldSourceIds":["sse-chat"],"goldKeywords":["sse","streaming","abort"]}
+{"id":"q064","query":"When should the system use SSE Streaming Chat?","goldSourceIds":["sse-chat"],"goldKeywords":["sse","streaming","abort"]}
+{"id":"q065","query":"How is SSE Streaming Chat connected to the learning loop?","goldSourceIds":["sse-chat"],"goldKeywords":["sse","streaming","abort"]}
+{"id":"q066","query":"How does Persona Prompt System work in LiveKnowledge?","goldSourceIds":["persona-system"],"goldKeywords":["persona","system prompt","teaching style"]}
+{"id":"q067","query":"What problem does Persona Prompt System solve?","goldSourceIds":["persona-system"],"goldKeywords":["persona","system prompt","teaching style"]}
+{"id":"q068","query":"Which metadata or state is important for Persona Prompt System?","goldSourceIds":["persona-system"],"goldKeywords":["persona","system prompt","teaching style"]}
+{"id":"q069","query":"When should the system use Persona Prompt System?","goldSourceIds":["persona-system"],"goldKeywords":["persona","system prompt","teaching style"]}
+{"id":"q070","query":"How is Persona Prompt System connected to the learning loop?","goldSourceIds":["persona-system"],"goldKeywords":["persona","system prompt","teaching style"]}
+{"id":"q071","query":"How does Cognitive Profile work in LiveKnowledge?","goldSourceIds":["cognitive-profile"],"goldKeywords":["cognitive profile","learning style","attention span"]}
+{"id":"q072","query":"What problem does Cognitive Profile solve?","goldSourceIds":["cognitive-profile"],"goldKeywords":["cognitive profile","learning style","attention span"]}
+{"id":"q073","query":"Which metadata or state is important for Cognitive Profile?","goldSourceIds":["cognitive-profile"],"goldKeywords":["cognitive profile","learning style","attention span"]}
+{"id":"q074","query":"When should the system use Cognitive Profile?","goldSourceIds":["cognitive-profile"],"goldKeywords":["cognitive profile","learning style","attention span"]}
+{"id":"q075","query":"How does this feature work in the learning system?","goldSourceIds":["cognitive-profile"],"goldKeywords":["ambiguous","context dependent"]}
+{"id":"q076","query":"How does Knowledge Extraction Job work in LiveKnowledge?","goldSourceIds":["extraction-job"],"goldKeywords":["extraction job","summary","flashcard"]}
+{"id":"q077","query":"What problem does Knowledge Extraction Job solve?","goldSourceIds":["extraction-job"],"goldKeywords":["extraction job","summary","flashcard"]}
+{"id":"q078","query":"Which metadata or state is important for Knowledge Extraction Job?","goldSourceIds":["extraction-job"],"goldKeywords":["extraction job","summary","flashcard"]}
+{"id":"q079","query":"When should the system use Knowledge Extraction Job?","goldSourceIds":["extraction-job"],"goldKeywords":["extraction job","summary","flashcard"]}
+{"id":"q080","query":"How is Knowledge Extraction Job connected to the learning loop?","goldSourceIds":["extraction-job"],"goldKeywords":["extraction job","summary","flashcard"]}
+{"id":"q081","query":"How does Flashcard Generation work in LiveKnowledge?","goldSourceIds":["card-generation"],"goldKeywords":["flashcard","front","back"]}
+{"id":"q082","query":"What problem does Flashcard Generation solve?","goldSourceIds":["card-generation"],"goldKeywords":["flashcard","front","back"]}
+{"id":"q083","query":"Which metadata or state is important for Flashcard Generation?","goldSourceIds":["card-generation"],"goldKeywords":["flashcard","front","back"]}
+{"id":"q084","query":"When should the system use Flashcard Generation?","goldSourceIds":["card-generation"],"goldKeywords":["flashcard","front","back"]}
+{"id":"q085","query":"How is Flashcard Generation connected to the learning loop?","goldSourceIds":["card-generation"],"goldKeywords":["flashcard","front","back"]}
+{"id":"q086","query":"How does SSP-MMC Half Life Review work in LiveKnowledge?","goldSourceIds":["sspmc-half-life"],"goldKeywords":["half life","retrievability","difficulty"]}
+{"id":"q087","query":"What problem does SSP-MMC Half Life Review solve?","goldSourceIds":["sspmc-half-life"],"goldKeywords":["half life","retrievability","difficulty"]}
+{"id":"q088","query":"Which metadata or state is important for SSP-MMC Half Life Review?","goldSourceIds":["sspmc-half-life"],"goldKeywords":["half life","retrievability","difficulty"]}
+{"id":"q089","query":"When should the system use SSP-MMC Half Life Review?","goldSourceIds":["sspmc-half-life"],"goldKeywords":["half life","retrievability","difficulty"]}
+{"id":"q090","query":"How does this feature work in the learning system?","goldSourceIds":["sspmc-half-life"],"goldKeywords":["ambiguous","context dependent"]}
+{"id":"q091","query":"How does Review Queue API work in LiveKnowledge?","goldSourceIds":["review-queue"],"goldKeywords":["review queue","next review","due card"]}
+{"id":"q092","query":"What problem does Review Queue API solve?","goldSourceIds":["review-queue"],"goldKeywords":["review queue","next review","due card"]}
+{"id":"q093","query":"Which metadata or state is important for Review Queue API?","goldSourceIds":["review-queue"],"goldKeywords":["review queue","next review","due card"]}
+{"id":"q094","query":"When should the system use Review Queue API?","goldSourceIds":["review-queue"],"goldKeywords":["review queue","next review","due card"]}
+{"id":"q095","query":"How is Review Queue API connected to the learning loop?","goldSourceIds":["review-queue"],"goldKeywords":["review queue","next review","due card"]}
+{"id":"q096","query":"How does Notes Editor work in LiveKnowledge?","goldSourceIds":["notes-editor"],"goldKeywords":["note editor","markdown","latex"]}
+{"id":"q097","query":"What problem does Notes Editor solve?","goldSourceIds":["notes-editor"],"goldKeywords":["note editor","markdown","latex"]}
+{"id":"q098","query":"Which metadata or state is important for Notes Editor?","goldSourceIds":["notes-editor"],"goldKeywords":["note editor","markdown","latex"]}
+{"id":"q099","query":"When should the system use Notes Editor?","goldSourceIds":["notes-editor"],"goldKeywords":["note editor","markdown","latex"]}
+{"id":"q100","query":"How is Notes Editor connected to the learning loop?","goldSourceIds":["notes-editor"],"goldKeywords":["note editor","markdown","latex"]}
+{"id":"q101","query":"How does File Handler work in LiveKnowledge?","goldSourceIds":["file-handler"],"goldKeywords":["pdf","docx","image"]}
+{"id":"q102","query":"What problem does File Handler solve?","goldSourceIds":["file-handler"],"goldKeywords":["pdf","docx","image"]}
+{"id":"q103","query":"Which metadata or state is important for File Handler?","goldSourceIds":["file-handler"],"goldKeywords":["pdf","docx","image"]}
+{"id":"q104","query":"When should the system use File Handler?","goldSourceIds":["file-handler"],"goldKeywords":["pdf","docx","image"]}
+{"id":"q105","query":"How does this feature work in the learning system?","goldSourceIds":["file-handler"],"goldKeywords":["ambiguous","context dependent"]}
+{"id":"q106","query":"How does Authentication and Session work in LiveKnowledge?","goldSourceIds":["api-auth"],"goldKeywords":["auth","session","cookie"]}
+{"id":"q107","query":"What problem does Authentication and Session solve?","goldSourceIds":["api-auth"],"goldKeywords":["auth","session","cookie"]}
+{"id":"q108","query":"Which metadata or state is important for Authentication and Session?","goldSourceIds":["api-auth"],"goldKeywords":["auth","session","cookie"]}
+{"id":"q109","query":"When should the system use Authentication and Session?","goldSourceIds":["api-auth"],"goldKeywords":["auth","session","cookie"]}
+{"id":"q110","query":"How is Authentication and Session connected to the learning loop?","goldSourceIds":["api-auth"],"goldKeywords":["auth","session","cookie"]}
+{"id":"q111","query":"How does Learning Dashboard work in LiveKnowledge?","goldSourceIds":["dashboard"],"goldKeywords":["dashboard","streak","review completion"]}
+{"id":"q112","query":"What problem does Learning Dashboard solve?","goldSourceIds":["dashboard"],"goldKeywords":["dashboard","streak","review completion"]}
+{"id":"q113","query":"Which metadata or state is important for Learning Dashboard?","goldSourceIds":["dashboard"],"goldKeywords":["dashboard","streak","review completion"]}
+{"id":"q114","query":"When should the system use Learning Dashboard?","goldSourceIds":["dashboard"],"goldKeywords":["dashboard","streak","review completion"]}
+{"id":"q115","query":"How is Learning Dashboard connected to the learning loop?","goldSourceIds":["dashboard"],"goldKeywords":["dashboard","streak","review completion"]}
+{"id":"q116","query":"How does D3 Knowledge Graph UI work in LiveKnowledge?","goldSourceIds":["d3-graph-ui"],"goldKeywords":["d3","force graph","node"]}
+{"id":"q117","query":"What problem does D3 Knowledge Graph UI solve?","goldSourceIds":["d3-graph-ui"],"goldKeywords":["d3","force graph","node"]}
+{"id":"q118","query":"Which metadata or state is important for D3 Knowledge Graph UI?","goldSourceIds":["d3-graph-ui"],"goldKeywords":["d3","force graph","node"]}
+{"id":"q119","query":"When should the system use D3 Knowledge Graph UI?","goldSourceIds":["d3-graph-ui"],"goldKeywords":["d3","force graph","node"]}
+{"id":"q120","query":"How does this feature work in the learning system?","goldSourceIds":["d3-graph-ui"],"goldKeywords":["ambiguous","context dependent"]}

@@ -1,0 +1,3423 @@
+{
+  "generatedAt": "2026-05-25T13:27:51.938Z",
+  "mode": "fixture",
+  "datasets": {
+    "corpusDocs": 120,
+    "recallQuestions": 120,
+    "indexingDocuments": 100,
+    "contextQueries": 100
+  },
+  "metrics": {
+    "recallAt6": {
+      "totalQuestions": 120,
+      "baselineHits": 70,
+      "optimizedHits": 113,
+      "baseline": "58.33%",
+      "optimized": "94.17%",
+      "relativeImprovement": "61.43%",
+      "details": [
+        {
+          "id": "q001",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-query-rewrite"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-2",
+            "d3-graph-ui-decoy-1",
+            "file-handler-decoy-4",
+            "api-auth-decoy-3",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-4"
+          ],
+          "optimizedTop6": [
+            "rag-query-rewrite-decoy-1",
+            "rag-query-rewrite-decoy-3",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-4",
+            "rag-query-rewrite-decoy-2",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q002",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-query-rewrite"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-2",
+            "d3-graph-ui-decoy-1",
+            "file-handler-decoy-4",
+            "api-auth-decoy-3",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-3"
+          ],
+          "optimizedTop6": [
+            "rag-query-rewrite-decoy-1",
+            "rag-query-rewrite-decoy-3",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-2",
+            "rag-query-rewrite-decoy-4",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q003",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-query-rewrite"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-2",
+            "d3-graph-ui-decoy-1",
+            "file-handler-decoy-4",
+            "api-auth-decoy-3",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-4"
+          ],
+          "optimizedTop6": [
+            "rag-query-rewrite-decoy-1",
+            "rag-query-rewrite-decoy-3",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-4",
+            "rag-query-rewrite-decoy-2",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q004",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-query-rewrite"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-2",
+            "d3-graph-ui-decoy-1",
+            "file-handler-decoy-4",
+            "api-auth-decoy-3",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-3"
+          ],
+          "optimizedTop6": [
+            "rag-query-rewrite-decoy-1",
+            "rag-query-rewrite-decoy-3",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-2",
+            "rag-query-rewrite-decoy-4",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q005",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-query-rewrite"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-2",
+            "d3-graph-ui-decoy-1",
+            "file-handler-decoy-4",
+            "api-auth-decoy-3",
+            "cognitive-profile",
+            "rag-query-rewrite"
+          ],
+          "optimizedTop6": [
+            "rag-query-rewrite-decoy-1",
+            "rag-query-rewrite-decoy-3",
+            "rag-query-rewrite-decoy-2",
+            "rag-query-rewrite",
+            "rag-query-rewrite-decoy-4",
+            "dashboard-decoy-2"
+          ]
+        },
+        {
+          "id": "q006",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-hyde"
+          ],
+          "baselineTop6": [
+            "rag-query-rewrite-decoy-1",
+            "dashboard-decoy-3",
+            "d3-graph-ui-decoy-2",
+            "api-auth-decoy-4",
+            "rag-query-rewrite",
+            "dashboard-decoy-2"
+          ],
+          "optimizedTop6": [
+            "rag-hyde",
+            "rag-hyde-decoy-3",
+            "rag-hyde-decoy-2",
+            "rag-hyde-decoy-4",
+            "rag-hyde-decoy-1",
+            "api-auth-decoy-4"
+          ]
+        },
+        {
+          "id": "q007",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-hyde"
+          ],
+          "baselineTop6": [
+            "rag-query-rewrite-decoy-1",
+            "dashboard-decoy-3",
+            "d3-graph-ui-decoy-2",
+            "api-auth-decoy-4",
+            "rag-query-rewrite",
+            "dashboard-decoy-2"
+          ],
+          "optimizedTop6": [
+            "rag-hyde",
+            "rag-hyde-decoy-2",
+            "rag-hyde-decoy-3",
+            "rag-hyde-decoy-4",
+            "rag-hyde-decoy-1",
+            "api-auth-decoy-4"
+          ]
+        },
+        {
+          "id": "q008",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-hyde"
+          ],
+          "baselineTop6": [
+            "rag-query-rewrite-decoy-1",
+            "dashboard-decoy-3",
+            "d3-graph-ui-decoy-2",
+            "api-auth-decoy-4",
+            "rag-query-rewrite",
+            "rag-hyde"
+          ],
+          "optimizedTop6": [
+            "rag-hyde",
+            "rag-hyde-decoy-3",
+            "rag-hyde-decoy-1",
+            "rag-hyde-decoy-4",
+            "rag-hyde-decoy-2",
+            "api-auth-decoy-4"
+          ]
+        },
+        {
+          "id": "q009",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-hyde"
+          ],
+          "baselineTop6": [
+            "rag-query-rewrite-decoy-1",
+            "dashboard-decoy-3",
+            "d3-graph-ui-decoy-2",
+            "api-auth-decoy-4",
+            "rag-query-rewrite",
+            "dashboard-decoy-2"
+          ],
+          "optimizedTop6": [
+            "rag-hyde",
+            "rag-hyde-decoy-2",
+            "rag-hyde-decoy-3",
+            "rag-hyde-decoy-4",
+            "rag-hyde-decoy-1",
+            "api-auth-decoy-4"
+          ]
+        },
+        {
+          "id": "q010",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-hyde"
+          ],
+          "baselineTop6": [
+            "rag-query-rewrite-decoy-1",
+            "dashboard-decoy-3",
+            "d3-graph-ui-decoy-2",
+            "api-auth-decoy-4",
+            "cognitive-profile",
+            "sse-chat-decoy-2"
+          ],
+          "optimizedTop6": [
+            "rag-hyde",
+            "rag-hyde-decoy-3",
+            "rag-hyde-decoy-1",
+            "rag-hyde-decoy-4",
+            "rag-hyde-decoy-2",
+            "dashboard-decoy-3"
+          ]
+        },
+        {
+          "id": "q011",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rrf"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-4",
+            "d3-graph-ui-decoy-3",
+            "rag-query-rewrite-decoy-2",
+            "rag-hyde-decoy-1",
+            "rag-rrf",
+            "rag-rrf-decoy-2"
+          ],
+          "optimizedTop6": [
+            "rag-rrf",
+            "rag-rrf-decoy-2",
+            "rag-rrf-decoy-3",
+            "rag-rrf-decoy-1",
+            "rag-rrf-decoy-4",
+            "rag-hyde-decoy-1"
+          ]
+        },
+        {
+          "id": "q012",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rrf"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-4",
+            "d3-graph-ui-decoy-3",
+            "rag-query-rewrite-decoy-2",
+            "rag-hyde-decoy-1",
+            "rag-rrf",
+            "rag-rrf-decoy-1"
+          ],
+          "optimizedTop6": [
+            "rag-rrf",
+            "rag-rrf-decoy-1",
+            "rag-rrf-decoy-3",
+            "rag-rrf-decoy-2",
+            "rag-rrf-decoy-4",
+            "rag-hyde-decoy-1"
+          ]
+        },
+        {
+          "id": "q013",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rrf"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-4",
+            "d3-graph-ui-decoy-3",
+            "rag-query-rewrite-decoy-2",
+            "rag-hyde-decoy-1",
+            "rag-rrf",
+            "rag-rrf-decoy-2"
+          ],
+          "optimizedTop6": [
+            "rag-rrf",
+            "rag-rrf-decoy-2",
+            "rag-rrf-decoy-3",
+            "rag-rrf-decoy-1",
+            "rag-rrf-decoy-4",
+            "rag-hyde-decoy-1"
+          ]
+        },
+        {
+          "id": "q014",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rrf"
+          ],
+          "baselineTop6": [
+            "dashboard-decoy-4",
+            "d3-graph-ui-decoy-3",
+            "rag-query-rewrite-decoy-2",
+            "rag-hyde-decoy-1",
+            "rag-rrf",
+            "rag-rrf-decoy-1"
+          ],
+          "optimizedTop6": [
+            "rag-rrf",
+            "rag-rrf-decoy-1",
+            "rag-rrf-decoy-3",
+            "rag-rrf-decoy-2",
+            "rag-rrf-decoy-4",
+            "rag-hyde-decoy-1"
+          ]
+        },
+        {
+          "id": "q015",
+          "baselineHit": false,
+          "optimizedHit": false,
+          "goldSourceIds": [
+            "rag-rrf"
+          ],
+          "baselineTop6": [
+            "cognitive-profile",
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-2",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "cognitive-profile"
+          ]
+        },
+        {
+          "id": "q016",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rerank"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-1",
+            "d3-graph-ui-decoy-4",
+            "rag-hyde-decoy-2",
+            "rag-query-rewrite-decoy-3",
+            "rag-rerank",
+            "rag-rerank-decoy-1"
+          ],
+          "optimizedTop6": [
+            "rag-rerank-decoy-4",
+            "rag-rerank-decoy-2",
+            "rag-rerank-decoy-1",
+            "rag-rerank-decoy-3",
+            "rag-rerank",
+            "rag-query-rewrite-decoy-3"
+          ]
+        },
+        {
+          "id": "q017",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rerank"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-1",
+            "d3-graph-ui-decoy-4",
+            "rag-hyde-decoy-2",
+            "rag-query-rewrite-decoy-3",
+            "rag-rerank",
+            "rag-rerank-decoy-3"
+          ],
+          "optimizedTop6": [
+            "rag-rerank-decoy-4",
+            "rag-rerank-decoy-2",
+            "rag-rerank-decoy-3",
+            "rag-rerank",
+            "rag-rerank-decoy-1",
+            "rag-query-rewrite-decoy-3"
+          ]
+        },
+        {
+          "id": "q018",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rerank"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-1",
+            "d3-graph-ui-decoy-4",
+            "rag-hyde-decoy-2",
+            "rag-query-rewrite-decoy-3",
+            "rag-rerank-decoy-1",
+            "chunking-markdown"
+          ],
+          "optimizedTop6": [
+            "rag-rerank-decoy-4",
+            "rag-rerank-decoy-2",
+            "rag-rerank-decoy-1",
+            "rag-rerank-decoy-3",
+            "rag-rerank",
+            "rag-query-rewrite-decoy-3"
+          ]
+        },
+        {
+          "id": "q019",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rerank"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-1",
+            "d3-graph-ui-decoy-4",
+            "rag-hyde-decoy-2",
+            "rag-query-rewrite-decoy-3",
+            "rag-rerank",
+            "rag-rerank-decoy-3"
+          ],
+          "optimizedTop6": [
+            "rag-rerank-decoy-4",
+            "rag-rerank-decoy-2",
+            "rag-rerank-decoy-3",
+            "rag-rerank",
+            "rag-rerank-decoy-1",
+            "rag-query-rewrite-decoy-3"
+          ]
+        },
+        {
+          "id": "q020",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "rag-rerank"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-1",
+            "d3-graph-ui-decoy-4",
+            "rag-hyde-decoy-2",
+            "cognitive-profile",
+            "rag-query-rewrite-decoy-3",
+            "sse-chat-decoy-2"
+          ],
+          "optimizedTop6": [
+            "rag-rerank-decoy-4",
+            "rag-rerank-decoy-3",
+            "rag-rerank-decoy-2",
+            "rag-rerank-decoy-1",
+            "rag-rerank",
+            "rag-query-rewrite-decoy-3"
+          ]
+        },
+        {
+          "id": "q021",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "vector-pgvector"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-2",
+            "rag-hyde-decoy-3",
+            "rag-query-rewrite-decoy-4",
+            "rag-rerank-decoy-1",
+            "fulltext-postgres-decoy-4",
+            "graph-neo4j-decoy-3"
+          ],
+          "optimizedTop6": [
+            "vector-pgvector-decoy-4",
+            "vector-pgvector-decoy-1",
+            "vector-pgvector-decoy-2",
+            "vector-pgvector-decoy-3",
+            "vector-pgvector",
+            "incremental-index-decoy-1"
+          ]
+        },
+        {
+          "id": "q022",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "vector-pgvector"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-2",
+            "rag-hyde-decoy-3",
+            "rag-query-rewrite-decoy-4",
+            "rag-rerank-decoy-1",
+            "fulltext-postgres-decoy-4",
+            "graph-neo4j-decoy-3"
+          ],
+          "optimizedTop6": [
+            "vector-pgvector-decoy-4",
+            "vector-pgvector-decoy-1",
+            "vector-pgvector-decoy-2",
+            "vector-pgvector-decoy-3",
+            "vector-pgvector",
+            "incremental-index-decoy-1"
+          ]
+        },
+        {
+          "id": "q023",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "vector-pgvector"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-2",
+            "rag-hyde-decoy-3",
+            "rag-query-rewrite-decoy-4",
+            "rag-rerank-decoy-1",
+            "chunking-markdown",
+            "fulltext-postgres-decoy-4"
+          ],
+          "optimizedTop6": [
+            "vector-pgvector-decoy-4",
+            "vector-pgvector-decoy-1",
+            "vector-pgvector-decoy-3",
+            "vector-pgvector",
+            "vector-pgvector-decoy-2",
+            "incremental-index-decoy-1"
+          ]
+        },
+        {
+          "id": "q024",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "vector-pgvector"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-2",
+            "rag-hyde-decoy-3",
+            "rag-query-rewrite-decoy-4",
+            "rag-rerank-decoy-1",
+            "fulltext-postgres-decoy-4",
+            "graph-neo4j-decoy-3"
+          ],
+          "optimizedTop6": [
+            "vector-pgvector-decoy-4",
+            "vector-pgvector-decoy-1",
+            "vector-pgvector-decoy-2",
+            "vector-pgvector-decoy-3",
+            "vector-pgvector",
+            "incremental-index-decoy-1"
+          ]
+        },
+        {
+          "id": "q025",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "vector-pgvector"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-2",
+            "rag-hyde-decoy-3",
+            "rag-query-rewrite-decoy-4",
+            "rag-rerank-decoy-1",
+            "cognitive-profile",
+            "fulltext-postgres-decoy-4"
+          ],
+          "optimizedTop6": [
+            "vector-pgvector-decoy-2",
+            "vector-pgvector-decoy-1",
+            "vector-pgvector-decoy-3",
+            "vector-pgvector-decoy-4",
+            "vector-pgvector",
+            "incremental-index-decoy-1"
+          ]
+        },
+        {
+          "id": "q026",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "fulltext-postgres"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-3",
+            "vector-pgvector-decoy-1",
+            "rag-hyde-decoy-4",
+            "rag-rerank-decoy-2",
+            "fulltext-postgres",
+            "vector-pgvector"
+          ],
+          "optimizedTop6": [
+            "fulltext-postgres",
+            "fulltext-postgres-decoy-3",
+            "fulltext-postgres-decoy-1",
+            "fulltext-postgres-decoy-4",
+            "fulltext-postgres-decoy-2",
+            "rag-hyde-decoy-4"
+          ]
+        },
+        {
+          "id": "q027",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "fulltext-postgres"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-3",
+            "vector-pgvector-decoy-1",
+            "rag-hyde-decoy-4",
+            "rag-rerank-decoy-2",
+            "fulltext-postgres",
+            "rag-rrf"
+          ],
+          "optimizedTop6": [
+            "fulltext-postgres",
+            "fulltext-postgres-decoy-3",
+            "fulltext-postgres-decoy-1",
+            "fulltext-postgres-decoy-4",
+            "fulltext-postgres-decoy-2",
+            "rag-hyde-decoy-4"
+          ]
+        },
+        {
+          "id": "q028",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "fulltext-postgres"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-3",
+            "vector-pgvector-decoy-1",
+            "rag-hyde-decoy-4",
+            "rag-rerank-decoy-2",
+            "fulltext-postgres",
+            "vector-pgvector"
+          ],
+          "optimizedTop6": [
+            "fulltext-postgres",
+            "fulltext-postgres-decoy-3",
+            "fulltext-postgres-decoy-2",
+            "fulltext-postgres-decoy-4",
+            "fulltext-postgres-decoy-1",
+            "rag-hyde-decoy-4"
+          ]
+        },
+        {
+          "id": "q029",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "fulltext-postgres"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-3",
+            "vector-pgvector-decoy-1",
+            "rag-hyde-decoy-4",
+            "rag-rerank-decoy-2",
+            "fulltext-postgres",
+            "rag-rrf"
+          ],
+          "optimizedTop6": [
+            "fulltext-postgres",
+            "fulltext-postgres-decoy-3",
+            "fulltext-postgres-decoy-1",
+            "fulltext-postgres-decoy-4",
+            "fulltext-postgres-decoy-2",
+            "rag-hyde-decoy-4"
+          ]
+        },
+        {
+          "id": "q030",
+          "baselineHit": false,
+          "optimizedHit": false,
+          "goldSourceIds": [
+            "fulltext-postgres"
+          ],
+          "baselineTop6": [
+            "cognitive-profile",
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-2",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "cognitive-profile"
+          ]
+        },
+        {
+          "id": "q031",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "graph-neo4j"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-4",
+            "vector-pgvector-decoy-2",
+            "fulltext-postgres-decoy-1",
+            "rag-rerank-decoy-3",
+            "graph-neo4j",
+            "rag-query-rewrite"
+          ],
+          "optimizedTop6": [
+            "graph-neo4j",
+            "graph-neo4j-decoy-4",
+            "graph-neo4j-decoy-3",
+            "graph-neo4j-decoy-1",
+            "graph-neo4j-decoy-2",
+            "d3-graph-ui"
+          ]
+        },
+        {
+          "id": "q032",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "graph-neo4j"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-4",
+            "vector-pgvector-decoy-2",
+            "fulltext-postgres-decoy-1",
+            "rag-rerank-decoy-3",
+            "graph-neo4j",
+            "notes-editor-decoy-4"
+          ],
+          "optimizedTop6": [
+            "graph-neo4j",
+            "graph-neo4j-decoy-3",
+            "graph-neo4j-decoy-1",
+            "graph-neo4j-decoy-2",
+            "graph-neo4j-decoy-4",
+            "d3-graph-ui"
+          ]
+        },
+        {
+          "id": "q033",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "graph-neo4j"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-4",
+            "vector-pgvector-decoy-2",
+            "fulltext-postgres-decoy-1",
+            "rag-rerank-decoy-3",
+            "notes-editor-decoy-4",
+            "dashboard-decoy-1"
+          ],
+          "optimizedTop6": [
+            "graph-neo4j-decoy-2",
+            "graph-neo4j-decoy-4",
+            "graph-neo4j",
+            "graph-neo4j-decoy-1",
+            "graph-neo4j-decoy-3",
+            "d3-graph-ui"
+          ]
+        },
+        {
+          "id": "q034",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "graph-neo4j"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-4",
+            "vector-pgvector-decoy-2",
+            "fulltext-postgres-decoy-1",
+            "rag-rerank-decoy-3",
+            "graph-neo4j",
+            "notes-editor-decoy-4"
+          ],
+          "optimizedTop6": [
+            "graph-neo4j",
+            "graph-neo4j-decoy-3",
+            "graph-neo4j-decoy-1",
+            "graph-neo4j-decoy-2",
+            "graph-neo4j-decoy-4",
+            "d3-graph-ui"
+          ]
+        },
+        {
+          "id": "q035",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "graph-neo4j"
+          ],
+          "baselineTop6": [
+            "rag-rrf-decoy-4",
+            "vector-pgvector-decoy-2",
+            "fulltext-postgres-decoy-1",
+            "rag-rerank-decoy-3",
+            "graph-neo4j",
+            "cognitive-profile"
+          ],
+          "optimizedTop6": [
+            "graph-neo4j",
+            "graph-neo4j-decoy-4",
+            "graph-neo4j-decoy-1",
+            "graph-neo4j-decoy-3",
+            "graph-neo4j-decoy-2",
+            "d3-graph-ui"
+          ]
+        },
+        {
+          "id": "q036",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "context-budget"
+          ],
+          "baselineTop6": [
+            "vector-pgvector-decoy-3",
+            "fulltext-postgres-decoy-2",
+            "graph-neo4j-decoy-1",
+            "rag-rerank-decoy-4",
+            "context-budget",
+            "context-budget-decoy-3"
+          ],
+          "optimizedTop6": [
+            "context-budget-decoy-3",
+            "context-budget-decoy-4",
+            "context-budget",
+            "context-budget-decoy-1",
+            "context-budget-decoy-2",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q037",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "context-budget"
+          ],
+          "baselineTop6": [
+            "vector-pgvector-decoy-3",
+            "fulltext-postgres-decoy-2",
+            "graph-neo4j-decoy-1",
+            "rag-rerank-decoy-4",
+            "context-budget",
+            "rag-rrf-decoy-1"
+          ],
+          "optimizedTop6": [
+            "context-budget-decoy-4",
+            "context-budget",
+            "context-budget-decoy-2",
+            "context-budget-decoy-1",
+            "context-budget-decoy-3",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q038",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "context-budget"
+          ],
+          "baselineTop6": [
+            "vector-pgvector-decoy-3",
+            "fulltext-postgres-decoy-2",
+            "graph-neo4j-decoy-1",
+            "rag-rerank-decoy-4",
+            "context-budget",
+            "context-budget-decoy-1"
+          ],
+          "optimizedTop6": [
+            "context-budget-decoy-1",
+            "context-budget-decoy-3",
+            "context-budget",
+            "context-budget-decoy-4",
+            "context-budget-decoy-2",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q039",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "context-budget"
+          ],
+          "baselineTop6": [
+            "vector-pgvector-decoy-3",
+            "fulltext-postgres-decoy-2",
+            "graph-neo4j-decoy-1",
+            "rag-rerank-decoy-4",
+            "context-budget",
+            "rag-rrf-decoy-1"
+          ],
+          "optimizedTop6": [
+            "context-budget-decoy-4",
+            "context-budget",
+            "context-budget-decoy-2",
+            "context-budget-decoy-1",
+            "context-budget-decoy-3",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q040",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "context-budget"
+          ],
+          "baselineTop6": [
+            "vector-pgvector-decoy-3",
+            "fulltext-postgres-decoy-2",
+            "graph-neo4j-decoy-1",
+            "rag-rerank-decoy-4",
+            "context-budget",
+            "cognitive-profile"
+          ],
+          "optimizedTop6": [
+            "context-budget-decoy-3",
+            "context-budget",
+            "context-budget-decoy-4",
+            "context-budget-decoy-2",
+            "context-budget-decoy-1",
+            "rag-rerank-decoy-4"
+          ]
+        },
+        {
+          "id": "q041",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "chunking-markdown"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-3",
+            "graph-neo4j-decoy-2",
+            "context-budget-decoy-1",
+            "vector-pgvector-decoy-4",
+            "chunking-markdown-decoy-2",
+            "chunking-markdown-decoy-4"
+          ],
+          "optimizedTop6": [
+            "chunking-markdown-decoy-1",
+            "chunking-markdown-decoy-2",
+            "chunking-markdown-decoy-3",
+            "chunking-markdown-decoy-4",
+            "chunking-markdown",
+            "vector-pgvector-decoy-4"
+          ]
+        },
+        {
+          "id": "q042",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "chunking-markdown"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-3",
+            "graph-neo4j-decoy-2",
+            "context-budget-decoy-1",
+            "vector-pgvector-decoy-4",
+            "chunking-markdown-decoy-4",
+            "chunking-markdown-decoy-3"
+          ],
+          "optimizedTop6": [
+            "chunking-markdown-decoy-1",
+            "chunking-markdown-decoy-2",
+            "chunking-markdown-decoy-4",
+            "chunking-markdown-decoy-3",
+            "chunking-markdown",
+            "vector-pgvector-decoy-4"
+          ]
+        },
+        {
+          "id": "q043",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "chunking-markdown"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-3",
+            "graph-neo4j-decoy-2",
+            "context-budget-decoy-1",
+            "vector-pgvector-decoy-4",
+            "chunking-markdown",
+            "chunking-markdown-decoy-2"
+          ],
+          "optimizedTop6": [
+            "chunking-markdown",
+            "chunking-markdown-decoy-2",
+            "chunking-markdown-decoy-4",
+            "chunking-markdown-decoy-1",
+            "chunking-markdown-decoy-3",
+            "vector-pgvector-decoy-4"
+          ]
+        },
+        {
+          "id": "q044",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "chunking-markdown"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-3",
+            "graph-neo4j-decoy-2",
+            "context-budget-decoy-1",
+            "vector-pgvector-decoy-4",
+            "chunking-markdown-decoy-4",
+            "chunking-markdown-decoy-3"
+          ],
+          "optimizedTop6": [
+            "chunking-markdown-decoy-1",
+            "chunking-markdown-decoy-2",
+            "chunking-markdown-decoy-4",
+            "chunking-markdown-decoy-3",
+            "chunking-markdown",
+            "vector-pgvector-decoy-4"
+          ]
+        },
+        {
+          "id": "q045",
+          "baselineHit": false,
+          "optimizedHit": false,
+          "goldSourceIds": [
+            "chunking-markdown"
+          ],
+          "baselineTop6": [
+            "cognitive-profile",
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-2",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "cognitive-profile"
+          ]
+        },
+        {
+          "id": "q046",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "incremental-index"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-4",
+            "graph-neo4j-decoy-3",
+            "chunking-markdown-decoy-1",
+            "context-budget-decoy-2",
+            "incremental-index-decoy-1",
+            "incremental-index-decoy-4"
+          ],
+          "optimizedTop6": [
+            "incremental-index-decoy-1",
+            "incremental-index-decoy-4",
+            "incremental-index-decoy-3",
+            "incremental-index-decoy-2",
+            "incremental-index",
+            "vector-pgvector"
+          ]
+        },
+        {
+          "id": "q047",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "incremental-index"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-4",
+            "graph-neo4j-decoy-3",
+            "chunking-markdown-decoy-1",
+            "context-budget-decoy-2",
+            "incremental-index-decoy-4",
+            "incremental-index-decoy-3"
+          ],
+          "optimizedTop6": [
+            "incremental-index-decoy-1",
+            "incremental-index-decoy-4",
+            "incremental-index-decoy-3",
+            "incremental-index-decoy-2",
+            "incremental-index",
+            "vector-pgvector-decoy-4"
+          ]
+        },
+        {
+          "id": "q048",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "incremental-index"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-4",
+            "graph-neo4j-decoy-3",
+            "chunking-markdown-decoy-1",
+            "context-budget-decoy-2",
+            "chunking-markdown",
+            "incremental-index-decoy-1"
+          ],
+          "optimizedTop6": [
+            "incremental-index-decoy-1",
+            "incremental-index-decoy-4",
+            "incremental-index-decoy-3",
+            "incremental-index-decoy-2",
+            "incremental-index",
+            "vector-pgvector-decoy-4"
+          ]
+        },
+        {
+          "id": "q049",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "incremental-index"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-4",
+            "graph-neo4j-decoy-3",
+            "chunking-markdown-decoy-1",
+            "context-budget-decoy-2",
+            "incremental-index-decoy-4",
+            "incremental-index-decoy-3"
+          ],
+          "optimizedTop6": [
+            "incremental-index-decoy-1",
+            "incremental-index-decoy-4",
+            "incremental-index-decoy-3",
+            "incremental-index-decoy-2",
+            "incremental-index",
+            "vector-pgvector-decoy-4"
+          ]
+        },
+        {
+          "id": "q050",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "incremental-index"
+          ],
+          "baselineTop6": [
+            "fulltext-postgres-decoy-4",
+            "graph-neo4j-decoy-3",
+            "chunking-markdown-decoy-1",
+            "context-budget-decoy-2",
+            "cognitive-profile",
+            "sse-chat-decoy-2"
+          ],
+          "optimizedTop6": [
+            "incremental-index-decoy-1",
+            "incremental-index-decoy-3",
+            "incremental-index-decoy-4",
+            "incremental-index-decoy-2",
+            "incremental-index",
+            "dashboard"
+          ]
+        },
+        {
+          "id": "q051",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "embedding-batch"
+          ],
+          "baselineTop6": [
+            "graph-neo4j-decoy-4",
+            "chunking-markdown-decoy-2",
+            "context-budget-decoy-3",
+            "incremental-index-decoy-1",
+            "embedding-batch",
+            "vector-pgvector"
+          ],
+          "optimizedTop6": [
+            "embedding-batch",
+            "embedding-batch-decoy-1",
+            "embedding-batch-decoy-3",
+            "embedding-batch-decoy-2",
+            "embedding-batch-decoy-4",
+            "graph-neo4j-decoy-4"
+          ]
+        },
+        {
+          "id": "q052",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "embedding-batch"
+          ],
+          "baselineTop6": [
+            "graph-neo4j-decoy-4",
+            "chunking-markdown-decoy-2",
+            "context-budget-decoy-3",
+            "incremental-index-decoy-1",
+            "embedding-batch",
+            "vector-pgvector"
+          ],
+          "optimizedTop6": [
+            "embedding-batch-decoy-1",
+            "embedding-batch",
+            "embedding-batch-decoy-3",
+            "embedding-batch-decoy-2",
+            "embedding-batch-decoy-4",
+            "graph-neo4j-decoy-4"
+          ]
+        },
+        {
+          "id": "q053",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "embedding-batch"
+          ],
+          "baselineTop6": [
+            "graph-neo4j-decoy-4",
+            "chunking-markdown-decoy-2",
+            "context-budget-decoy-3",
+            "incremental-index-decoy-1",
+            "embedding-batch",
+            "vector-pgvector"
+          ],
+          "optimizedTop6": [
+            "embedding-batch",
+            "embedding-batch-decoy-3",
+            "embedding-batch-decoy-2",
+            "embedding-batch-decoy-1",
+            "embedding-batch-decoy-4",
+            "graph-neo4j-decoy-4"
+          ]
+        },
+        {
+          "id": "q054",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "embedding-batch"
+          ],
+          "baselineTop6": [
+            "graph-neo4j-decoy-4",
+            "chunking-markdown-decoy-2",
+            "context-budget-decoy-3",
+            "incremental-index-decoy-1",
+            "embedding-batch",
+            "vector-pgvector"
+          ],
+          "optimizedTop6": [
+            "embedding-batch-decoy-4",
+            "embedding-batch-decoy-1",
+            "embedding-batch",
+            "embedding-batch-decoy-3",
+            "embedding-batch-decoy-2",
+            "graph-neo4j-decoy-4"
+          ]
+        },
+        {
+          "id": "q055",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "embedding-batch"
+          ],
+          "baselineTop6": [
+            "graph-neo4j-decoy-4",
+            "chunking-markdown-decoy-2",
+            "context-budget-decoy-3",
+            "incremental-index-decoy-1",
+            "embedding-batch",
+            "embedding-batch-decoy-4"
+          ],
+          "optimizedTop6": [
+            "embedding-batch-decoy-4",
+            "embedding-batch",
+            "embedding-batch-decoy-2",
+            "embedding-batch-decoy-1",
+            "embedding-batch-decoy-3",
+            "graph-neo4j-decoy-4"
+          ]
+        },
+        {
+          "id": "q056",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "ai-provider"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-3",
+            "context-budget-decoy-4",
+            "embedding-batch-decoy-1",
+            "incremental-index-decoy-2",
+            "ai-provider",
+            "ai-provider-decoy-2"
+          ],
+          "optimizedTop6": [
+            "ai-provider-decoy-1",
+            "ai-provider-decoy-4",
+            "ai-provider-decoy-2",
+            "ai-provider-decoy-3",
+            "ai-provider",
+            "incremental-index-decoy-2"
+          ]
+        },
+        {
+          "id": "q057",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "ai-provider"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-3",
+            "context-budget-decoy-4",
+            "embedding-batch-decoy-1",
+            "incremental-index-decoy-2",
+            "ai-provider",
+            "ai-provider-decoy-2"
+          ],
+          "optimizedTop6": [
+            "ai-provider-decoy-1",
+            "ai-provider-decoy-4",
+            "ai-provider-decoy-2",
+            "ai-provider-decoy-3",
+            "ai-provider",
+            "incremental-index-decoy-2"
+          ]
+        },
+        {
+          "id": "q058",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "ai-provider"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-3",
+            "context-budget-decoy-4",
+            "embedding-batch-decoy-1",
+            "incremental-index-decoy-2",
+            "ai-provider-decoy-4",
+            "ai-provider-decoy-2"
+          ],
+          "optimizedTop6": [
+            "ai-provider-decoy-4",
+            "ai-provider-decoy-1",
+            "ai-provider-decoy-2",
+            "ai-provider-decoy-3",
+            "ai-provider",
+            "incremental-index-decoy-2"
+          ]
+        },
+        {
+          "id": "q059",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "ai-provider"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-3",
+            "context-budget-decoy-4",
+            "embedding-batch-decoy-1",
+            "incremental-index-decoy-2",
+            "ai-provider-decoy-3",
+            "ai-provider"
+          ],
+          "optimizedTop6": [
+            "ai-provider-decoy-1",
+            "ai-provider-decoy-4",
+            "ai-provider-decoy-3",
+            "ai-provider-decoy-2",
+            "ai-provider",
+            "incremental-index-decoy-2"
+          ]
+        },
+        {
+          "id": "q060",
+          "baselineHit": false,
+          "optimizedHit": false,
+          "goldSourceIds": [
+            "ai-provider"
+          ],
+          "baselineTop6": [
+            "cognitive-profile",
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-2",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "cognitive-profile"
+          ]
+        },
+        {
+          "id": "q061",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sse-chat"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-4",
+            "ai-provider-decoy-1",
+            "embedding-batch-decoy-2",
+            "incremental-index-decoy-3",
+            "sse-chat",
+            "sse-chat-decoy-4"
+          ],
+          "optimizedTop6": [
+            "sse-chat-decoy-1",
+            "sse-chat-decoy-2",
+            "sse-chat",
+            "sse-chat-decoy-4",
+            "sse-chat-decoy-3",
+            "incremental-index-decoy-3"
+          ]
+        },
+        {
+          "id": "q062",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sse-chat"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-4",
+            "ai-provider-decoy-1",
+            "embedding-batch-decoy-2",
+            "incremental-index-decoy-3",
+            "sse-chat",
+            "sse-chat-decoy-4"
+          ],
+          "optimizedTop6": [
+            "sse-chat-decoy-1",
+            "sse-chat-decoy-2",
+            "sse-chat",
+            "sse-chat-decoy-4",
+            "sse-chat-decoy-3",
+            "incremental-index-decoy-3"
+          ]
+        },
+        {
+          "id": "q063",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sse-chat"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-4",
+            "ai-provider-decoy-1",
+            "embedding-batch-decoy-2",
+            "incremental-index-decoy-3",
+            "sse-chat",
+            "sse-chat-decoy-3"
+          ],
+          "optimizedTop6": [
+            "sse-chat-decoy-1",
+            "sse-chat-decoy-3",
+            "sse-chat",
+            "sse-chat-decoy-2",
+            "sse-chat-decoy-4",
+            "incremental-index-decoy-3"
+          ]
+        },
+        {
+          "id": "q064",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sse-chat"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-4",
+            "ai-provider-decoy-1",
+            "embedding-batch-decoy-2",
+            "incremental-index-decoy-3",
+            "sse-chat",
+            "sse-chat-decoy-2"
+          ],
+          "optimizedTop6": [
+            "sse-chat-decoy-1",
+            "sse-chat-decoy-2",
+            "sse-chat",
+            "sse-chat-decoy-4",
+            "sse-chat-decoy-3",
+            "incremental-index-decoy-3"
+          ]
+        },
+        {
+          "id": "q065",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sse-chat"
+          ],
+          "baselineTop6": [
+            "chunking-markdown-decoy-4",
+            "ai-provider-decoy-1",
+            "embedding-batch-decoy-2",
+            "incremental-index-decoy-3",
+            "sse-chat",
+            "sse-chat-decoy-2"
+          ],
+          "optimizedTop6": [
+            "sse-chat-decoy-2",
+            "sse-chat-decoy-4",
+            "sse-chat-decoy-1",
+            "sse-chat",
+            "sse-chat-decoy-3",
+            "dashboard"
+          ]
+        },
+        {
+          "id": "q066",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "persona-system"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-1",
+            "ai-provider-decoy-2",
+            "embedding-batch-decoy-3",
+            "incremental-index-decoy-4",
+            "context-budget",
+            "persona-system"
+          ],
+          "optimizedTop6": [
+            "persona-system-decoy-1",
+            "persona-system",
+            "persona-system-decoy-3",
+            "persona-system-decoy-2",
+            "persona-system-decoy-4",
+            "incremental-index-decoy-4"
+          ]
+        },
+        {
+          "id": "q067",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "persona-system"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-1",
+            "ai-provider-decoy-2",
+            "embedding-batch-decoy-3",
+            "incremental-index-decoy-4",
+            "context-budget",
+            "persona-system"
+          ],
+          "optimizedTop6": [
+            "persona-system-decoy-1",
+            "persona-system",
+            "persona-system-decoy-3",
+            "persona-system-decoy-2",
+            "persona-system-decoy-4",
+            "incremental-index-decoy-4"
+          ]
+        },
+        {
+          "id": "q068",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "persona-system"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-1",
+            "ai-provider-decoy-2",
+            "embedding-batch-decoy-3",
+            "incremental-index-decoy-4",
+            "context-budget",
+            "persona-system"
+          ],
+          "optimizedTop6": [
+            "persona-system-decoy-2",
+            "persona-system-decoy-1",
+            "persona-system",
+            "persona-system-decoy-3",
+            "persona-system-decoy-4",
+            "incremental-index-decoy-4"
+          ]
+        },
+        {
+          "id": "q069",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "persona-system"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-1",
+            "ai-provider-decoy-2",
+            "embedding-batch-decoy-3",
+            "incremental-index-decoy-4",
+            "context-budget",
+            "persona-system"
+          ],
+          "optimizedTop6": [
+            "persona-system-decoy-1",
+            "persona-system",
+            "persona-system-decoy-3",
+            "persona-system-decoy-2",
+            "persona-system-decoy-4",
+            "incremental-index-decoy-4"
+          ]
+        },
+        {
+          "id": "q070",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "persona-system"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-1",
+            "ai-provider-decoy-2",
+            "embedding-batch-decoy-3",
+            "incremental-index-decoy-4",
+            "persona-system-decoy-1",
+            "cognitive-profile"
+          ],
+          "optimizedTop6": [
+            "persona-system-decoy-1",
+            "persona-system-decoy-3",
+            "persona-system",
+            "persona-system-decoy-2",
+            "persona-system-decoy-4",
+            "incremental-index-decoy-4"
+          ]
+        },
+        {
+          "id": "q071",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "cognitive-profile"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-2",
+            "persona-system-decoy-1",
+            "ai-provider-decoy-3",
+            "embedding-batch-decoy-4",
+            "cognitive-profile-decoy-2",
+            "cognitive-profile"
+          ],
+          "optimizedTop6": [
+            "cognitive-profile-decoy-3",
+            "cognitive-profile-decoy-2",
+            "cognitive-profile-decoy-1",
+            "cognitive-profile-decoy-4",
+            "cognitive-profile",
+            "ai-provider-decoy-3"
+          ]
+        },
+        {
+          "id": "q072",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "cognitive-profile"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-2",
+            "persona-system-decoy-1",
+            "ai-provider-decoy-3",
+            "embedding-batch-decoy-4",
+            "cognitive-profile-decoy-2",
+            "cognitive-profile"
+          ],
+          "optimizedTop6": [
+            "cognitive-profile-decoy-3",
+            "cognitive-profile-decoy-2",
+            "cognitive-profile-decoy-1",
+            "cognitive-profile-decoy-4",
+            "cognitive-profile",
+            "ai-provider-decoy-3"
+          ]
+        },
+        {
+          "id": "q073",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "cognitive-profile"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-2",
+            "persona-system-decoy-1",
+            "ai-provider-decoy-3",
+            "embedding-batch-decoy-4",
+            "cognitive-profile-decoy-1",
+            "chunking-markdown"
+          ],
+          "optimizedTop6": [
+            "cognitive-profile-decoy-1",
+            "cognitive-profile-decoy-3",
+            "cognitive-profile-decoy-4",
+            "cognitive-profile-decoy-2",
+            "cognitive-profile",
+            "ai-provider-decoy-3"
+          ]
+        },
+        {
+          "id": "q074",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "cognitive-profile"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-2",
+            "persona-system-decoy-1",
+            "ai-provider-decoy-3",
+            "embedding-batch-decoy-4",
+            "cognitive-profile",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "cognitive-profile-decoy-3",
+            "cognitive-profile",
+            "cognitive-profile-decoy-2",
+            "cognitive-profile-decoy-1",
+            "cognitive-profile-decoy-4",
+            "ai-provider-decoy-3"
+          ]
+        },
+        {
+          "id": "q075",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "cognitive-profile"
+          ],
+          "baselineTop6": [
+            "cognitive-profile",
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-2",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "cognitive-profile"
+          ]
+        },
+        {
+          "id": "q076",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "extraction-job"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-3",
+            "persona-system-decoy-2",
+            "ai-provider-decoy-4",
+            "cognitive-profile-decoy-1",
+            "extraction-job",
+            "extraction-job-decoy-4"
+          ],
+          "optimizedTop6": [
+            "extraction-job",
+            "extraction-job-decoy-1",
+            "extraction-job-decoy-4",
+            "extraction-job-decoy-2",
+            "extraction-job-decoy-3",
+            "d3-graph-ui-decoy-1"
+          ]
+        },
+        {
+          "id": "q077",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "extraction-job"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-3",
+            "persona-system-decoy-2",
+            "ai-provider-decoy-4",
+            "cognitive-profile-decoy-1",
+            "extraction-job",
+            "extraction-job-decoy-4"
+          ],
+          "optimizedTop6": [
+            "extraction-job",
+            "extraction-job-decoy-1",
+            "extraction-job-decoy-4",
+            "extraction-job-decoy-2",
+            "extraction-job-decoy-3",
+            "d3-graph-ui-decoy-1"
+          ]
+        },
+        {
+          "id": "q078",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "extraction-job"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-3",
+            "persona-system-decoy-2",
+            "ai-provider-decoy-4",
+            "cognitive-profile-decoy-1",
+            "extraction-job",
+            "extraction-job-decoy-4"
+          ],
+          "optimizedTop6": [
+            "extraction-job",
+            "extraction-job-decoy-3",
+            "extraction-job-decoy-4",
+            "extraction-job-decoy-1",
+            "extraction-job-decoy-2",
+            "d3-graph-ui-decoy-2"
+          ]
+        },
+        {
+          "id": "q079",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "extraction-job"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-3",
+            "persona-system-decoy-2",
+            "ai-provider-decoy-4",
+            "cognitive-profile-decoy-1",
+            "extraction-job",
+            "extraction-job-decoy-4"
+          ],
+          "optimizedTop6": [
+            "extraction-job",
+            "extraction-job-decoy-1",
+            "extraction-job-decoy-4",
+            "extraction-job-decoy-2",
+            "extraction-job-decoy-3",
+            "d3-graph-ui-decoy-1"
+          ]
+        },
+        {
+          "id": "q080",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "extraction-job"
+          ],
+          "baselineTop6": [
+            "cognitive-profile-decoy-1",
+            "sse-chat-decoy-3",
+            "persona-system-decoy-2",
+            "ai-provider-decoy-4",
+            "cognitive-profile",
+            "extraction-job-decoy-1"
+          ],
+          "optimizedTop6": [
+            "extraction-job-decoy-1",
+            "extraction-job-decoy-3",
+            "extraction-job",
+            "extraction-job-decoy-4",
+            "extraction-job-decoy-2",
+            "dashboard"
+          ]
+        },
+        {
+          "id": "q081",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "card-generation"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-4",
+            "persona-system-decoy-3",
+            "extraction-job-decoy-1",
+            "cognitive-profile-decoy-2",
+            "card-generation",
+            "extraction-job"
+          ],
+          "optimizedTop6": [
+            "card-generation-decoy-4",
+            "card-generation-decoy-1",
+            "card-generation-decoy-3",
+            "card-generation-decoy-2",
+            "card-generation",
+            "persona-system-decoy-3"
+          ]
+        },
+        {
+          "id": "q082",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "card-generation"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-4",
+            "persona-system-decoy-3",
+            "extraction-job-decoy-1",
+            "cognitive-profile-decoy-2",
+            "card-generation",
+            "extraction-job"
+          ],
+          "optimizedTop6": [
+            "card-generation-decoy-4",
+            "card-generation-decoy-1",
+            "card-generation-decoy-3",
+            "card-generation-decoy-2",
+            "card-generation",
+            "persona-system-decoy-3"
+          ]
+        },
+        {
+          "id": "q083",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "card-generation"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-4",
+            "persona-system-decoy-3",
+            "extraction-job-decoy-1",
+            "cognitive-profile-decoy-2",
+            "extraction-job",
+            "chunking-markdown"
+          ],
+          "optimizedTop6": [
+            "card-generation-decoy-4",
+            "card-generation-decoy-2",
+            "card-generation-decoy-3",
+            "card-generation-decoy-1",
+            "card-generation",
+            "persona-system-decoy-3"
+          ]
+        },
+        {
+          "id": "q084",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "card-generation"
+          ],
+          "baselineTop6": [
+            "sse-chat-decoy-4",
+            "persona-system-decoy-3",
+            "extraction-job-decoy-1",
+            "cognitive-profile-decoy-2",
+            "card-generation",
+            "extraction-job"
+          ],
+          "optimizedTop6": [
+            "card-generation-decoy-4",
+            "card-generation-decoy-1",
+            "card-generation-decoy-3",
+            "card-generation-decoy-2",
+            "card-generation",
+            "persona-system-decoy-3"
+          ]
+        },
+        {
+          "id": "q085",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "card-generation"
+          ],
+          "baselineTop6": [
+            "cognitive-profile-decoy-2",
+            "sse-chat-decoy-4",
+            "persona-system-decoy-3",
+            "extraction-job-decoy-1",
+            "cognitive-profile",
+            "card-generation"
+          ],
+          "optimizedTop6": [
+            "card-generation-decoy-4",
+            "card-generation",
+            "card-generation-decoy-2",
+            "card-generation-decoy-3",
+            "card-generation-decoy-1",
+            "dashboard"
+          ]
+        },
+        {
+          "id": "q086",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sspmc-half-life"
+          ],
+          "baselineTop6": [
+            "persona-system-decoy-4",
+            "card-generation-decoy-1",
+            "extraction-job-decoy-2",
+            "cognitive-profile-decoy-3",
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3"
+          ],
+          "optimizedTop6": [
+            "sspmc-half-life-decoy-1",
+            "sspmc-half-life",
+            "sspmc-half-life-decoy-4",
+            "sspmc-half-life-decoy-2",
+            "sspmc-half-life-decoy-3",
+            "review-queue"
+          ]
+        },
+        {
+          "id": "q087",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sspmc-half-life"
+          ],
+          "baselineTop6": [
+            "persona-system-decoy-4",
+            "card-generation-decoy-1",
+            "extraction-job-decoy-2",
+            "cognitive-profile-decoy-3",
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3"
+          ],
+          "optimizedTop6": [
+            "sspmc-half-life-decoy-1",
+            "sspmc-half-life",
+            "sspmc-half-life-decoy-4",
+            "sspmc-half-life-decoy-2",
+            "sspmc-half-life-decoy-3",
+            "review-queue"
+          ]
+        },
+        {
+          "id": "q088",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sspmc-half-life"
+          ],
+          "baselineTop6": [
+            "persona-system-decoy-4",
+            "card-generation-decoy-1",
+            "extraction-job-decoy-2",
+            "cognitive-profile-decoy-3",
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3"
+          ],
+          "optimizedTop6": [
+            "sspmc-half-life-decoy-1",
+            "sspmc-half-life",
+            "sspmc-half-life-decoy-3",
+            "sspmc-half-life-decoy-2",
+            "sspmc-half-life-decoy-4",
+            "review-queue"
+          ]
+        },
+        {
+          "id": "q089",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "sspmc-half-life"
+          ],
+          "baselineTop6": [
+            "persona-system-decoy-4",
+            "card-generation-decoy-1",
+            "extraction-job-decoy-2",
+            "cognitive-profile-decoy-3",
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3"
+          ],
+          "optimizedTop6": [
+            "sspmc-half-life-decoy-1",
+            "sspmc-half-life",
+            "sspmc-half-life-decoy-4",
+            "sspmc-half-life-decoy-2",
+            "sspmc-half-life-decoy-3",
+            "review-queue"
+          ]
+        },
+        {
+          "id": "q090",
+          "baselineHit": false,
+          "optimizedHit": false,
+          "goldSourceIds": [
+            "sspmc-half-life"
+          ],
+          "baselineTop6": [
+            "cognitive-profile",
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-2",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "cognitive-profile"
+          ]
+        },
+        {
+          "id": "q091",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "review-queue"
+          ],
+          "baselineTop6": [
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3",
+            "cognitive-profile-decoy-4",
+            "sspmc-half-life-decoy-1",
+            "review-queue",
+            "review-queue-decoy-1"
+          ],
+          "optimizedTop6": [
+            "review-queue-decoy-4",
+            "review-queue",
+            "review-queue-decoy-3",
+            "review-queue-decoy-2",
+            "review-queue-decoy-1",
+            "sspmc-half-life-decoy-1"
+          ]
+        },
+        {
+          "id": "q092",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "review-queue"
+          ],
+          "baselineTop6": [
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3",
+            "cognitive-profile-decoy-4",
+            "sspmc-half-life-decoy-1",
+            "review-queue",
+            "review-queue-decoy-1"
+          ],
+          "optimizedTop6": [
+            "review-queue-decoy-4",
+            "review-queue",
+            "review-queue-decoy-3",
+            "review-queue-decoy-2",
+            "review-queue-decoy-1",
+            "sspmc-half-life-decoy-1"
+          ]
+        },
+        {
+          "id": "q093",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "review-queue"
+          ],
+          "baselineTop6": [
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3",
+            "cognitive-profile-decoy-4",
+            "sspmc-half-life-decoy-1",
+            "review-queue",
+            "review-queue-decoy-1"
+          ],
+          "optimizedTop6": [
+            "review-queue",
+            "review-queue-decoy-4",
+            "review-queue-decoy-2",
+            "review-queue-decoy-1",
+            "review-queue-decoy-3",
+            "sspmc-half-life-decoy-1"
+          ]
+        },
+        {
+          "id": "q094",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "review-queue"
+          ],
+          "baselineTop6": [
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3",
+            "cognitive-profile-decoy-4",
+            "sspmc-half-life-decoy-1",
+            "review-queue",
+            "review-queue-decoy-1"
+          ],
+          "optimizedTop6": [
+            "review-queue-decoy-4",
+            "review-queue",
+            "review-queue-decoy-3",
+            "review-queue-decoy-2",
+            "review-queue-decoy-1",
+            "sspmc-half-life-decoy-1"
+          ]
+        },
+        {
+          "id": "q095",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "review-queue"
+          ],
+          "baselineTop6": [
+            "cognitive-profile-decoy-4",
+            "card-generation-decoy-2",
+            "extraction-job-decoy-3",
+            "sspmc-half-life-decoy-1",
+            "review-queue-decoy-4",
+            "review-queue"
+          ],
+          "optimizedTop6": [
+            "review-queue-decoy-4",
+            "review-queue",
+            "review-queue-decoy-2",
+            "review-queue-decoy-3",
+            "review-queue-decoy-1",
+            "sspmc-half-life-decoy-1"
+          ]
+        },
+        {
+          "id": "q096",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "notes-editor"
+          ],
+          "baselineTop6": [
+            "sspmc-half-life-decoy-2",
+            "card-generation-decoy-3",
+            "extraction-job-decoy-4",
+            "review-queue-decoy-1",
+            "embedding-batch",
+            "notes-editor"
+          ],
+          "optimizedTop6": [
+            "notes-editor-decoy-2",
+            "notes-editor-decoy-1",
+            "notes-editor-decoy-4",
+            "notes-editor-decoy-3",
+            "notes-editor",
+            "card-generation-decoy-3"
+          ]
+        },
+        {
+          "id": "q097",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "notes-editor"
+          ],
+          "baselineTop6": [
+            "sspmc-half-life-decoy-2",
+            "card-generation-decoy-3",
+            "extraction-job-decoy-4",
+            "review-queue-decoy-1",
+            "notes-editor",
+            "notes-editor-decoy-1"
+          ],
+          "optimizedTop6": [
+            "notes-editor-decoy-2",
+            "notes-editor-decoy-1",
+            "notes-editor-decoy-4",
+            "notes-editor-decoy-3",
+            "notes-editor",
+            "card-generation-decoy-3"
+          ]
+        },
+        {
+          "id": "q098",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "notes-editor"
+          ],
+          "baselineTop6": [
+            "sspmc-half-life-decoy-2",
+            "card-generation-decoy-3",
+            "extraction-job-decoy-4",
+            "review-queue-decoy-1",
+            "notes-editor-decoy-4",
+            "chunking-markdown"
+          ],
+          "optimizedTop6": [
+            "notes-editor-decoy-1",
+            "notes-editor-decoy-2",
+            "notes-editor-decoy-4",
+            "notes-editor-decoy-3",
+            "notes-editor",
+            "card-generation-decoy-3"
+          ]
+        },
+        {
+          "id": "q099",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "notes-editor"
+          ],
+          "baselineTop6": [
+            "sspmc-half-life-decoy-2",
+            "card-generation-decoy-3",
+            "extraction-job-decoy-4",
+            "review-queue-decoy-1",
+            "notes-editor",
+            "notes-editor-decoy-1"
+          ],
+          "optimizedTop6": [
+            "notes-editor-decoy-2",
+            "notes-editor-decoy-1",
+            "notes-editor-decoy-4",
+            "notes-editor-decoy-3",
+            "notes-editor",
+            "card-generation-decoy-3"
+          ]
+        },
+        {
+          "id": "q100",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "notes-editor"
+          ],
+          "baselineTop6": [
+            "sspmc-half-life-decoy-2",
+            "card-generation-decoy-3",
+            "extraction-job-decoy-4",
+            "review-queue-decoy-1",
+            "cognitive-profile",
+            "notes-editor-decoy-3"
+          ],
+          "optimizedTop6": [
+            "notes-editor-decoy-1",
+            "notes-editor-decoy-3",
+            "notes-editor-decoy-2",
+            "notes-editor-decoy-4",
+            "notes-editor",
+            "dashboard"
+          ]
+        },
+        {
+          "id": "q101",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "file-handler"
+          ],
+          "baselineTop6": [
+            "card-generation-decoy-4",
+            "sspmc-half-life-decoy-3",
+            "notes-editor-decoy-1",
+            "review-queue-decoy-2",
+            "file-handler-decoy-4",
+            "embedding-batch"
+          ],
+          "optimizedTop6": [
+            "file-handler-decoy-4",
+            "file-handler-decoy-1",
+            "file-handler-decoy-2",
+            "file-handler-decoy-3",
+            "file-handler",
+            "card-generation-decoy-4"
+          ]
+        },
+        {
+          "id": "q102",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "file-handler"
+          ],
+          "baselineTop6": [
+            "card-generation-decoy-4",
+            "sspmc-half-life-decoy-3",
+            "notes-editor-decoy-1",
+            "review-queue-decoy-2",
+            "file-handler-decoy-2",
+            "file-handler-decoy-1"
+          ],
+          "optimizedTop6": [
+            "file-handler-decoy-1",
+            "file-handler-decoy-2",
+            "file-handler-decoy-3",
+            "file-handler-decoy-4",
+            "file-handler",
+            "card-generation-decoy-4"
+          ]
+        },
+        {
+          "id": "q103",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "file-handler"
+          ],
+          "baselineTop6": [
+            "card-generation-decoy-4",
+            "sspmc-half-life-decoy-3",
+            "notes-editor-decoy-1",
+            "review-queue-decoy-2",
+            "chunking-markdown",
+            "file-handler-decoy-3"
+          ],
+          "optimizedTop6": [
+            "file-handler-decoy-3",
+            "file-handler-decoy-4",
+            "file-handler-decoy-1",
+            "file-handler-decoy-2",
+            "file-handler",
+            "card-generation-decoy-4"
+          ]
+        },
+        {
+          "id": "q104",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "file-handler"
+          ],
+          "baselineTop6": [
+            "card-generation-decoy-4",
+            "sspmc-half-life-decoy-3",
+            "notes-editor-decoy-1",
+            "review-queue-decoy-2",
+            "file-handler-decoy-2",
+            "file-handler-decoy-1"
+          ],
+          "optimizedTop6": [
+            "file-handler-decoy-1",
+            "file-handler-decoy-2",
+            "file-handler-decoy-3",
+            "file-handler-decoy-4",
+            "file-handler",
+            "card-generation-decoy-4"
+          ]
+        },
+        {
+          "id": "q105",
+          "baselineHit": false,
+          "optimizedHit": false,
+          "goldSourceIds": [
+            "file-handler"
+          ],
+          "baselineTop6": [
+            "cognitive-profile",
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-2",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "cognitive-profile"
+          ]
+        },
+        {
+          "id": "q106",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "api-auth"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-2",
+            "sspmc-half-life-decoy-4",
+            "file-handler-decoy-1",
+            "review-queue-decoy-3",
+            "rag-query-rewrite",
+            "persona-system"
+          ],
+          "optimizedTop6": [
+            "api-auth-decoy-3",
+            "api-auth",
+            "api-auth-decoy-1",
+            "api-auth-decoy-2",
+            "api-auth-decoy-4",
+            "sspmc-half-life-decoy-4"
+          ]
+        },
+        {
+          "id": "q107",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "api-auth"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-2",
+            "sspmc-half-life-decoy-4",
+            "file-handler-decoy-1",
+            "review-queue-decoy-3",
+            "persona-system",
+            "rag-query-rewrite"
+          ],
+          "optimizedTop6": [
+            "api-auth",
+            "api-auth-decoy-3",
+            "api-auth-decoy-1",
+            "api-auth-decoy-2",
+            "api-auth-decoy-4",
+            "sspmc-half-life-decoy-4"
+          ]
+        },
+        {
+          "id": "q108",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "api-auth"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-2",
+            "sspmc-half-life-decoy-4",
+            "file-handler-decoy-1",
+            "review-queue-decoy-3",
+            "persona-system",
+            "chunking-markdown"
+          ],
+          "optimizedTop6": [
+            "api-auth-decoy-2",
+            "api-auth-decoy-4",
+            "api-auth-decoy-3",
+            "api-auth",
+            "api-auth-decoy-1",
+            "sspmc-half-life-decoy-4"
+          ]
+        },
+        {
+          "id": "q109",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "api-auth"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-2",
+            "sspmc-half-life-decoy-4",
+            "file-handler-decoy-1",
+            "review-queue-decoy-3",
+            "persona-system",
+            "rag-query-rewrite"
+          ],
+          "optimizedTop6": [
+            "api-auth",
+            "api-auth-decoy-3",
+            "api-auth-decoy-1",
+            "api-auth-decoy-2",
+            "api-auth-decoy-4",
+            "sspmc-half-life-decoy-4"
+          ]
+        },
+        {
+          "id": "q110",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "api-auth"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-2",
+            "sspmc-half-life-decoy-4",
+            "file-handler-decoy-1",
+            "review-queue-decoy-3",
+            "cognitive-profile",
+            "sse-chat-decoy-2"
+          ],
+          "optimizedTop6": [
+            "api-auth-decoy-1",
+            "api-auth-decoy-2",
+            "api-auth",
+            "api-auth-decoy-4",
+            "api-auth-decoy-3",
+            "dashboard"
+          ]
+        },
+        {
+          "id": "q111",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "dashboard"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile",
+            "dashboard"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-1",
+            "dashboard-decoy-2",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "api-auth-decoy-1"
+          ]
+        },
+        {
+          "id": "q112",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "dashboard"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile",
+            "dashboard"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "dashboard-decoy-2",
+            "api-auth-decoy-1"
+          ]
+        },
+        {
+          "id": "q113",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "dashboard"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile",
+            "chunking-markdown"
+          ],
+          "optimizedTop6": [
+            "dashboard-decoy-1",
+            "dashboard-decoy-3",
+            "dashboard",
+            "dashboard-decoy-4",
+            "dashboard-decoy-2",
+            "api-auth-decoy-1"
+          ]
+        },
+        {
+          "id": "q114",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "dashboard"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile",
+            "sse-chat-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "dashboard-decoy-2",
+            "api-auth-decoy-1"
+          ]
+        },
+        {
+          "id": "q115",
+          "baselineHit": false,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "dashboard"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard-decoy-1",
+            "dashboard",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "dashboard-decoy-2",
+            "api-auth-decoy-1"
+          ]
+        },
+        {
+          "id": "q116",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "d3-graph-ui"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-4",
+            "dashboard-decoy-1",
+            "file-handler-decoy-3",
+            "api-auth-decoy-2",
+            "d3-graph-ui",
+            "graph-neo4j"
+          ],
+          "optimizedTop6": [
+            "d3-graph-ui-decoy-1",
+            "d3-graph-ui-decoy-3",
+            "d3-graph-ui-decoy-4",
+            "d3-graph-ui-decoy-2",
+            "d3-graph-ui",
+            "graph-neo4j"
+          ]
+        },
+        {
+          "id": "q117",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "d3-graph-ui"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-4",
+            "dashboard-decoy-1",
+            "file-handler-decoy-3",
+            "api-auth-decoy-2",
+            "d3-graph-ui",
+            "graph-neo4j"
+          ],
+          "optimizedTop6": [
+            "d3-graph-ui-decoy-3",
+            "d3-graph-ui-decoy-1",
+            "d3-graph-ui-decoy-4",
+            "d3-graph-ui-decoy-2",
+            "d3-graph-ui",
+            "graph-neo4j"
+          ]
+        },
+        {
+          "id": "q118",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "d3-graph-ui"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-4",
+            "dashboard-decoy-1",
+            "file-handler-decoy-3",
+            "api-auth-decoy-2",
+            "d3-graph-ui",
+            "sse-chat-decoy-3"
+          ],
+          "optimizedTop6": [
+            "d3-graph-ui-decoy-3",
+            "d3-graph-ui-decoy-2",
+            "d3-graph-ui-decoy-1",
+            "d3-graph-ui",
+            "d3-graph-ui-decoy-4",
+            "graph-neo4j"
+          ]
+        },
+        {
+          "id": "q119",
+          "baselineHit": true,
+          "optimizedHit": true,
+          "goldSourceIds": [
+            "d3-graph-ui"
+          ],
+          "baselineTop6": [
+            "notes-editor-decoy-4",
+            "dashboard-decoy-1",
+            "file-handler-decoy-3",
+            "api-auth-decoy-2",
+            "d3-graph-ui",
+            "graph-neo4j"
+          ],
+          "optimizedTop6": [
+            "d3-graph-ui-decoy-3",
+            "d3-graph-ui-decoy-1",
+            "d3-graph-ui-decoy-4",
+            "d3-graph-ui-decoy-2",
+            "d3-graph-ui",
+            "graph-neo4j"
+          ]
+        },
+        {
+          "id": "q120",
+          "baselineHit": false,
+          "optimizedHit": false,
+          "goldSourceIds": [
+            "d3-graph-ui"
+          ],
+          "baselineTop6": [
+            "cognitive-profile",
+            "notes-editor-decoy-3",
+            "file-handler-decoy-2",
+            "api-auth-decoy-1",
+            "review-queue-decoy-4",
+            "cognitive-profile-decoy-2"
+          ],
+          "optimizedTop6": [
+            "dashboard",
+            "dashboard-decoy-2",
+            "dashboard-decoy-1",
+            "dashboard-decoy-4",
+            "dashboard-decoy-3",
+            "cognitive-profile"
+          ]
+        }
+      ]
+    },
+    "averageIngestionMs": {
+      "documentCount": 100,
+      "baselineAverageMs": 693.75,
+      "optimizedAverageMs": 382.28,
+      "reduction": "44.9%"
+    },
+    "duplicateEmbedding": {
+      "baselineEmbeddingCalls": 802,
+      "optimizedEmbeddingCalls": 435,
+      "skippedEmbeddings": 367,
+      "avoidanceRate": "91.52%",
+      "callReduction": "45.76%"
+    },
+    "averageContextTokens": {
+      "queryCount": 100,
+      "baselineAverageTokens": 1111.6,
+      "optimizedAverageTokens": 598.21,
+      "reduction": "46.18%",
+      "details": [
+        {
+          "id": "ctx-001",
+          "baselineTokens": 1346,
+          "optimizedTokens": 593
+        },
+        {
+          "id": "ctx-002",
+          "baselineTokens": 1346,
+          "optimizedTokens": 606
+        },
+        {
+          "id": "ctx-003",
+          "baselineTokens": 1367,
+          "optimizedTokens": 618
+        },
+        {
+          "id": "ctx-004",
+          "baselineTokens": 1346,
+          "optimizedTokens": 606
+        },
+        {
+          "id": "ctx-005",
+          "baselineTokens": 1303,
+          "optimizedTokens": 585
+        },
+        {
+          "id": "ctx-006",
+          "baselineTokens": 1394,
+          "optimizedTokens": 594
+        },
+        {
+          "id": "ctx-007",
+          "baselineTokens": 1394,
+          "optimizedTokens": 589
+        },
+        {
+          "id": "ctx-008",
+          "baselineTokens": 1320,
+          "optimizedTokens": 581
+        },
+        {
+          "id": "ctx-009",
+          "baselineTokens": 1394,
+          "optimizedTokens": 589
+        },
+        {
+          "id": "ctx-010",
+          "baselineTokens": 1195,
+          "optimizedTokens": 622
+        },
+        {
+          "id": "ctx-011",
+          "baselineTokens": 1161,
+          "optimizedTokens": 558
+        },
+        {
+          "id": "ctx-012",
+          "baselineTokens": 1215,
+          "optimizedTokens": 558
+        },
+        {
+          "id": "ctx-013",
+          "baselineTokens": 1181,
+          "optimizedTokens": 568
+        },
+        {
+          "id": "ctx-014",
+          "baselineTokens": 1177,
+          "optimizedTokens": 558
+        },
+        {
+          "id": "ctx-015",
+          "baselineTokens": 1077,
+          "optimizedTokens": 650
+        },
+        {
+          "id": "ctx-016",
+          "baselineTokens": 1271,
+          "optimizedTokens": 593
+        },
+        {
+          "id": "ctx-017",
+          "baselineTokens": 1134,
+          "optimizedTokens": 563
+        },
+        {
+          "id": "ctx-018",
+          "baselineTokens": 1113,
+          "optimizedTokens": 584
+        },
+        {
+          "id": "ctx-019",
+          "baselineTokens": 1134,
+          "optimizedTokens": 563
+        },
+        {
+          "id": "ctx-020",
+          "baselineTokens": 1124,
+          "optimizedTokens": 608
+        },
+        {
+          "id": "ctx-021",
+          "baselineTokens": 1161,
+          "optimizedTokens": 574
+        },
+        {
+          "id": "ctx-022",
+          "baselineTokens": 1189,
+          "optimizedTokens": 574
+        },
+        {
+          "id": "ctx-023",
+          "baselineTokens": 1149,
+          "optimizedTokens": 614
+        },
+        {
+          "id": "ctx-024",
+          "baselineTokens": 1189,
+          "optimizedTokens": 574
+        },
+        {
+          "id": "ctx-025",
+          "baselineTokens": 1166,
+          "optimizedTokens": 597
+        },
+        {
+          "id": "ctx-026",
+          "baselineTokens": 1131,
+          "optimizedTokens": 613
+        },
+        {
+          "id": "ctx-027",
+          "baselineTokens": 1096,
+          "optimizedTokens": 613
+        },
+        {
+          "id": "ctx-028",
+          "baselineTokens": 1097,
+          "optimizedTokens": 621
+        },
+        {
+          "id": "ctx-029",
+          "baselineTokens": 1096,
+          "optimizedTokens": 613
+        },
+        {
+          "id": "ctx-030",
+          "baselineTokens": 1077,
+          "optimizedTokens": 650
+        },
+        {
+          "id": "ctx-031",
+          "baselineTokens": 1077,
+          "optimizedTokens": 593
+        },
+        {
+          "id": "ctx-032",
+          "baselineTokens": 1077,
+          "optimizedTokens": 593
+        },
+        {
+          "id": "ctx-033",
+          "baselineTokens": 1052,
+          "optimizedTokens": 600
+        },
+        {
+          "id": "ctx-034",
+          "baselineTokens": 1077,
+          "optimizedTokens": 593
+        },
+        {
+          "id": "ctx-035",
+          "baselineTokens": 1039,
+          "optimizedTokens": 595
+        },
+        {
+          "id": "ctx-036",
+          "baselineTokens": 1173,
+          "optimizedTokens": 605
+        },
+        {
+          "id": "ctx-037",
+          "baselineTokens": 1190,
+          "optimizedTokens": 605
+        },
+        {
+          "id": "ctx-038",
+          "baselineTokens": 1156,
+          "optimizedTokens": 600
+        },
+        {
+          "id": "ctx-039",
+          "baselineTokens": 1190,
+          "optimizedTokens": 605
+        },
+        {
+          "id": "ctx-040",
+          "baselineTokens": 1163,
+          "optimizedTokens": 605
+        },
+        {
+          "id": "ctx-041",
+          "baselineTokens": 1125,
+          "optimizedTokens": 592
+        },
+        {
+          "id": "ctx-042",
+          "baselineTokens": 1180,
+          "optimizedTokens": 592
+        },
+        {
+          "id": "ctx-043",
+          "baselineTokens": 1053,
+          "optimizedTokens": 643
+        },
+        {
+          "id": "ctx-044",
+          "baselineTokens": 1141,
+          "optimizedTokens": 592
+        },
+        {
+          "id": "ctx-045",
+          "baselineTokens": 1077,
+          "optimizedTokens": 650
+        },
+        {
+          "id": "ctx-046",
+          "baselineTokens": 1111,
+          "optimizedTokens": 594
+        },
+        {
+          "id": "ctx-047",
+          "baselineTokens": 1111,
+          "optimizedTokens": 592
+        },
+        {
+          "id": "ctx-048",
+          "baselineTokens": 1120,
+          "optimizedTokens": 637
+        },
+        {
+          "id": "ctx-049",
+          "baselineTokens": 1111,
+          "optimizedTokens": 592
+        },
+        {
+          "id": "ctx-050",
+          "baselineTokens": 1150,
+          "optimizedTokens": 591
+        },
+        {
+          "id": "ctx-051",
+          "baselineTokens": 1078,
+          "optimizedTokens": 566
+        },
+        {
+          "id": "ctx-052",
+          "baselineTokens": 1042,
+          "optimizedTokens": 566
+        },
+        {
+          "id": "ctx-053",
+          "baselineTokens": 1078,
+          "optimizedTokens": 613
+        },
+        {
+          "id": "ctx-054",
+          "baselineTokens": 1035,
+          "optimizedTokens": 572
+        },
+        {
+          "id": "ctx-055",
+          "baselineTokens": 1047,
+          "optimizedTokens": 575
+        },
+        {
+          "id": "ctx-056",
+          "baselineTokens": 1094,
+          "optimizedTokens": 566
+        },
+        {
+          "id": "ctx-057",
+          "baselineTokens": 1111,
+          "optimizedTokens": 566
+        },
+        {
+          "id": "ctx-058",
+          "baselineTokens": 1090,
+          "optimizedTokens": 639
+        },
+        {
+          "id": "ctx-059",
+          "baselineTokens": 1111,
+          "optimizedTokens": 572
+        },
+        {
+          "id": "ctx-060",
+          "baselineTokens": 1077,
+          "optimizedTokens": 650
+        },
+        {
+          "id": "ctx-061",
+          "baselineTokens": 1075,
+          "optimizedTokens": 581
+        },
+        {
+          "id": "ctx-062",
+          "baselineTokens": 1098,
+          "optimizedTokens": 581
+        },
+        {
+          "id": "ctx-063",
+          "baselineTokens": 1095,
+          "optimizedTokens": 597
+        },
+        {
+          "id": "ctx-064",
+          "baselineTokens": 1092,
+          "optimizedTokens": 581
+        },
+        {
+          "id": "ctx-065",
+          "baselineTokens": 1103,
+          "optimizedTokens": 598
+        },
+        {
+          "id": "ctx-066",
+          "baselineTokens": 1096,
+          "optimizedTokens": 557
+        },
+        {
+          "id": "ctx-067",
+          "baselineTokens": 1096,
+          "optimizedTokens": 557
+        },
+        {
+          "id": "ctx-068",
+          "baselineTokens": 1081,
+          "optimizedTokens": 557
+        },
+        {
+          "id": "ctx-069",
+          "baselineTokens": 1096,
+          "optimizedTokens": 557
+        },
+        {
+          "id": "ctx-070",
+          "baselineTokens": 1104,
+          "optimizedTokens": 557
+        },
+        {
+          "id": "ctx-071",
+          "baselineTokens": 1092,
+          "optimizedTokens": 645
+        },
+        {
+          "id": "ctx-072",
+          "baselineTokens": 1092,
+          "optimizedTokens": 645
+        },
+        {
+          "id": "ctx-073",
+          "baselineTokens": 1070,
+          "optimizedTokens": 645
+        },
+        {
+          "id": "ctx-074",
+          "baselineTokens": 1092,
+          "optimizedTokens": 691
+        },
+        {
+          "id": "ctx-075",
+          "baselineTokens": 1077,
+          "optimizedTokens": 650
+        },
+        {
+          "id": "ctx-076",
+          "baselineTokens": 1070,
+          "optimizedTokens": 638
+        },
+        {
+          "id": "ctx-077",
+          "baselineTokens": 1071,
+          "optimizedTokens": 651
+        },
+        {
+          "id": "ctx-078",
+          "baselineTokens": 1070,
+          "optimizedTokens": 637
+        },
+        {
+          "id": "ctx-079",
+          "baselineTokens": 1071,
+          "optimizedTokens": 651
+        },
+        {
+          "id": "ctx-080",
+          "baselineTokens": 1124,
+          "optimizedTokens": 633
+        },
+        {
+          "id": "ctx-081",
+          "baselineTokens": 1005,
+          "optimizedTokens": 571
+        },
+        {
+          "id": "ctx-082",
+          "baselineTokens": 1005,
+          "optimizedTokens": 571
+        },
+        {
+          "id": "ctx-083",
+          "baselineTokens": 1002,
+          "optimizedTokens": 571
+        },
+        {
+          "id": "ctx-084",
+          "baselineTokens": 1005,
+          "optimizedTokens": 571
+        },
+        {
+          "id": "ctx-085",
+          "baselineTokens": 1070,
+          "optimizedTokens": 578
+        },
+        {
+          "id": "ctx-086",
+          "baselineTokens": 1041,
+          "optimizedTokens": 571
+        },
+        {
+          "id": "ctx-087",
+          "baselineTokens": 1041,
+          "optimizedTokens": 571
+        },
+        {
+          "id": "ctx-088",
+          "baselineTokens": 1041,
+          "optimizedTokens": 602
+        },
+        {
+          "id": "ctx-089",
+          "baselineTokens": 1041,
+          "optimizedTokens": 571
+        },
+        {
+          "id": "ctx-090",
+          "baselineTokens": 1077,
+          "optimizedTokens": 650
+        },
+        {
+          "id": "ctx-091",
+          "baselineTokens": 977,
+          "optimizedTokens": 617
+        },
+        {
+          "id": "ctx-092",
+          "baselineTokens": 983,
+          "optimizedTokens": 617
+        },
+        {
+          "id": "ctx-093",
+          "baselineTokens": 977,
+          "optimizedTokens": 627
+        },
+        {
+          "id": "ctx-094",
+          "baselineTokens": 983,
+          "optimizedTokens": 617
+        },
+        {
+          "id": "ctx-095",
+          "baselineTokens": 1028,
+          "optimizedTokens": 620
+        },
+        {
+          "id": "ctx-096",
+          "baselineTokens": 908,
+          "optimizedTokens": 570
+        },
+        {
+          "id": "ctx-097",
+          "baselineTokens": 908,
+          "optimizedTokens": 570
+        },
+        {
+          "id": "ctx-098",
+          "baselineTokens": 893,
+          "optimizedTokens": 592
+        },
+        {
+          "id": "ctx-099",
+          "baselineTokens": 908,
+          "optimizedTokens": 570
+        },
+        {
+          "id": "ctx-100",
+          "baselineTokens": 1023,
+          "optimizedTokens": 602
+        }
+      ]
+    }
+  }
+}

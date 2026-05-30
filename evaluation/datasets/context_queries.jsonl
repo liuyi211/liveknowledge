@@ -1,0 +1,100 @@
+{"id":"ctx-001","query":"How does RAG Query Rewrite work in LiveKnowledge?","goldSourceIds":["rag-query-rewrite"]}
+{"id":"ctx-002","query":"What problem does RAG Query Rewrite solve?","goldSourceIds":["rag-query-rewrite"]}
+{"id":"ctx-003","query":"Which metadata or state is important for RAG Query Rewrite?","goldSourceIds":["rag-query-rewrite"]}
+{"id":"ctx-004","query":"When should the system use RAG Query Rewrite?","goldSourceIds":["rag-query-rewrite"]}
+{"id":"ctx-005","query":"How is RAG Query Rewrite connected to the learning loop?","goldSourceIds":["rag-query-rewrite"]}
+{"id":"ctx-006","query":"How does HyDE Retrieval work in LiveKnowledge?","goldSourceIds":["rag-hyde"]}
+{"id":"ctx-007","query":"What problem does HyDE Retrieval solve?","goldSourceIds":["rag-hyde"]}
+{"id":"ctx-008","query":"Which metadata or state is important for HyDE Retrieval?","goldSourceIds":["rag-hyde"]}
+{"id":"ctx-009","query":"When should the system use HyDE Retrieval?","goldSourceIds":["rag-hyde"]}
+{"id":"ctx-010","query":"How is HyDE Retrieval connected to the learning loop?","goldSourceIds":["rag-hyde"]}
+{"id":"ctx-011","query":"How does Reciprocal Rank Fusion work in LiveKnowledge?","goldSourceIds":["rag-rrf"]}
+{"id":"ctx-012","query":"What problem does Reciprocal Rank Fusion solve?","goldSourceIds":["rag-rrf"]}
+{"id":"ctx-013","query":"Which metadata or state is important for Reciprocal Rank Fusion?","goldSourceIds":["rag-rrf"]}
+{"id":"ctx-014","query":"When should the system use Reciprocal Rank Fusion?","goldSourceIds":["rag-rrf"]}
+{"id":"ctx-015","query":"How does this feature work in the learning system?","goldSourceIds":["rag-rrf"]}
+{"id":"ctx-016","query":"How does RAG Rerank work in LiveKnowledge?","goldSourceIds":["rag-rerank"]}
+{"id":"ctx-017","query":"What problem does RAG Rerank solve?","goldSourceIds":["rag-rerank"]}
+{"id":"ctx-018","query":"Which metadata or state is important for RAG Rerank?","goldSourceIds":["rag-rerank"]}
+{"id":"ctx-019","query":"When should the system use RAG Rerank?","goldSourceIds":["rag-rerank"]}
+{"id":"ctx-020","query":"How is RAG Rerank connected to the learning loop?","goldSourceIds":["rag-rerank"]}
+{"id":"ctx-021","query":"How does pgvector Indexing work in LiveKnowledge?","goldSourceIds":["vector-pgvector"]}
+{"id":"ctx-022","query":"What problem does pgvector Indexing solve?","goldSourceIds":["vector-pgvector"]}
+{"id":"ctx-023","query":"Which metadata or state is important for pgvector Indexing?","goldSourceIds":["vector-pgvector"]}
+{"id":"ctx-024","query":"When should the system use pgvector Indexing?","goldSourceIds":["vector-pgvector"]}
+{"id":"ctx-025","query":"How is pgvector Indexing connected to the learning loop?","goldSourceIds":["vector-pgvector"]}
+{"id":"ctx-026","query":"How does PostgreSQL Full Text Search work in LiveKnowledge?","goldSourceIds":["fulltext-postgres"]}
+{"id":"ctx-027","query":"What problem does PostgreSQL Full Text Search solve?","goldSourceIds":["fulltext-postgres"]}
+{"id":"ctx-028","query":"Which metadata or state is important for PostgreSQL Full Text Search?","goldSourceIds":["fulltext-postgres"]}
+{"id":"ctx-029","query":"When should the system use PostgreSQL Full Text Search?","goldSourceIds":["fulltext-postgres"]}
+{"id":"ctx-030","query":"How does this feature work in the learning system?","goldSourceIds":["fulltext-postgres"]}
+{"id":"ctx-031","query":"How does Neo4j Graph Retrieval work in LiveKnowledge?","goldSourceIds":["graph-neo4j"]}
+{"id":"ctx-032","query":"What problem does Neo4j Graph Retrieval solve?","goldSourceIds":["graph-neo4j"]}
+{"id":"ctx-033","query":"Which metadata or state is important for Neo4j Graph Retrieval?","goldSourceIds":["graph-neo4j"]}
+{"id":"ctx-034","query":"When should the system use Neo4j Graph Retrieval?","goldSourceIds":["graph-neo4j"]}
+{"id":"ctx-035","query":"How is Neo4j Graph Retrieval connected to the learning loop?","goldSourceIds":["graph-neo4j"]}
+{"id":"ctx-036","query":"How does RAG Context Budget work in LiveKnowledge?","goldSourceIds":["context-budget"]}
+{"id":"ctx-037","query":"What problem does RAG Context Budget solve?","goldSourceIds":["context-budget"]}
+{"id":"ctx-038","query":"Which metadata or state is important for RAG Context Budget?","goldSourceIds":["context-budget"]}
+{"id":"ctx-039","query":"When should the system use RAG Context Budget?","goldSourceIds":["context-budget"]}
+{"id":"ctx-040","query":"How is RAG Context Budget connected to the learning loop?","goldSourceIds":["context-budget"]}
+{"id":"ctx-041","query":"How does Structure Aware Chunking work in LiveKnowledge?","goldSourceIds":["chunking-markdown"]}
+{"id":"ctx-042","query":"What problem does Structure Aware Chunking solve?","goldSourceIds":["chunking-markdown"]}
+{"id":"ctx-043","query":"Which metadata or state is important for Structure Aware Chunking?","goldSourceIds":["chunking-markdown"]}
+{"id":"ctx-044","query":"When should the system use Structure Aware Chunking?","goldSourceIds":["chunking-markdown"]}
+{"id":"ctx-045","query":"How does this feature work in the learning system?","goldSourceIds":["chunking-markdown"]}
+{"id":"ctx-046","query":"How does Incremental Indexing work in LiveKnowledge?","goldSourceIds":["incremental-index"]}
+{"id":"ctx-047","query":"What problem does Incremental Indexing solve?","goldSourceIds":["incremental-index"]}
+{"id":"ctx-048","query":"Which metadata or state is important for Incremental Indexing?","goldSourceIds":["incremental-index"]}
+{"id":"ctx-049","query":"When should the system use Incremental Indexing?","goldSourceIds":["incremental-index"]}
+{"id":"ctx-050","query":"How is Incremental Indexing connected to the learning loop?","goldSourceIds":["incremental-index"]}
+{"id":"ctx-051","query":"How does Batch Embedding work in LiveKnowledge?","goldSourceIds":["embedding-batch"]}
+{"id":"ctx-052","query":"What problem does Batch Embedding solve?","goldSourceIds":["embedding-batch"]}
+{"id":"ctx-053","query":"Which metadata or state is important for Batch Embedding?","goldSourceIds":["embedding-batch"]}
+{"id":"ctx-054","query":"When should the system use Batch Embedding?","goldSourceIds":["embedding-batch"]}
+{"id":"ctx-055","query":"How is Batch Embedding connected to the learning loop?","goldSourceIds":["embedding-batch"]}
+{"id":"ctx-056","query":"How does AI Provider Abstraction work in LiveKnowledge?","goldSourceIds":["ai-provider"]}
+{"id":"ctx-057","query":"What problem does AI Provider Abstraction solve?","goldSourceIds":["ai-provider"]}
+{"id":"ctx-058","query":"Which metadata or state is important for AI Provider Abstraction?","goldSourceIds":["ai-provider"]}
+{"id":"ctx-059","query":"When should the system use AI Provider Abstraction?","goldSourceIds":["ai-provider"]}
+{"id":"ctx-060","query":"How does this feature work in the learning system?","goldSourceIds":["ai-provider"]}
+{"id":"ctx-061","query":"How does SSE Streaming Chat work in LiveKnowledge?","goldSourceIds":["sse-chat"]}
+{"id":"ctx-062","query":"What problem does SSE Streaming Chat solve?","goldSourceIds":["sse-chat"]}
+{"id":"ctx-063","query":"Which metadata or state is important for SSE Streaming Chat?","goldSourceIds":["sse-chat"]}
+{"id":"ctx-064","query":"When should the system use SSE Streaming Chat?","goldSourceIds":["sse-chat"]}
+{"id":"ctx-065","query":"How is SSE Streaming Chat connected to the learning loop?","goldSourceIds":["sse-chat"]}
+{"id":"ctx-066","query":"How does Persona Prompt System work in LiveKnowledge?","goldSourceIds":["persona-system"]}
+{"id":"ctx-067","query":"What problem does Persona Prompt System solve?","goldSourceIds":["persona-system"]}
+{"id":"ctx-068","query":"Which metadata or state is important for Persona Prompt System?","goldSourceIds":["persona-system"]}
+{"id":"ctx-069","query":"When should the system use Persona Prompt System?","goldSourceIds":["persona-system"]}
+{"id":"ctx-070","query":"How is Persona Prompt System connected to the learning loop?","goldSourceIds":["persona-system"]}
+{"id":"ctx-071","query":"How does Cognitive Profile work in LiveKnowledge?","goldSourceIds":["cognitive-profile"]}
+{"id":"ctx-072","query":"What problem does Cognitive Profile solve?","goldSourceIds":["cognitive-profile"]}
+{"id":"ctx-073","query":"Which metadata or state is important for Cognitive Profile?","goldSourceIds":["cognitive-profile"]}
+{"id":"ctx-074","query":"When should the system use Cognitive Profile?","goldSourceIds":["cognitive-profile"]}
+{"id":"ctx-075","query":"How does this feature work in the learning system?","goldSourceIds":["cognitive-profile"]}
+{"id":"ctx-076","query":"How does Knowledge Extraction Job work in LiveKnowledge?","goldSourceIds":["extraction-job"]}
+{"id":"ctx-077","query":"What problem does Knowledge Extraction Job solve?","goldSourceIds":["extraction-job"]}
+{"id":"ctx-078","query":"Which metadata or state is important for Knowledge Extraction Job?","goldSourceIds":["extraction-job"]}
+{"id":"ctx-079","query":"When should the system use Knowledge Extraction Job?","goldSourceIds":["extraction-job"]}
+{"id":"ctx-080","query":"How is Knowledge Extraction Job connected to the learning loop?","goldSourceIds":["extraction-job"]}
+{"id":"ctx-081","query":"How does Flashcard Generation work in LiveKnowledge?","goldSourceIds":["card-generation"]}
+{"id":"ctx-082","query":"What problem does Flashcard Generation solve?","goldSourceIds":["card-generation"]}
+{"id":"ctx-083","query":"Which metadata or state is important for Flashcard Generation?","goldSourceIds":["card-generation"]}
+{"id":"ctx-084","query":"When should the system use Flashcard Generation?","goldSourceIds":["card-generation"]}
+{"id":"ctx-085","query":"How is Flashcard Generation connected to the learning loop?","goldSourceIds":["card-generation"]}
+{"id":"ctx-086","query":"How does SSP-MMC Half Life Review work in LiveKnowledge?","goldSourceIds":["sspmc-half-life"]}
+{"id":"ctx-087","query":"What problem does SSP-MMC Half Life Review solve?","goldSourceIds":["sspmc-half-life"]}
+{"id":"ctx-088","query":"Which metadata or state is important for SSP-MMC Half Life Review?","goldSourceIds":["sspmc-half-life"]}
+{"id":"ctx-089","query":"When should the system use SSP-MMC Half Life Review?","goldSourceIds":["sspmc-half-life"]}
+{"id":"ctx-090","query":"How does this feature work in the learning system?","goldSourceIds":["sspmc-half-life"]}
+{"id":"ctx-091","query":"How does Review Queue API work in LiveKnowledge?","goldSourceIds":["review-queue"]}
+{"id":"ctx-092","query":"What problem does Review Queue API solve?","goldSourceIds":["review-queue"]}
+{"id":"ctx-093","query":"Which metadata or state is important for Review Queue API?","goldSourceIds":["review-queue"]}
+{"id":"ctx-094","query":"When should the system use Review Queue API?","goldSourceIds":["review-queue"]}
+{"id":"ctx-095","query":"How is Review Queue API connected to the learning loop?","goldSourceIds":["review-queue"]}
+{"id":"ctx-096","query":"How does Notes Editor work in LiveKnowledge?","goldSourceIds":["notes-editor"]}
+{"id":"ctx-097","query":"What problem does Notes Editor solve?","goldSourceIds":["notes-editor"]}
+{"id":"ctx-098","query":"Which metadata or state is important for Notes Editor?","goldSourceIds":["notes-editor"]}
+{"id":"ctx-099","query":"When should the system use Notes Editor?","goldSourceIds":["notes-editor"]}
+{"id":"ctx-100","query":"How is Notes Editor connected to the learning loop?","goldSourceIds":["notes-editor"]}
